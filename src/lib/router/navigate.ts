@@ -16,6 +16,19 @@ export async function hydrate(core: Core) {
 
   core.reset()
 
+  if (path.startsWith('/quest-')) {
+    const id = parseInt(path.substring(7))
+    if (!isNaN(id)) {
+      core.mutateWs((ws) => {
+        ws.page = 'quest'
+        ws.quest.id = id
+      })
+      return
+    }
+  }
+
+  // Fallback
+
   core.mutateWs((ws) => {
     ws.page = 'debug'
     ws.ui.debugTest = path

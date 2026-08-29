@@ -6,5 +6,8 @@ export function createDefaultCoreState(): CoreState {
     ui: {
       debugTest: 'uninit',
     },
+    quest: {
+      id: -1,
+    },
   }
 }
