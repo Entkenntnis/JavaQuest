@@ -17,6 +17,7 @@ export async function hydrate(core: Core) {
   core.reset()
 
   core.mutateWs((ws) => {
-    ws.page = path
+    ws.page = 'debug'
+    ws.ui.debugTest = path
   })
 }

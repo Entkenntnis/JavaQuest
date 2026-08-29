@@ -30,9 +30,12 @@ export function App() {
     }
   }, [core])
 
-  return (
-    <CoreProvider value={core}>
-      <Debug />
-    </CoreProvider>
-  )
+  return <CoreProvider value={core}>{renderPage()}</CoreProvider>
+
+  function renderPage() {
+    if (core.ws.page == 'debug') {
+      return <Debug />
+    }
+    return null
+  }
 }
