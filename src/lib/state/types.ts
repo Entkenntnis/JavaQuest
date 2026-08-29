@@ -17,3 +17,8 @@ export interface CoreRef {
 }
 
 type Page = 'debug' | 'quest'
+
+export interface QuestData {
+  id: number
+  code: string
+}

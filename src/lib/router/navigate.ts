@@ -1,3 +1,4 @@
+import { questsData } from '../data/questsData'
 import type { Core } from '../state/core'
 
 export async function navigate(core: Core, url: string) {
@@ -18,7 +19,8 @@ export async function hydrate(core: Core) {
 
   if (path.startsWith('/quest-')) {
     const id = parseInt(path.substring(7))
-    if (!isNaN(id)) {
+    const data = questsData[id]
+    if (data) {
       core.mutateWs((ws) => {
         ws.page = 'quest'
         ws.quest.id = id
