@@ -1,3 +1,4 @@
-console.log("hi");
+import { createRoot } from 'react-dom/client'
+import { App } from '../src/components/App'
 
-console.log("hi");
+createRoot(document.getElementById('root')!).render(<App />)
