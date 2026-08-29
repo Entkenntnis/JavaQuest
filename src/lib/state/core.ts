@@ -48,13 +48,13 @@ export class Core {
   }
 
   // async-safe way to access core state
-  get state() {
+  get ws() {
     return this._coreRef.current.state
   }
 
   // always mutate core state with this function
-  mutateState(updater: (draft: Draft<CoreState>) => void) {
-    const newState = produce(this.state, updater)
+  mutateWs(updater: (draft: Draft<CoreState>) => void) {
+    const newState = produce(this._coreRef.current.state, updater)
     this._coreRef.current.state = newState
     this._setCoreState(newState)
   }
