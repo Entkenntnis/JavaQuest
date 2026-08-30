@@ -2,6 +2,7 @@ import { EditorState, StateEffect, StateField } from '@codemirror/state'
 import {
   Decoration,
   EditorView,
+  lineNumbers,
   WidgetType,
   type DecorationSet,
 } from '@codemirror/view'
@@ -31,6 +32,7 @@ export function CodeSnippet() {
           EditorState.readOnly.of(true),
           syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
           java(),
+          lineNumbers(),
           placeholderField,
         ],
       }),
@@ -53,8 +55,7 @@ export function CodeSnippet() {
     <div className="w-full h-full flex justify-center items-center">
       <div
         ref={editorDiv}
-        className="bg-white text-xl rounded-lg border-2 border-indigo-200"
-        style={{ fontFamily: 'Hack, monospace' }}
+        className="bg-white text-xl rounded-lg border-2 border-indigo-200 overflow-hidden font-mono"
       />
     </div>
   )
@@ -94,12 +95,15 @@ class PlaceholderWidget extends WidgetType {
   toDOM(): HTMLElement {
     const span = document.createElement('span')
     span.textContent = '???'
-    span.style.color = '#999'
-    span.style.fontStyle = 'italic'
-    span.style.paddingLeft = '24px'
-    span.style.paddingRight = '24px'
-    span.style.backgroundColor = '#333'
-    span.style.userSelect = 'none'
+    span.classList.add(
+      'px-6',
+      'bg-gray-300',
+      'italic',
+      'border-2',
+      'border-pink-300',
+      'rounded',
+      'select-none',
+    )
     return span
   }
 }

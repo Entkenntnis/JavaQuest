@@ -11,7 +11,7 @@ export function Quest() {
   const quest = questsData[core.ws.quest.id]
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 bg-pink-500 flex min-h-0">
+      <div className="flex-1 flex min-h-0">
         <div className="flex-1 bg-yellow-100 min-w-0 relative">
           <CodeSnippet />
           <a
@@ -24,11 +24,13 @@ export function Quest() {
           >
             <FaIcon icon={faArrowLeft} />
           </a>
-          <div className="absolute top-3.5 left-16">
+          <div className="absolute top-3.5 left-16 right-4 text-center hidden">
             <div className="text-lg">{quest.title}</div>
           </div>
         </div>
-        <div className="shrink-0 w-[200px]">Erhalte Hilfe Hier</div>
+        <div className="shrink-0 w-[300px] bg-white border text-center pt-4">
+          SupportArea
+        </div>
       </div>
       <div className="shrink-0 ">
         <InputBar />

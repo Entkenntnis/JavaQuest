@@ -9,8 +9,8 @@ export function Overview() {
   const core = useCore()
 
   return (
-    <div className="">
-      <h1 className="mb-6 text-xl ml-4 mt-4">JavaQuest</h1>
+    <div className="w-[600px] mx-auto bg-gray-50 pb-12">
+      <h1 className="mb-6 text-xl pl-4 pt-4">JavaQuest</h1>
       {questsList.map((quest) => {
         const path = `/quest-${quest.id}`
         return (
