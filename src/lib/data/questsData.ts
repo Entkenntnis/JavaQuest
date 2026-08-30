@@ -38,7 +38,7 @@ class Vorzeichen {
     title: 'LevelUp',
     code: `
 class LevelUp {
-    // Aufstieg bei 120 oder mehr XP möglich
+    // Aufstieg bei 120 oder mehr XP
     void kannAufsteigen(int xp) {
         if (___placeholder___) {
             System.out.println("LevelUp möglich!");
@@ -59,6 +59,38 @@ class Passwort {
             System.exit();
         }
         System.out.println("Zugang gewährt");
+    }
+}
+    `.trim(),
+  },
+  5: {
+    id: 5,
+    title: 'Altersfreigabe',
+    code: `
+class Altersfreigabe {
+    void prüfeAlter(int alter) {
+        if (___placeholder___) {
+            System.out.println("Volljährig");
+        } else {
+            System.out.println("Minderjährig");
+        }
+    }
+}
+    `.trim(),
+  },
+  6: {
+    id: 6,
+    title: 'Zahlenvergleich',
+    code: `
+class Zahlenvergleich {
+    void größer(int a, int b) {
+        if (a > b) {
+            System.out.println("a ist größer");
+        } else if (___placeholder___) {
+            System.out.println("b ist größer"); 
+        } else {
+            System.out.println("gleich");
+        }
     }
 }
     `.trim(),

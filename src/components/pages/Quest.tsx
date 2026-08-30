@@ -32,7 +32,7 @@ export function Quest() {
           SupportArea
         </div>
       </div>
-      <div className="shrink-0 ">
+      <div className="shrink-0">
         <InputBar />
       </div>
     </div>
