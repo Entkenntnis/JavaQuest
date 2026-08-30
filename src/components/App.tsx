@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { CoreProvider, useCreateCore } from '../lib/state/core'
-import { Debug } from './pages/Debug'
 import { hydrate, navigate } from '../lib/router/navigate'
 import { Quest } from './pages/Quest'
+import { Overview } from './pages/Overview'
 
 export function App() {
   const core = useCreateCore()
@@ -36,8 +36,8 @@ export function App() {
   function renderPage() {
     if (core.ws.page == 'quest') {
       return <Quest />
-    } else if (core.ws.page == 'debug') {
-      return <Debug />
+    } else if (core.ws.page == 'overview') {
+      return <Overview />
     }
     return null
   }

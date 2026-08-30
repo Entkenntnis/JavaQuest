@@ -29,10 +29,9 @@ export async function hydrate(core: Core) {
     }
   }
 
-  // Fallback
+  // Fallback to Overview
 
   core.mutateWs((ws) => {
-    ws.page = 'debug'
-    ws.ui.debugTest = path
+    ws.page = 'overview'
   })
 }

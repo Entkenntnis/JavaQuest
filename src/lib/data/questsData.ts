@@ -9,6 +9,6 @@ export const questsData: { [key: number]: QuestData } = {
   2: {
     id: 2,
     title: 'Ich-weiß-nicht',
-    code: 'public class Program {}',
+    code: 'public class Program { ___placeholder___ }',
   },
 }

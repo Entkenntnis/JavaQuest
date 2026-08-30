@@ -5,7 +5,7 @@ export interface CoreState {
 }
 
 interface Ui {
-  debugTest: string
+  placeholder: string
 }
 
 interface Quest {
@@ -16,7 +16,7 @@ export interface CoreRef {
   state: CoreState
 }
 
-type Page = 'debug' | 'quest'
+type Page = 'quest' | 'overview'
 
 export interface QuestData {
   id: number
