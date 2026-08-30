@@ -20,5 +20,6 @@ type Page = 'debug' | 'quest'
 
 export interface QuestData {
   id: number
+  title: string
   code: string
 }

@@ -53,7 +53,7 @@ export function CodeSnippet() {
     <div className="w-full h-full flex justify-center items-center">
       <div
         ref={editorDiv}
-        className="bg-white text-xl rounded-lg"
+        className="bg-white text-xl rounded-lg border-2 border-emerald-200"
         style={{ fontFamily: 'Hack, monospace' }}
       />
     </div>

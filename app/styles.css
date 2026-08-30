@@ -7,3 +7,10 @@ html,
 #root {
   height: 100%;
 }
+
+.fa-icon {
+  display: inline-block;
+  overflow: visible;
+  height: 1em;
+  vertical-align: -0.125em;
+}
