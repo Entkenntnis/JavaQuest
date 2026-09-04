@@ -1,0 +1,58 @@
+@top Expression { literal }
+
+literal {
+  IntegerLiteral |
+  FloatingPointLiteral |
+  @specialize[@name=BooleanLiteral]<identifier, "true" | "false"> |
+  CharacterLiteral |
+  StringLiteral |
+  kw<"null">
+}
+
+kw<term> { @specialize[@name={term}]<identifier, term> }
+
+@skip { whitespace }
+
+@tokens {
+  whitespace { @whitespace+ }
+
+  digits { $[0-9]+ ("_"+ $[0-9]+)* }
+
+  hexDigits { $[A-Fa-f0-9]+ ("_" $[A-Fa-f0-9]+)* }
+
+  IntegerLiteral {
+    (digits |
+     ("0x" | "0X") hexDigits |
+     ("0o" | "0O") $[0-7]+ ("_" $[0-7]+)* |
+     ("0b" | "0B") $[01]+ ("_" $[01]+)*)
+    ("l" | "L")?
+  }
+
+  exponent { $[eE] ("-" | "+")? digits }
+
+  hexExponent { $[pP] ("-" | "+")? digits }
+
+  floatSuffix { $[fFdD] }
+
+  FloatingPointLiteral {
+    digits ("." digits? exponent? floatSuffix? | exponent floatSuffix? | floatSuffix) |
+    "." digits exponent? floatSuffix? |
+    ("0x" | "0X") (hexDigits ("." hexDigits?)? | "." hexDigits) hexExponent floatSuffix?
+  }
+
+  @precedence { FloatingPointLiteral, IntegerLiteral }
+
+  CharacterLiteral[isolate] {
+    "'" (![\\'\n] | "\\" ("'" | "\\" | ![\n\\']+)) "'"
+  }
+
+  StringLiteral[isolate] {
+    "\"" (![\\"\n] | "\\" (![\n] | "\n"))* "\""
+  }
+
+  identifierChar { @asciiLetter | @digit | $[$_\u{a1}-\u{10ffff}] }
+
+  identifier { $[a-z_$\u{a1}-\u{10ffff}] identifierChar* }
+
+  @precedence { whitespace, identifier }
+}

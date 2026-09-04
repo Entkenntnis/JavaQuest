@@ -14,7 +14,7 @@ export function Overview() {
       {questsList.map((quest) => {
         const path = `/quest-${quest.id}`
         return (
-          <div className="ml-4 my-6">
+          <div className="ml-4 my-6" key={quest.id}>
             [{quest.id}] {quest.title}{' '}
             <a
               href={path}

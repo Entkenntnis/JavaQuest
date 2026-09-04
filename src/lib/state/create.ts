@@ -4,7 +4,8 @@ export function createDefaultCoreState(): CoreState {
   return {
     page: 'overview',
     ui: {
-      placeholder: '42',
+      testInput: '',
+      testCst: undefined,
     },
     quest: {
       id: -1,

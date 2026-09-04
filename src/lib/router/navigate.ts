@@ -29,6 +29,13 @@ export async function hydrate(core: Core) {
     }
   }
 
+  if (path.startsWith('/test')) {
+    core.mutateWs((ws) => {
+      ws.page = 'test'
+    })
+    return
+  }
+
   // Fallback to Overview
 
   core.mutateWs((ws) => {

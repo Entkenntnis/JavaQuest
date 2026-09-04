@@ -3,6 +3,7 @@ import { CoreProvider, useCreateCore } from '../lib/state/core'
 import { hydrate, navigate } from '../lib/router/navigate'
 import { Quest } from './pages/Quest'
 import { Overview } from './pages/Overview'
+import { Test } from './pages/Test'
 
 export function App() {
   const core = useCreateCore()
@@ -38,6 +39,8 @@ export function App() {
       return <Quest />
     } else if (core.ws.page == 'overview') {
       return <Overview />
+    } else if (core.ws.page == 'test') {
+      return <Test />
     }
     return null
   }

@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "start": "vite preview"
+    "start": "vite preview",
+    "grammar": "lezer-generator ./src/lib/java/parser/java.grammar -o ./src/lib/java/parser/parser.js"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
@@ -28,6 +29,8 @@
     "@codemirror/view": "^6.43.9",
     "@fortawesome/free-regular-svg-icons": "^7.3.1",
     "@fortawesome/free-solid-svg-icons": "^7.3.1",
+    "@lezer/common": "^1.5.2",
+    "@lezer/generator": "^1.8.0",
     "clsx": "^2.1.1",
     "immer": "^11.1.18",
     "react": "^19.2.8",
