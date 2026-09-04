@@ -57,9 +57,11 @@ export function Test() {
         )}
       </div>
       {core.ws.ui.testAst && (
-        <div className="mt-6 bg-violet-400 p-3">
+        <div className="mt-6 bg-violet-200 p-3">
           <h2>Abstract Syntax Tree</h2>
-          <pre>{JSON.stringify(core.ws.ui.testCst)}</pre>
+          <pre className="mt-4">
+            {JSON.stringify(core.ws.ui.testAst, null, 2)}
+          </pre>
         </div>
       )}
       {core.ws.ui.testError && (

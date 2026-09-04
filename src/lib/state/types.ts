@@ -66,7 +66,7 @@ export interface JavaDoubleValue {
 
 export interface JavaLongValue {
   type: 'long'
-  value: BigInt
+  value: string // from bigint
 }
 
 export interface JavaStringValue {
