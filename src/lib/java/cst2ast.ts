@@ -35,16 +35,18 @@ export function cst2ast(node: CstNode): AstNode {
     }
     return cst2ast(node.children[0])
   } else if (node.name == 'UnaryExpression') {
-    // TODO: this part of the code is really fragile and needs some more polish
-    // a lot of sanity checks are missing
-    // grammar will allow anything, make this more sane in a moment
-    const [op, operand] = node.children
-    if (operand.name == 'IntegerLiteral') {
-      return {
-        kind: 'literal',
-        value: parseIntegerLiteral(node, op.text == '-'),
+    const [opNode, operand] = node.children
+    const op = opNode.text
+    if (op == '+' || op == '-') {
+      if (operand.name == 'IntegerLiteral') {
+        return {
+          kind: 'literal',
+          value: parseIntegerLiteral(operand, op == '-'),
+        }
       }
+      return { kind: 'unary', op, operand: cst2ast(operand) }
     }
+    throw conversionError(node, 'unknown unary operator')
   } else if (node.name == 'IntegerLiteral') {
     return { kind: 'literal', value: parseIntegerLiteral(node) }
   } else if (node.name == 'FloatingPointLiteral') {
@@ -136,6 +138,20 @@ function parseIntegerLiteral(
   return { type: 'int', value: Number(signed) }
 }
 
+function isZeroLiteralText(body: string) {
+  let significand: string
+  if (/^0[xX]/.test(body)) {
+    const pIndex = body.search(/[pP]/)
+    significand = (pIndex == -1 ? body : body.slice(0, pIndex)).replace(
+      /^0[xX]/,
+      '',
+    )
+  } else {
+    significand = body.split(/[eE]/)[0]
+  }
+  return significand.replace(/[._]/g, '').replace(/^0+/, '') === ''
+}
+
 function parseFloatingPointLiteral(
   node: CstNode,
 ): JavaFloatValue | JavaDoubleValue {
@@ -144,18 +160,71 @@ function parseFloatingPointLiteral(
   const body = /[fFdD]$/.test(raw) ? raw.slice(0, -1) : raw
   const isHex = body.startsWith('0x') || body.startsWith('0X')
   const value = isHex ? parseHexFloat(body) : Number(body.replace(/_/g, ''))
+  const isZero = isZeroLiteralText(body)
 
   if (isFloat) {
     const rounded = Math.fround(value)
     if (!Number.isFinite(rounded)) {
       throw conversionError(node, 'floating literal is too large for a float')
     }
+    if (rounded == 0 && !isZero) {
+      throw conversionError(node, 'floating literal is too small for a float')
+    }
     return { type: 'float', value: rounded }
   }
   if (!Number.isFinite(value)) {
     throw conversionError(node, 'floating literal is too large for a double')
   }
+  if (value == 0 && !isZero) {
+    throw conversionError(node, 'floating literal is too small for a double')
+  }
   return { type: 'double', value }
+}
+
+// some really convoluted thing, but seems to be necessary
+// = m * 2^p
+// [AI generated]
+function doubleFromMantissa(m: bigint, p: number) {
+  if (m === 0n) return 0
+  const bits = m.toString(2).length
+  const exp = p + bits - 1
+  if (exp >= 1024) return Infinity
+
+  if (exp >= -1022) {
+    // normal range: round to 53 significant bits, half to even
+    const drop = bits - 53
+    if (drop <= 0) {
+      return Number(m << BigInt(-drop)) * 2 ** (exp - 52)
+    }
+    const shift = BigInt(drop)
+    const q = m >> shift
+    const r = m & ((1n << shift) - 1n)
+    const half = 1n << (shift - 1n)
+    let rounded = r > half ? q + 1n : r < half ? q : q % 2n == 0n ? q : q + 1n
+    if (rounded >= 1n << 53n) {
+      if (exp == 1023) return Infinity
+      rounded >>= 1n
+      return Number(rounded) * 2 ** (exp + 1 - 52)
+    }
+    return Number(rounded) * 2 ** (exp - 52)
+  }
+
+  // subnormal /zero, result is an integer multiple of 2^-1074
+  const t = p + 1074
+  let i: bigint
+  if (t >= 0) {
+    i = m << BigInt(t)
+  } else {
+    const shift = BigInt(-t)
+    if (shift > bits + 1) return 0
+    const q = m >> shift
+    const r = m & ((1n << shift) - 1n)
+    const half = 1n << (shift - 1n)
+    i = r > half ? q + 1n : r < half ? q : q % 2n == 0n ? q : q + 1n
+  }
+  if (i >= 1n << 52n) return 2 ** -1022
+  if (i == 0n) return 0
+  return Number(i) * 2 ** -1074
 }
 
 // damn, what a rare and exotic feature
@@ -176,20 +245,8 @@ function parseHexFloat(body: string): number {
   if (integerPart.length + fractionPart.length == 0) {
     throw 'internal system error: no mantissa digits'
   }
-
-  let mantissa = (integerPart + fractionPart).replace(/^0+/, '') || '0'
-  let power = exponent - 4 * fractionPart.length
-  let length = mantissa.length
-  while (length > 1 && mantissa[length - 1] === '0') {
-    length -= 1
-    power += 4
-  }
-  mantissa = mantissa.slice(0, length)
-  if (mantissa === '0') return 0
-  // BEWARE, there are some extremely rare cases where this code
-  // will differ from java parser and drift, e.g. 0x1.8p-1074
-  // Accept this for now
-  return Number(BigInt('0x' + mantissa)) * 2 ** power
+  const m = BigInt('0x' + integerPart + fractionPart)
+  return doubleFromMantissa(m, exponent - 4 * fractionPart.length)
 }
 
 const simpleEscapes: Record<string, number> = {

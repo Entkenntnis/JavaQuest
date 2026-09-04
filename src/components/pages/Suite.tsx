@@ -40,7 +40,7 @@ export function Suite() {
     <div className="mx-6 mb-32 mt-6">
       <h1 className="text-lg mb-8">Test-Suite</h1>
       <p className="mb-6">
-        Insgesamt {testSuite.length},{' '}
+        Insgesamt {testSuite.length}:{' '}
         <span className="text-green-600">{passed} erfolgreich</span> /{' '}
         <span className="text-red-600">
           {testSuite.length - passed} gescheitert

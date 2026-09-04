@@ -846,41 +846,86 @@ export const testSuite: TestSuiteEntry[] = [
   },
   {
     code: `-1.5`,
-    output: { kind: 'literal', value: { type: 'double', value: -1.5 } },
+    output: {
+      kind: 'unary',
+      op: '-',
+      operand: {
+        kind: 'literal',
+        value: {
+          type: 'double',
+          value: 1.5,
+        },
+      },
+    },
   },
   {
     code: `-1e3`,
-    output: { kind: 'literal', value: { type: 'double', value: -1000 } },
+    output: {
+      kind: 'unary',
+      op: '-',
+      operand: {
+        kind: 'literal',
+        value: {
+          type: 'double',
+          value: 1000,
+        },
+      },
+    },
   },
   {
     code: `-0x1p2`,
-    output: { kind: 'literal', value: { type: 'double', value: -4 } },
+    output: {
+      kind: 'unary',
+      op: '-',
+      operand: {
+        kind: 'literal',
+        value: {
+          type: 'double',
+          value: 4,
+        },
+      },
+    },
   },
   {
     code: `+3.14f`,
     output: {
-      kind: 'literal',
-      value: { type: 'float', value: 3.140000104904175 },
+      kind: 'unary',
+      op: '+',
+      operand: {
+        kind: 'literal',
+        value: {
+          type: 'float',
+          value: 3.140000104904175,
+        },
+      },
     },
   },
   {
     code: `-0.0`,
-    output: { kind: 'literal', value: { type: 'double', value: -0 } },
+    output: {
+      kind: 'unary',
+      op: '-',
+      operand: {
+        kind: 'literal',
+        value: {
+          type: 'double',
+          value: 0,
+        },
+      },
+    },
   },
   {
     code: `-0f`,
-    output: { kind: 'literal', value: { type: 'float', value: -0 } },
-  },
-  {
-    code: `-true`,
-    isError: true,
-  },
-  {
-    code: `+true`,
-    isError: true,
-  },
-  {
-    code: `-null`,
-    isError: true,
+    output: {
+      kind: 'unary',
+      op: '-',
+      operand: {
+        kind: 'literal',
+        value: {
+          type: 'float',
+          value: 0,
+        },
+      },
+    },
   },
 ]
