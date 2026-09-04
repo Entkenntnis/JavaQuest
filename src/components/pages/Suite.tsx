@@ -73,7 +73,7 @@ function Entry({
       </div>
       {!hasResult && <div className="p-1">...</div>}
       {error && entry.isError && (
-        <div className="p-1 text-green-600">
+        <div className="p-1 text-green-800">
           <pre>OK, mit Fehler {error}</pre>
         </div>
       )}

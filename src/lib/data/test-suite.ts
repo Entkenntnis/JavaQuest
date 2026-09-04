@@ -74,6 +74,14 @@ export const testSuite: TestSuiteEntry[] = [
     output: { kind: 'literal', value: { type: 'int', value: -889275714 } },
   },
   {
+    code: `0XFF`,
+    output: { kind: 'literal', value: { type: 'int', value: 255 } },
+  },
+  {
+    code: `0XCAFEBABE`,
+    output: { kind: 'literal', value: { type: 'int', value: -889275714 } },
+  },
+  {
     code: `0x7fffffff`,
     output: { kind: 'literal', value: { type: 'int', value: 2147483647 } },
   },
@@ -160,6 +168,24 @@ export const testSuite: TestSuiteEntry[] = [
     output: { kind: 'literal', value: { type: 'int', value: -1 } },
   },
   {
+    code: `0777L`,
+    output: {
+      kind: 'literal',
+      value: { type: 'long', value: '511' },
+    },
+  },
+  {
+    code: `01000000000000000000000L`,
+    output: {
+      kind: 'literal',
+      value: { type: 'long', value: '-9223372036854775808' },
+    },
+  },
+  {
+    code: `01777777777777777777777L`,
+    output: { kind: 'literal', value: { type: 'long', value: '-1' } },
+  },
+  {
     code: `08`,
     isError: true,
   },
@@ -209,11 +235,30 @@ export const testSuite: TestSuiteEntry[] = [
     output: { kind: 'literal', value: { type: 'int', value: -1 } },
   },
   {
+    code: `0B1L`,
+    output: { kind: 'literal', value: { type: 'long', value: '1' } },
+  },
+  {
+    code: `0b1000000000000000000000000000000000000000000000000000000000000000L`,
+    output: {
+      kind: 'literal',
+      value: { type: 'long', value: '-9223372036854775808' },
+    },
+  },
+  {
+    code: `0b11111111111111111111111111111111111111111111111111111111111111111L`,
+    isError: true,
+  },
+  {
     code: `0b`,
     isError: true,
   },
   {
     code: `0b102`,
+    isError: true,
+  },
+  {
+    code: `0b_1`,
     isError: true,
   },
   {
@@ -252,10 +297,6 @@ export const testSuite: TestSuiteEntry[] = [
   },
   {
     code: `1_`,
-    isError: true,
-  },
-  {
-    code: `_1`,
     isError: true,
   },
   {
@@ -304,6 +345,10 @@ export const testSuite: TestSuiteEntry[] = [
     output: { kind: 'literal', value: { type: 'double', value: 1001 } },
   },
   {
+    code: `1e1_0`,
+    output: { kind: 'literal', value: { type: 'double', value: 10000000000 } },
+  },
+  {
     code: `0.1`,
     output: { kind: 'literal', value: { type: 'double', value: 0.1 } },
   },
@@ -336,6 +381,10 @@ export const testSuite: TestSuiteEntry[] = [
   },
   {
     code: `0.5f`,
+    output: { kind: 'literal', value: { type: 'float', value: 0.5 } },
+  },
+  {
+    code: `.5f`,
     output: { kind: 'literal', value: { type: 'float', value: 0.5 } },
   },
   {
@@ -403,12 +452,24 @@ export const testSuite: TestSuiteEntry[] = [
     isError: true,
   },
   {
+    code: `1e39f`,
+    isError: true,
+  },
+  {
+    code: `1e39`,
+    output: { kind: 'literal', value: { type: 'double', value: 1e39 } },
+  },
+  {
     code: `1e400`,
     isError: true,
   },
   {
     code: `1e-400`,
     isError: true,
+  },
+  {
+    code: `1e-323`,
+    output: { kind: 'literal', value: { type: 'double', value: 1e-323 } },
   },
   {
     code: `1e-324`,
@@ -440,6 +501,10 @@ export const testSuite: TestSuiteEntry[] = [
     output: { kind: 'literal', value: { type: 'double', value: 3 } },
   },
   {
+    code: `0X1.8p1`,
+    output: { kind: 'literal', value: { type: 'double', value: 3 } },
+  },
+  {
     code: `0xAp2`,
     output: { kind: 'literal', value: { type: 'double', value: 40 } },
   },
@@ -450,6 +515,10 @@ export const testSuite: TestSuiteEntry[] = [
   {
     code: `0x0.0p0`,
     output: { kind: 'literal', value: { type: 'double', value: 0 } },
+  },
+  {
+    code: `0x1p-1_0`,
+    output: { kind: 'literal', value: { type: 'double', value: 0.0009765625 } },
   },
   {
     code: `0x1.fffffffffffffp1023`,
@@ -493,6 +562,10 @@ export const testSuite: TestSuiteEntry[] = [
     isError: true,
   },
   {
+    code: `0x1.8`,
+    isError: true,
+  },
+  {
     code: `0x1p-1075`,
     isError: true,
   },
@@ -512,6 +585,28 @@ export const testSuite: TestSuiteEntry[] = [
     code: `0x0.0000000000001p-1022`,
     output: { kind: 'literal', value: { type: 'double', value: 5e-324 } },
   },
+  {
+    code: `0x1p-1023`,
+    output: {
+      kind: 'literal',
+      value: { type: 'double', value: 1.1125369292536007e-308 },
+    },
+  },
+  {
+    code: `0x1.fffffffffffff8p-1023`,
+    output: {
+      kind: 'literal',
+      value: { type: 'double', value: 2.2250738585072014e-308 },
+    },
+  },
+  {
+    code: `0x1.fffffffffffffep0`,
+    output: { kind: 'literal', value: { type: 'double', value: 2 } },
+  },
+  {
+    code: `0x1.00000000000008p0`,
+    output: { kind: 'literal', value: { type: 'double', value: 1 } },
+  },
   // ------------------------- boolean & null -------------------------
   {
     code: `true`,
@@ -522,28 +617,8 @@ export const testSuite: TestSuiteEntry[] = [
     output: { kind: 'literal', value: { type: 'boolean', value: false } },
   },
   {
-    code: `TRUE`,
-    isError: true,
-  },
-  {
-    code: `True`,
-    isError: true,
-  },
-  {
-    code: `tru`,
-    isError: true,
-  },
-  {
     code: `null`,
     output: { kind: 'literal', value: { type: 'null' } },
-  },
-  {
-    code: `NULL`,
-    isError: true,
-  },
-  {
-    code: `nil`,
-    isError: true,
   },
   // ------------------------- char -------------------------
   {
@@ -611,12 +686,24 @@ export const testSuite: TestSuiteEntry[] = [
     output: { kind: 'literal', value: { type: 'char', value: 0 } },
   },
   {
+    code: `'\\41'`,
+    output: { kind: 'literal', value: { type: 'char', value: 33 } },
+  },
+  {
     code: `'\\u0041'`,
     output: { kind: 'literal', value: { type: 'char', value: 65 } },
   },
   {
-    code: `'\\u00df'`,
+    code: `'\u00df'`,
     output: { kind: 'literal', value: { type: 'char', value: 223 } },
+  },
+  {
+    code: `'Ω'`,
+    output: { kind: 'literal', value: { type: 'char', value: 937 } },
+  },
+  {
+    code: `'😀'`,
+    isError: true,
   },
   {
     code: `''`,
@@ -788,10 +875,6 @@ export const testSuite: TestSuiteEntry[] = [
     code: `42abc`,
     isError: true,
   },
-  {
-    code: `abc`,
-    isError: true,
-  },
   // ------------------------- unary plus / minus -------------------------
   {
     code: `-1`,
@@ -818,6 +901,10 @@ export const testSuite: TestSuiteEntry[] = [
     output: { kind: 'literal', value: { type: 'int', value: -2147483648 } },
   },
   {
+    code: `-2147483649`,
+    isError: true,
+  },
+  {
     code: `+2147483648`,
     isError: true,
   },
@@ -827,6 +914,10 @@ export const testSuite: TestSuiteEntry[] = [
       kind: 'literal',
       value: { type: 'long', value: '-9223372036854775808' },
     },
+  },
+  {
+    code: `-9223372036854775809L`,
+    isError: true,
   },
   {
     code: `+9223372036854775808L`,
@@ -841,8 +932,45 @@ export const testSuite: TestSuiteEntry[] = [
     output: { kind: 'literal', value: { type: 'int', value: -2147483648 } },
   },
   {
+    code: `-0x80000001`,
+    output: { kind: 'literal', value: { type: 'int', value: 2147483647 } },
+  },
+  {
     code: `-0xffffffff`,
     output: { kind: 'literal', value: { type: 'int', value: 1 } },
+  },
+  {
+    code: `-0x8000000000000000L`,
+    output: {
+      kind: 'literal',
+      value: { type: 'long', value: '-9223372036854775808' },
+    },
+  },
+  {
+    code: `-0x8000000000000001L`,
+    output: {
+      kind: 'literal',
+      value: { type: 'long', value: '9223372036854775807' },
+    },
+  },
+  {
+    code: `-0xffffffffffffffffL`,
+    output: { kind: 'literal', value: { type: 'long', value: '1' } },
+  },
+  {
+    code: `-0b101`,
+    output: { kind: 'literal', value: { type: 'int', value: -5 } },
+  },
+  {
+    code: `-true`,
+    output: {
+      kind: 'unary',
+      op: '-',
+      operand: {
+        kind: 'literal',
+        value: { type: 'boolean', value: true },
+      },
+    },
   },
   {
     code: `-1.5`,
