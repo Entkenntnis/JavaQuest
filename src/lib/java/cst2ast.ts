@@ -1,8 +1,13 @@
 import type {
   AstNode,
   CstNode,
+  JavaBooleanValue,
+  JavaCharValue,
+  JavaDoubleValue,
+  JavaFloatValue,
   JavaIntValue,
   JavaLongValue,
+  JavaStringValue,
 } from '../state/types'
 
 function conversionError(node: CstNode, reason: string) {
@@ -32,10 +37,15 @@ export function cst2ast(node: CstNode): AstNode {
   } else if (node.name == 'IntegerLiteral') {
     return { kind: 'literal', value: parseIntegerLiteral(node) }
   } else if (node.name == 'FloatingPointLiteral') {
+    return { kind: 'literal', value: parseFloatingPointLiteral(node) }
   } else if (node.name == 'BooleanLiteral') {
+    return { kind: 'literal', value: parseBooleanLiteral(node) }
   } else if (node.name == 'CharacterLiteral') {
+    return { kind: 'literal', value: parseCharacterLiteral(node) }
   } else if (node.name == 'StringLiteral') {
+    return { kind: 'literal', value: parseStringLiteral(node) }
   } else if (node.name == 'null') {
+    return { kind: 'literal', value: { type: 'null' } }
   }
   throw conversionError(node, 'no converter registered for this node')
 }
@@ -112,4 +122,109 @@ function parseIntegerLiteral(node: CstNode): JavaIntValue | JavaLongValue {
   if (isLong) return { type: 'long', value: signed.toString() }
 
   return { type: 'int', value: Number(signed) }
+}
+
+function parseFloatingPointLiteral(
+  node: CstNode,
+): JavaFloatValue | JavaDoubleValue {
+  const raw = node.text
+  const isFloat = /[fF]$/.test(raw)
+  const body = /[fFdD]$/.test(raw) ? raw.slice(0, -1) : raw
+  const isHex = body.startsWith('0x') || body.startsWith('0X')
+  const value = isHex ? parseHexFloat(body) : Number(body.replace(/_/g, ''))
+
+  if (isFloat) {
+    const rounded = Math.fround(value)
+    if (!Number.isFinite(rounded)) {
+      throw conversionError(node, 'floating literal is too large for a float')
+    }
+    return { type: 'float', value: rounded }
+  }
+  if (!Number.isFinite(value)) {
+    throw conversionError(node, 'floating literal is too large for a double')
+  }
+  return { type: 'double', value }
+}
+
+// damn, what a rare and exotic feature
+function parseHexFloat(body: string): number {
+  const exponentMatch = /[pP]([+-]?[0-9_]+)$/.exec(body)
+  if (!exponentMatch) {
+    throw 'internal system error: hex exponent missing'
+  }
+  const exponent = parseInt(exponentMatch[1].replace(/_/g, ''), 10)
+  const significand = body
+    .slice(0, exponentMatch.index)
+    .replace(/^0[xX]/, '')
+    .replace(/_/g, '')
+  const dotIndex = significand.indexOf('.')
+  const integerPart =
+    dotIndex == -1 ? significand : significand.slice(0, dotIndex)
+  const fractionPart = dotIndex == -1 ? '' : significand.slice(dotIndex + 1)
+  if (integerPart.length + fractionPart.length == 0) {
+    throw 'internal system error: no mantissa digits'
+  }
+
+  let mantissa = (integerPart + fractionPart).replace(/^0+/, '') || '0'
+  let power = exponent - 4 * fractionPart.length
+  let length = mantissa.length
+  while (length > 1 && mantissa[length - 1] === '0') {
+    length -= 1
+    power += 4
+  }
+  mantissa = mantissa.slice(0, length)
+  if (mantissa === '0') return 0
+  // BEWARE, there are some extremely rare cases where this code
+  // will differ from java parser and drift, e.g. 0x1.8p-1074
+  // Accept this for now
+  return Number(BigInt('0x' + mantissa)) * 2 ** power
+}
+
+function unescape(text: string): string {
+  // remove line continuations
+  text = text.replace(/\\\r?\n/g, '')
+
+  // octal escapes
+  text = text.replace(/\\([0-7]{1,3})/g, (_, oct) => {
+    const code = parseInt(oct, 8)
+    return '\\u' + code.toString(16).padStart(4, '0')
+  })
+
+  // convert single quotes
+  text = text.replace(/\\'/g, "'")
+
+  // remove double quotes
+  text = text.replace(/(?<!\\)"/g, '\\"')
+
+  return JSON.parse(`"${text}"`)
+}
+
+function parseCharacterLiteral(node: CstNode): JavaCharValue {
+  const raw = node.text
+  if (raw.length < 2 || raw[0] != "'" || raw[raw.length - 1] != "'") {
+    throw conversionError(node, 'malformed character literal')
+  }
+  const decoded = unescape(raw.slice(1, -1))
+  if (decoded.length != 1) {
+    throw conversionError(
+      node,
+      'character literal must contain exactly one UTF-16 code unit',
+    )
+  }
+  return { type: 'char', value: decoded.charCodeAt(0) }
+}
+
+function parseStringLiteral(node: CstNode): JavaStringValue {
+  const raw = node.text
+  if (raw.length < 2 || raw[0] != '"' || raw[raw.length - 1] != '"') {
+    throw conversionError(node, 'malformed string literal')
+  }
+  return { type: 'string', value: unescape(raw.slice(1, -1)) }
+}
+
+function parseBooleanLiteral(node: CstNode): JavaBooleanValue {
+  const raw = node.text
+  if (raw == 'true') return { type: 'boolean', value: true }
+  if (raw == 'false') return { type: 'boolean', value: false }
+  throw 'internal system error: invalid boolean literal'
 }
