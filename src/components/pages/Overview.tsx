@@ -1,4 +1,4 @@
-import { questsData } from '../../lib/data/questsData'
+import { questsData } from '../../lib/data/quests-data'
 import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
 

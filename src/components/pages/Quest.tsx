@@ -3,7 +3,7 @@ import { CodeSnippet } from '../helper/CodeSnippet'
 import { FaIcon } from '../helper/FaIcon'
 import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
-import { questsData } from '../../lib/data/questsData'
+import { questsData } from '../../lib/data/quests-data'
 import { InputBar } from '../helper/InputBar'
 
 export function Quest() {
@@ -28,7 +28,7 @@ export function Quest() {
             <div className="text-lg">{quest.title}</div>
           </div>
         </div>
-        <div className="shrink-0 w-[300px] bg-white border text-center pt-4">
+        <div className="shrink-0 w-[300px] bg-white border text-center pt-4 hidden">
           SupportArea
         </div>
       </div>

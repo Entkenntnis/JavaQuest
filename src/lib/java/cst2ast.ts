@@ -34,6 +34,17 @@ export function cst2ast(node: CstNode): AstNode {
       throw 'internal system error: valid expression must have one child'
     }
     return cst2ast(node.children[0])
+  } else if (node.name == 'UnaryExpression') {
+    // TODO: this part of the code is really fragile and needs some more polish
+    // a lot of sanity checks are missing
+    // grammar will allow anything, make this more sane in a moment
+    const [op, operand] = node.children
+    if (operand.name == 'IntegerLiteral') {
+      return {
+        kind: 'literal',
+        value: parseIntegerLiteral(node, op.text == '-'),
+      }
+    }
   } else if (node.name == 'IntegerLiteral') {
     return { kind: 'literal', value: parseIntegerLiteral(node) }
   } else if (node.name == 'FloatingPointLiteral') {
@@ -64,7 +75,10 @@ const radixPattern = {
   16: /^[0-9a-fA-F]+$/,
 }
 
-function parseIntegerLiteral(node: CstNode): JavaIntValue | JavaLongValue {
+function parseIntegerLiteral(
+  node: CstNode,
+  minus: boolean = false,
+): JavaIntValue | JavaLongValue {
   const raw = node.text
   const isLong = /[lL]$/.test(raw)
   const body = isLong ? raw.slice(0, -1) : raw
@@ -105,10 +119,11 @@ function parseIntegerLiteral(node: CstNode): JavaIntValue | JavaLongValue {
 
   const magnitude = BigInt(radixPrefix[radix] + digits)
   const bits = isLong ? 64 : 32
-  const signedMaximum = 1n << (BigInt(bits - 1) - 1n)
-  const unsignedMaximum = 1n << (BigInt(bits) - 1n)
+  const signedMaximum = (1n << BigInt(bits - 1)) - 1n
+  const unsignedMaximum = (1n << BigInt(bits)) - 1n
   if (radix == 10) {
-    if (magnitude > signedMaximum) {
+    const decimalmaximum = minus ? 1n << BigInt(bits - 1) : signedMaximum
+    if (magnitude > decimalmaximum) {
       throw conversionError(node, 'integer literal is out of range')
     }
   } else if (magnitude > unsignedMaximum) {
@@ -118,7 +133,7 @@ function parseIntegerLiteral(node: CstNode): JavaIntValue | JavaLongValue {
     )
   }
 
-  const signed = BigInt.asIntN(bits, magnitude)
+  const signed = BigInt.asIntN(bits, minus ? -magnitude : magnitude)
   if (isLong) return { type: 'long', value: signed.toString() }
 
   return { type: 'int', value: Number(signed) }

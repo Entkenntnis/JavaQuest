@@ -19,12 +19,18 @@ export interface CoreRef {
   state: CoreState
 }
 
-type Page = 'quest' | 'overview' | 'test'
+type Page = 'quest' | 'overview' | 'test' | 'suite'
 
 export interface QuestData {
   id: number
   title: string
   code: string
+}
+
+export interface TestSuiteEntry {
+  code: string
+  isError?: boolean
+  output?: AstNode
 }
 
 // --------------------- Java System -------------------------
@@ -105,4 +111,10 @@ export interface LiteralAstNode {
     | JavaNullValue
 }
 
-export type AstNode = LiteralAstNode
+export interface UnaryExpressionAstNode {
+  kind: 'unary'
+  op: '+' | '-'
+  operand: AstNode
+}
+
+export type AstNode = LiteralAstNode | UnaryExpressionAstNode

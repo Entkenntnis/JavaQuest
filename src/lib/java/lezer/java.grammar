@@ -1,4 +1,17 @@
-@top Expression { literal }
+@precedence {
+  unaryPlus @left
+}
+
+@top Expression { expression }
+
+expression {
+  UnaryExpression |
+  literal
+}
+
+UnaryExpression {
+  op<Arith, "+" | "-"> !unaryPlus expression
+}
 
 literal {
   IntegerLiteral |
@@ -47,7 +60,7 @@ kw<term> { @specialize[@name={term}]<identifier, term> }
   }
 
   StringLiteral[isolate] {
-    "\"" (![\\"\n] | "\\" (![\n] | "\n"))* "\""
+    "\"" (![\\"\n] | "\\" ![\n])* "\""
   }
 
   identifierChar { @asciiLetter | @digit | $[$_\u{a1}-\u{10ffff}] }
@@ -55,4 +68,6 @@ kw<term> { @specialize[@name={term}]<identifier, term> }
   identifier { $[a-z_$\u{a1}-\u{10ffff}] identifierChar* }
 
   @precedence { whitespace, identifier }
+
+  op[@name={name} "Op"]<name, body> { body }
 }

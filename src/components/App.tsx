@@ -4,6 +4,7 @@ import { hydrate, navigate } from '../lib/router/navigate'
 import { Quest } from './pages/Quest'
 import { Overview } from './pages/Overview'
 import { Test } from './pages/Test'
+import { Suite } from './pages/Suite'
 
 export function App() {
   const core = useCreateCore()
@@ -41,6 +42,8 @@ export function App() {
       return <Overview />
     } else if (core.ws.page == 'test') {
       return <Test />
+    } else if (core.ws.page == 'suite') {
+      return <Suite />
     }
     return null
   }

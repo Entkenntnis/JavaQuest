@@ -1,4 +1,4 @@
-import { questsData } from '../data/questsData'
+import { questsData } from '../data/quests-data'
 import type { Core } from '../state/core'
 
 export async function navigate(core: Core, url: string) {
@@ -27,6 +27,13 @@ export async function hydrate(core: Core) {
       })
       return
     }
+  }
+
+  if (path.startsWith('/suite')) {
+    core.mutateWs((ws) => {
+      ws.page = 'suite'
+    })
+    return
   }
 
   if (path.startsWith('/test')) {
