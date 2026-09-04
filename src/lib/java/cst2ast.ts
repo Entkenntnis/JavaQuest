@@ -92,9 +92,6 @@ function parseIntegerLiteral(
   } else if (/^0[bB]/.test(body)) {
     radix = 2
     digits = body.slice(2)
-  } else if (/^0[oO]/.test(body)) {
-    radix = 8
-    digits = body.slice(2)
   } else {
     const compact = body.replace(/_/g, '')
     if (compact === '0') {
@@ -200,7 +197,7 @@ function unescape(text: string): string {
   text = text.replace(/\\\r?\n/g, '')
 
   // octal escapes
-  text = text.replace(/\\([0-7]{1,3})/g, (_, oct) => {
+  text = text.replace(/\\([0-3][0-7]{0,2}|[0-7]{1,2})/g, (_, oct) => {
     const code = parseInt(oct, 8)
     return '\\u' + code.toString(16).padStart(4, '0')
   })
@@ -210,8 +207,11 @@ function unescape(text: string): string {
 
   // remove double quotes
   text = text.replace(/(?<!\\)"/g, '\\"')
-
-  return JSON.parse(`"${text}"`)
+  try {
+    return JSON.parse(`"${text}"`)
+  } catch (e) {
+    throw new Error('cannot parse string')
+  }
 }
 
 function parseCharacterLiteral(node: CstNode): JavaCharValue {

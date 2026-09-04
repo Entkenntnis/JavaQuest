@@ -36,7 +36,6 @@ kw<term> { @specialize[@name={term}]<identifier, term> }
   IntegerLiteral {
     (digits |
      ("0x" | "0X") hexDigits |
-     ("0o" | "0O") $[0-7]+ ("_" $[0-7]+)* |
      ("0b" | "0B") $[01]+ ("_" $[01]+)*)
     ("l" | "L")?
   }

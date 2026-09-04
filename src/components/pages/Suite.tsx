@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { testSuite } from '../../lib/data/test-suite'
 import type { TestSuiteEntry } from '../../lib/state/types'
 import { parser } from '../../lib/java/lezer/parser'
@@ -7,32 +6,61 @@ import { cursorToCstNode } from '../../lib/java/helper/cst'
 import { checkForParseErrors, cst2ast } from '../../lib/java/cst2ast'
 import clsx from 'clsx'
 
+interface SuiteResult {
+  error?: string
+  ast?: object
+}
+
+function runCase(code: string) {
+  try {
+    const tree = parser.parse(code)
+    const cst = cursorToCstNode(tree.cursor(), Text.of([code]))
+    checkForParseErrors(cst)
+    const ast = cst2ast(cst)
+    return { ast }
+  } catch (e) {
+    return { error: (e as any).toString() }
+  }
+}
+
+const suiteResults = testSuite.map((el) => runCase(el.code))
+
+function isPass(entry: TestSuiteEntry, result: SuiteResult) {
+  if (result.error) return entry.isError == true
+  if (entry.isError) return false
+  return (
+    result.ast !== undefined &&
+    JSON.stringify(result.ast) === JSON.stringify(entry.output)
+  )
+}
+
 export function Suite() {
+  const passed = suiteResults.filter((r, i) => isPass(testSuite[i], r)).length
   return (
     <div className="mx-6 mb-32 mt-6">
       <h1 className="text-lg mb-8">Test-Suite</h1>
-      {testSuite.map((el) => (
-        <Entry key={el.code} entry={el} />
+      <p className="mb-6">
+        Insgesamt {testSuite.length},{' '}
+        <span className="text-green-600">{passed} erfolgreich</span> /{' '}
+        <span className="text-red-600">
+          {testSuite.length - passed} gescheitert
+        </span>
+      </p>
+      {testSuite.map((el, i) => (
+        <Entry key={el.code} entry={el} result={suiteResults[i]} />
       ))}
     </div>
   )
 }
 
-function Entry({ entry }: { entry: TestSuiteEntry }) {
-  const [error, setError] = useState('')
-  const [ast, setAst] = useState<object | null>(null)
-
-  useEffect(() => {
-    const tree = parser.parse(entry.code)
-    const cst = cursorToCstNode(tree.cursor(), Text.of([entry.code]))
-    try {
-      checkForParseErrors(cst)
-      const ast = cst2ast(cst)
-      setAst(ast)
-    } catch (e) {
-      setError((e as any).toString())
-    }
-  }, [])
+function Entry({
+  result,
+  entry,
+}: {
+  result: SuiteResult
+  entry: TestSuiteEntry
+}) {
+  const { error, ast } = result
 
   const hasResult = error || ast
 
