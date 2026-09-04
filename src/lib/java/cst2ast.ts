@@ -192,26 +192,54 @@ function parseHexFloat(body: string): number {
   return Number(BigInt('0x' + mantissa)) * 2 ** power
 }
 
+const simpleEscapes: Record<string, number> = {
+  b: 8,
+  t: 9,
+  n: 10,
+  f: 12,
+  r: 13,
+  '"': 34,
+  "'": 39,
+  '\\': 92,
+}
+
 function unescape(text: string): string {
-  // remove line continuations
-  text = text.replace(/\\\r?\n/g, '')
-
-  // octal escapes
-  text = text.replace(/\\([0-3][0-7]{0,2}|[0-7]{1,2})/g, (_, oct) => {
-    const code = parseInt(oct, 8)
-    return '\\u' + code.toString(16).padStart(4, '0')
-  })
-
-  // convert single quotes
-  text = text.replace(/\\'/g, "'")
-
-  // remove double quotes
-  text = text.replace(/(?<!\\)"/g, '\\"')
-  try {
-    return JSON.parse(`"${text}"`)
-  } catch (e) {
-    throw new Error('cannot parse string')
+  let result = ''
+  let i = 0
+  while (i < text.length) {
+    const current = text[i]
+    if (current != '\\') {
+      result += current
+      i += 1
+      continue
+    }
+    const next = text[i + 1]
+    if (next == undefined) throw new Error('cannot parse string')
+    if (/[0-7]/.test(next)) {
+      const maxDigits = next <= '3' ? 3 : 2
+      let code = 0
+      let count = 0
+      while (count < maxDigits && /[0-7]/.test(text[i + 1 + count])) {
+        code = code * 8 + text.charCodeAt(i + 1 + count) - 48
+        count += 1
+      }
+      result += String.fromCharCode(code)
+      i += count + 1
+    } else if (next in simpleEscapes) {
+      result += String.fromCharCode(simpleEscapes[next])
+      i += 2
+    } else if (next == 'u') {
+      let j = i + 1
+      while (j < text.length && text[j] == 'u') j += 1
+      const hex = text.slice(j, j + 4)
+      if (!/^[0-9a-fA-F]{4}$/.test(hex)) throw new Error('cannot parse string')
+      result += String.fromCharCode(parseInt(hex, 16))
+      i = j + 4
+    } else {
+      throw new Error('cannot parse string')
+    }
   }
+  return result
 }
 
 function parseCharacterLiteral(node: CstNode): JavaCharValue {

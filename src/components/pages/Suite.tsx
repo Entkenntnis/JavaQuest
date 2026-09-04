@@ -78,7 +78,9 @@ function Entry({
         </div>
       )}
       {((error && !entry.isError) || (!entry.isError && !ast)) && (
-        <div className="p-1 text-red-600">FAIL! Fehler: {error}</div>
+        <div className="p-1 text-red-600">
+          <pre>FAIL! Fehler: {error}</pre>
+        </div>
       )}
       {ast &&
         (() => {

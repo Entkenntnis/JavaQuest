@@ -713,6 +713,10 @@ export const testSuite: TestSuiteEntry[] = [
     output: { kind: 'literal', value: { type: 'string', value: 'A' } },
   },
   {
+    code: `"\\\\uu0041"`,
+    output: { kind: 'literal', value: { type: 'string', value: '\\uu0041' } },
+  },
+  {
     code: `"\\\\60"`,
     output: { kind: 'literal', value: { type: 'string', value: '\\60' } },
   },
