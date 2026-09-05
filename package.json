@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "start": "vite preview",
-    "grammar": "lezer-generator ./src/lib/java/lezer/java.grammar -o ./src/lib/java/lezer/parser.js"
+    "grammar": "lezer-generator ./src/lib/java/lezer/java.grammar -o ./src/lib/java/lezer/parser.js",
+    "java-cross-check": "node src/lib/java/java-cross-check.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
