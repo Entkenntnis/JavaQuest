@@ -3,8 +3,8 @@ import {LRParser} from "@lezer/lr"
 const spec_identifier = {__proto__:null,true:32, false:32, null:38, byte:50, short:50, int:50, long:50, char:50, float:50, double:50, boolean:50}
 export const parser = LRParser.deserialize({
   version: 14,
-  states: "%^OVQPOOQwQQOOOOQO'#DO'#DOO!oQPO'#CpOOQO'#C}'#C}OVQPO'#CqOOQO'#Cy'#CyOOQO'#C`'#C`OOQO'#Cc'#CcOVQPO,58xOVQPO,58xOVQPO,58xOVQPO,58xOVQPO,58xOVQPO,58xOVQPO,58xOVQPO,58xOVQPO,58xO!vQQO,59[O!}QPO,59`OOQO,59],59]O#zQQO1G.dO%PQQO1G.dO%WQQO1G.dO&YQQO1G.dO&aQQO1G.dO'PQQO1G.dO(eQQO1G.dOOQO1G.d1G.dO(lQQO1G.dOOQO1G.v1G.vOVQPO1G.zOOQO7+$f7+$f",
-  stateData: "(y~OlOS~OYTO^QO_QO`QOaQObQOcQOfTOgTOtRO~ORXOTYOUZOW]OX^OY_OZ`O[aO]aOnVOoVOpWO~OicO~PVOunO~PwOuoO~OY_OZ`ORQiTQiUQiWQiXQijQinQioQipQiuQi~O[aO]aO~P#SORXOW]OX^OY_OZ`O[aO]aOnVOoVOpWOUQijQiuQi~OTQi~P$UOTYO~P$UORXOY_OZ`O[aO]aOnVOoVOTQiUQiWQiXQijQiuQi~OpQi~P%_OpWO~P%_OY_OZ`OTQiUQiXQijQiuQi~ORXOW]O[aO]aOnVOoVOpWO~P&hOZ`ORQiTQiUQiWQiXQi[Qi]QijQinQioQipQiuQi~OYQi~P'jOY_O~P'jO_^lsl~",
+  states: "%^OVQPOOQwQQOOOOQO'#DO'#DOO!oQPO'#CpOOQO'#C}'#C}OVQPO'#CqOOQO'#Cy'#CyOOQO'#C`'#C`OOQO'#Cc'#CcOVQPO,58xOVQPO,58xOVQPO,58xOVQPO,58xOVQPO,58xOVQPO,58xOVQPO,58xOVQPO,58xOVQPO,58xO!vQQO,59[O!}QPO,59`OOQO,59],59]O#}QQO1G.dO%PQQO1G.dO%WQQO1G.dO&YQQO1G.dO&aQQO1G.dO'SQQO1G.dO(eQQO1G.dOOQO1G.d1G.dO(lQQO1G.dOOQO1G.v1G.vOVQPO1G.zOOQO7+$f7+$f",
+  stateData: "(y~OlOS~OYTO^QO_QO`QOaQObQOcQOfTOgTOtRO~ORXOTYOUZOW]OX^OY_OZ`O[`O]aOnVOoVOpWO~OicO~PVOunO~PwOuoO~OY_OZ`O[`ORQiTQiUQiWQiXQijQinQioQipQiuQi~O]aO~P#SORXOW]OX^OY_OZ`O[`O]aOnVOoVOpWOUQijQiuQi~OTQi~P$UOTYO~P$UORXOY_OZ`O[`O]aOnVOoVOTQiUQiWQiXQijQiuQi~OpQi~P%_OpWO~P%_OY_OZ`O[`OTQiUQiXQijQiuQi~ORXOW]O]aOnVOoVOpWO~P&hOZ`O[`ORQiTQiUQiWQiXQi]QijQinQioQipQiuQi~OYQi~P'jO]Qi~P#SO_^lsl~",
   goto: "#nsPPtP!TPP!^PPPPPPPPPPPP!ftPPtPPPP!uPPPt!fkUORTXYZ[]^_`ao_XPbfghij][PbfgijkSORTXYZ[]^_`aoQPOQbRQdTQeXQfYQgZQh[Qi]Qj^Qk_Ql`QmaRpo",
   nodeNames: "⚠ Expression BinaryExpression CompareOp CompareOp LogicOp LogicOp BitOp BitOp BitOp ArithOp ArithOp ArithOp BitOp IntegerLiteral FloatingPointLiteral BooleanLiteral CharacterLiteral StringLiteral null ParenthesizedExpression UnaryExpression LogicOp BitOp CastExpression PrimitiveType",
   maxTerm: 37,

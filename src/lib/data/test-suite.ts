@@ -639,6 +639,8 @@ export const testSuite: TestSuiteEntry[] = [
     output: { type: 'char', value: 937 },
   },
   {
+    // This test fails (= compiler passes) incorrectly in Java 21
+    // The behaviour is fixed in Java 25
     code: `'😀'`,
     isError: true,
   },
@@ -1069,5 +1071,298 @@ export const testSuite: TestSuiteEntry[] = [
   {
     code: `(int)"5"`,
     isError: true,
+  },
+  // ------------------------- binary arithmetic: int -------------------------
+  {
+    code: `1 + 2`,
+    output: { type: 'int', value: 3 },
+  },
+  {
+    code: `2 - 9`,
+    output: { type: 'int', value: -7 },
+  },
+  {
+    code: `5 * 7`,
+    output: { type: 'int', value: 35 },
+  },
+  {
+    code: `7 / 2`,
+    output: { type: 'int', value: 3 },
+  },
+  {
+    code: `7 % 4`,
+    output: { type: 'int', value: 3 },
+  },
+  {
+    code: `-7 / 2`,
+    output: { type: 'int', value: -3 },
+  },
+  {
+    code: `7 / -2`,
+    output: { type: 'int', value: -3 },
+  },
+  {
+    code: `-7 % 3`,
+    output: { type: 'int', value: -1 },
+  },
+  {
+    code: `7 % -3`,
+    output: { type: 'int', value: 1 },
+  },
+  {
+    code: `-7 % -3`,
+    output: { type: 'int', value: -1 },
+  },
+  // ------------------------- binary arithmetic: int overflow (two's complement wrap) -------------------------
+  {
+    code: `2147483647 + 1`,
+    output: { type: 'int', value: -2147483648 },
+  },
+  {
+    code: `2000000000 + 2000000000`,
+    output: { type: 'int', value: -294967296 },
+  },
+  {
+    code: `-2147483648 - 1`,
+    output: { type: 'int', value: 2147483647 },
+  },
+  {
+    code: `2147483647 * 2`,
+    output: { type: 'int', value: -2 },
+  },
+  {
+    code: `-2147483648 / -1`,
+    output: { type: 'int', value: -2147483648 },
+  },
+  // ------------------------- binary arithmetic: precedence, parens, associativity -------------------------
+  {
+    code: `1 + 2 * 3`,
+    output: { type: 'int', value: 7 },
+  },
+  {
+    code: `(1 + 2) * 3`,
+    output: { type: 'int', value: 9 },
+  },
+  {
+    code: `10 - 2 - 3`,
+    output: { type: 'int', value: 5 },
+  },
+  {
+    code: `20 / 5 / 2`,
+    output: { type: 'int', value: 2 },
+  },
+  {
+    code: `6 + 4 / 2 * 3`,
+    output: { type: 'int', value: 12 },
+  },
+  {
+    code: `2 * 3 + 4 * 5`,
+    output: { type: 'int', value: 26 },
+  },
+  {
+    code: `2 + 3 * 4 - 5`,
+    output: { type: 'int', value: 9 },
+  },
+  {
+    code: `-2 * 3 + 4`,
+    output: { type: 'int', value: -2 },
+  },
+  {
+    code: `(1 + 2) * (3 - 4)`,
+    output: { type: 'int', value: -3 },
+  },
+  // ------------------------- binary arithmetic: '%' mixed with other operators -------------------------
+  {
+    code: `10 % 4 + 1`,
+    output: { type: 'int', value: 3 },
+  },
+  {
+    code: `3 + 4 % 3`,
+    output: { type: 'int', value: 4 },
+  },
+  {
+    code: `2 % 3 * 4`,
+    output: { type: 'int', value: 8 },
+  },
+  {
+    code: `(1 + 2) % 3`,
+    output: { type: 'int', value: 0 },
+  },
+  // ------------------------- binary arithmetic: long -------------------------
+  {
+    code: `9223372036854775807L + 1L`,
+    output: { type: 'long', value: '-9223372036854775808' },
+  },
+  {
+    code: `-9223372036854775808L - 1L`,
+    output: { type: 'long', value: '9223372036854775807' },
+  },
+  {
+    code: `9223372036854775807L * 2L`,
+    output: { type: 'long', value: '-2' },
+  },
+  {
+    code: `-9223372036854775808L / -1L`,
+    output: { type: 'long', value: '-9223372036854775808' },
+  },
+  {
+    code: `-10L / 4L`,
+    output: { type: 'long', value: '-2' },
+  },
+  {
+    code: `10L / -3L`,
+    output: { type: 'long', value: '-3' },
+  },
+  {
+    code: `9223372036854775807L % 2L`,
+    output: { type: 'long', value: '1' },
+  },
+  {
+    code: `1L + 1`,
+    output: { type: 'long', value: '2' },
+  },
+  // ------------------------- binary arithmetic: char / small ints (promote to int) -------------------------
+  {
+    code: `'a' + 1`,
+    output: { type: 'int', value: 98 },
+  },
+  {
+    code: `'z' - 'a'`,
+    output: { type: 'int', value: 25 },
+  },
+  {
+    code: `(byte)100 + (byte)100`,
+    output: { type: 'int', value: 200 },
+  },
+  // ------------------------- binary arithmetic: float -------------------------
+  {
+    code: `1.5f + 2.25f`,
+    output: { type: 'float', value: 3.75 },
+  },
+  {
+    code: `3f / 4f`,
+    output: { type: 'float', value: 0.75 },
+  },
+  {
+    code: `0.1f + 0.2f`,
+    output: { type: 'float', value: 0.30000001192092896 },
+  },
+  {
+    code: `1f / 3f`,
+    output: { type: 'float', value: 0.3333333432674408 },
+  },
+  {
+    code: `5.5f % 2f`,
+    output: { type: 'float', value: 1.5 },
+  },
+  // ------------------------- binary arithmetic: double & widening -------------------------
+  {
+    code: `0.1 + 0.2`,
+    output: { type: 'double', value: 0.30000000000000004 },
+  },
+  {
+    code: `1.0 / 3.0`,
+    output: { type: 'double', value: 0.3333333333333333 },
+  },
+  {
+    code: `10 / 3.0`,
+    output: { type: 'double', value: 3.3333333333333335 },
+  },
+  {
+    code: `2.5f + 1`,
+    output: { type: 'float', value: 3.5 },
+  },
+  {
+    code: `2.5 + 1`,
+    output: { type: 'double', value: 3.5 },
+  },
+  {
+    code: `1L + 1.5`,
+    output: { type: 'double', value: 2.5 },
+  },
+  // ------------------------- binary arithmetic: division/modulo by zero (ArithmeticException) -------------------------
+  {
+    code: `1 / 0`,
+    isError: true,
+  },
+  {
+    code: `1 % 0`,
+    isError: true,
+  },
+  {
+    code: `0 / 0`,
+    isError: true,
+  },
+  {
+    code: `1L / 0L`,
+    isError: true,
+  },
+  {
+    code: `1L % 0L`,
+    isError: true,
+  },
+  // ------------------------- binary arithmetic: int edge cases -------------------------
+  {
+    code: `-2147483648 * -1`,
+    output: { type: 'int', value: -2147483648 },
+  },
+  {
+    code: `-2147483648 % -1`,
+    output: { type: 'int', value: 0 },
+  },
+  {
+    code: `10 % 4 % 3`,
+    output: { type: 'int', value: 2 },
+  },
+  // ------------------------- binary arithmetic: long widening & signs -------------------------
+  {
+    code: `5L * 5`,
+    output: { type: 'long', value: '25' },
+  },
+  {
+    code: `-7L / 2`,
+    output: { type: 'long', value: '-3' },
+  },
+  {
+    code: `7L % 3`,
+    output: { type: 'long', value: '1' },
+  },
+  {
+    code: `-5L % 2L`,
+    output: { type: 'long', value: '-1' },
+  },
+  {
+    code: `9223372036854775807L / -1L`,
+    output: { type: 'long', value: '-9223372036854775807' },
+  },
+  // ------------------------- binary arithmetic: float/double modulo signs & division -------------------------
+  {
+    code: `-7.5 % 2.0`,
+    output: { type: 'double', value: -1.5 },
+  },
+  {
+    code: `7.5 % -2.0`,
+    output: { type: 'double', value: 1.5 },
+  },
+  {
+    code: `-5.5f % 2.5f`,
+    output: { type: 'float', value: -0.5 },
+  },
+  {
+    code: `-1.0 / 4.0`,
+    output: { type: 'double', value: -0.25 },
+  },
+  // ------------------------- binary arithmetic: char & cast combinations -------------------------
+  {
+    code: `'a' / 2`,
+    output: { type: 'int', value: 48 },
+  },
+  {
+    code: `(int)7.7 / 2`,
+    output: { type: 'int', value: 3 },
+  },
+  {
+    code: `(long)2147483647 + 1`,
+    output: { type: 'long', value: '2147483648' },
   },
 ]
