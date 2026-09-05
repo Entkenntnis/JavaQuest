@@ -1,3 +1,5 @@
+import { printDouble } from './helper/floating/double'
+import { printFloat } from './helper/floating/float'
 import type {
   AstNode,
   JavaByteValue,
@@ -270,12 +272,9 @@ function javaValueToString(val: JavaValue): string {
     case 'char':
       return String.fromCodePoint(val.value)
     case 'float':
+      return printFloat(val.value)
     case 'double':
-      if (Number.isNaN(val.value)) return 'NaN'
-      if (val.value === Infinity) return 'Infinity'
-      if (val.value === -Infinity) return '-Infinity'
-      if (Object.is(val.value, -0)) return '-0.0'
-      return val.value.toString()
+      return printDouble(val.value)
     case 'string':
       return val.value
     case 'null':

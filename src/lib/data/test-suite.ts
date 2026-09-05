@@ -1642,6 +1642,129 @@ export const testSuite: TestSuiteEntry[] = [
     code: `"" + -0.0`,
     output: { type: 'string', value: '-0.0' },
   },
+  // ------------------------- string conversion: double sizes (expected values = Java reference) -------------------------
+  {
+    code: `"" + 1e6`,
+    output: { type: 'string', value: '1000000.0' },
+  },
+  {
+    code: `"" + 1e7`,
+    output: { type: 'string', value: '1.0E7' },
+  },
+  {
+    code: `"" + 12345678.0`,
+    output: { type: 'string', value: '1.2345678E7' },
+  },
+  {
+    code: `"" + 1.7976931348623157e308`,
+    output: { type: 'string', value: '1.7976931348623157E308' },
+  },
+  {
+    code: `"" + 4.9e-324`,
+    output: { type: 'string', value: '4.9E-324' },
+  },
+  {
+    code: `"" + 0.001`,
+    output: { type: 'string', value: '0.001' },
+  },
+  {
+    code: `"" + 0.0001`,
+    output: { type: 'string', value: '1.0E-4' },
+  },
+  {
+    code: `"" + (1.0 / 3.0)`,
+    output: { type: 'string', value: '0.3333333333333333' },
+  },
+  {
+    code: `"" + (0.1 + 0.2)`,
+    output: { type: 'string', value: '0.30000000000000004' },
+  },
+  {
+    code: `"" + -1e7`,
+    output: { type: 'string', value: '-1.0E7' },
+  },
+  // ------------------------- string conversion: float sizes (expected values = Java reference) -------------------------
+  {
+    code: `"" + 3.4028235e38f`,
+    output: { type: 'string', value: '3.4028235E38' },
+  },
+  {
+    code: `"" + 1e-45f`,
+    output: { type: 'string', value: '1.4E-45' },
+  },
+  {
+    code: `"" + 16777216f`,
+    output: { type: 'string', value: '1.6777216E7' },
+  },
+  {
+    code: `"" + 1e20f`,
+    output: { type: 'string', value: '1.0E20' },
+  },
+  {
+    code: `"" + 0.5f`,
+    output: { type: 'string', value: '0.5' },
+  },
+  // ------------------------- string conversion: double & float edge cases (expected values = Java reference) -------------------------
+  {
+    code: `"" + 1e15`,
+    output: { type: 'string', value: '1.0E15' },
+  },
+  {
+    code: `"" + 1e21`,
+    output: { type: 'string', value: '1.0E21' },
+  },
+  {
+    code: `"" + 2.2250738585072014e-308`,
+    output: { type: 'string', value: '2.2250738585072014E-308' },
+  },
+  {
+    code: `"" + 5e-324`,
+    output: { type: 'string', value: '4.9E-324' },
+  },
+  {
+    code: `"" + 1.5e-5`,
+    output: { type: 'string', value: '1.5E-5' },
+  },
+  {
+    code: `"" + -0.0001`,
+    output: { type: 'string', value: '-1.0E-4' },
+  },
+  {
+    code: `"" + 9.999999e6`,
+    output: { type: 'string', value: '9999999.0' },
+  },
+  {
+    code: `"" + 0.9999999999999999`,
+    output: { type: 'string', value: '0.9999999999999999' },
+  },
+  {
+    code: `"" + 123.456`,
+    output: { type: 'string', value: '123.456' },
+  },
+  {
+    code: `"" + -123.456`,
+    output: { type: 'string', value: '-123.456' },
+  },
+  {
+    code: `"" + 3.1415927f`,
+    output: { type: 'string', value: '3.1415927' },
+  },
+  {
+    code: `"" + 1.17549435e-38f`,
+    output: { type: 'string', value: '1.1754944E-38' },
+  },
+  {
+    code: `"" + 100.0f`,
+    output: { type: 'string', value: '100.0' },
+  },
+  {
+    code: `"" + 16777215f`,
+    output: { type: 'string', value: '1.6777215E7' },
+  },
+  {
+    code: `"" + -1.5e10f`,
+    output: { type: 'string', value: '-1.5E10' },
+  },
   // ------------------------- string used with non-'+' operators (expected: Java compile error) -------------------------
   {
     code: `"a" + "b" * 2`,
