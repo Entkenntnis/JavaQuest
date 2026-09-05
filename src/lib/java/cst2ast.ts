@@ -59,6 +59,22 @@ export function cst2ast(node: CstNode): AstNode {
     return { kind: 'literal', value: parseStringLiteral(node) }
   } else if (node.name == 'null') {
     return { kind: 'literal', value: { type: 'null' } }
+  } else if (node.name == 'CastExpression') {
+    const [typeNode, operandNode] = node.children
+    const type = typeNode.text
+    if (
+      type != 'boolean' &&
+      type != 'byte' &&
+      type != 'short' &&
+      type != 'char' &&
+      type != 'int' &&
+      type != 'long' &&
+      type != 'float' &&
+      type != 'double'
+    ) {
+      throw conversionError(node, 'invalid cast target type')
+    }
+    return { kind: 'cast', type, operand: cst2ast(operandNode) }
   }
   throw conversionError(node, 'no converter registered for this node')
 }

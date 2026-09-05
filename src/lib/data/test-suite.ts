@@ -950,4 +950,91 @@ export const testSuite: TestSuiteEntry[] = [
     code: `-null`,
     isError: true,
   },
+  // ------------------------- casts: integer sources -------------------------
+  {
+    code: `(byte)200`,
+    output: { type: 'byte', value: -56 },
+  },
+  {
+    code: `(short)70000`,
+    output: { type: 'short', value: 4464 },
+  },
+  {
+    code: `(char)-1`,
+    output: { type: 'char', value: 65535 },
+  },
+  {
+    code: `(int)4294967296L`,
+    output: { type: 'int', value: 0 },
+  },
+  {
+    code: `(byte)'a'`,
+    output: { type: 'byte', value: 97 },
+  },
+  {
+    code: `(long)(byte)200`,
+    output: { type: 'long', value: '-56' },
+  },
+  {
+    code: `(float)5`,
+    output: { type: 'float', value: 5 },
+  },
+  {
+    code: `(double)5`,
+    output: { type: 'double', value: 5 },
+  },
+  // ------------------------- casts: floating point sources -------------------------
+  {
+    code: `(boolean)true`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(float)0.1`,
+    output: { type: 'float', value: 0.10000000149011612 },
+  },
+  {
+    code: `(double)3.5f`,
+    output: { type: 'double', value: 3.5 },
+  },
+  {
+    code: `(long)3.7`,
+    output: { type: 'long', value: '3' },
+  },
+  {
+    code: `(long)-3.7`,
+    output: { type: 'long', value: '-3' },
+  },
+  {
+    code: `(long)1e20`,
+    output: { type: 'long', value: '9223372036854775807' },
+  },
+  {
+    code: `(byte)1.5e3`,
+    output: { type: 'byte', value: -36 },
+  },
+  {
+    code: `(int)3.99`,
+    output: { type: 'int', value: 3 },
+  },
+  {
+    code: `(int)1e10`,
+    output: { type: 'int', value: 2147483647 },
+  },
+  // ------------------------- casts: errors -------------------------
+  {
+    code: `(boolean)1`,
+    isError: true,
+  },
+  {
+    code: `(int)true`,
+    isError: true,
+  },
+  {
+    code: `(int)null`,
+    isError: true,
+  },
+  {
+    code: `(int)"5"`,
+    isError: true,
+  },
 ]

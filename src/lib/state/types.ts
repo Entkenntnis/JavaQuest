@@ -124,4 +124,23 @@ export interface UnaryExpressionAstNode {
   operand: AstNode
 }
 
-export type AstNode = LiteralAstNode | UnaryExpressionAstNode
+export type PrimitiveTypeName =
+  | 'byte'
+  | 'short'
+  | 'char'
+  | 'int'
+  | 'long'
+  | 'float'
+  | 'double'
+  | 'boolean'
+
+export interface CastExpressionAstNode {
+  kind: 'cast'
+  type: PrimitiveTypeName
+  operand: AstNode
+}
+
+export type AstNode =
+  | LiteralAstNode
+  | UnaryExpressionAstNode
+  | CastExpressionAstNode
