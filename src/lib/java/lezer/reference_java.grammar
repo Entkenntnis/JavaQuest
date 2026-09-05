@@ -75,7 +75,7 @@ BinaryExpression {
   expression !bitXor op<Bit, "^"> expression |
   expression !plus op<Arith, "+" | "-"> expression |
   expression !times times expression |
-  expression !shift (op<Arith, "%"> | op<Bit, "<<" | ">>" ">"?>) expression
+  expression !shift (op<Bit, "<<" | ">>" ">"?>) expression
 }
 
 InstanceofExpression {
@@ -722,7 +722,7 @@ commaSepTrailing<expr> { (expr ("," expr?)*)? }
 
   op[@name={name} "Op"]<name, body> { body }
 
-  times[@name=ArithOp] { "*" | "/" }
+  times[@name=ArithOp] { "*" | "/" | "%" }
 
   LineComment[isolate] {
     "//" ![\n]*
@@ -742,6 +742,6 @@ commaSepTrailing<expr> { (expr ("," expr?)*)? }
   "{" "}" "(" ")" "[" "]" "." "," ";" ":"
 }
 
-// @external propSource javaHighlighting from "./highlight"
+@external propSource javaHighlighting from "./highlight"
 
 @detectDelim

@@ -1487,4 +1487,172 @@ export const testSuite: TestSuiteEntry[] = [
     code: `(1.5f - 0.5f) * (10.0f + 2.0f) / 3.0f + (0.1f + 0.2f) % 0.5f - (2.0f * 1.5f - 1.0f) * 2.0f`,
     output: { type: 'float', value: 0.3000001907348633 },
   },
+  // ------------------------- string concatenation: basics & ordering -------------------------
+  {
+    code: `"" + ""`,
+    output: { type: 'string', value: '' },
+  },
+  {
+    code: `"ab" + "cd"`,
+    output: { type: 'string', value: 'abcd' },
+  },
+  {
+    code: `"x" + 1`,
+    output: { type: 'string', value: 'x1' },
+  },
+  {
+    code: `1 + "x"`,
+    output: { type: 'string', value: '1x' },
+  },
+  {
+    code: `"x" + 1 + 2`,
+    output: { type: 'string', value: 'x12' },
+  },
+  {
+    code: `1 + 2 + "x"`,
+    output: { type: 'string', value: '3x' },
+  },
+  {
+    code: `"x" + (1 + 2)`,
+    output: { type: 'string', value: 'x3' },
+  },
+  {
+    code: `2 * 3 + "x"`,
+    output: { type: 'string', value: '6x' },
+  },
+  // ------------------------- string concatenation: int / long / byte -------------------------
+  {
+    code: `"" + 42`,
+    output: { type: 'string', value: '42' },
+  },
+  {
+    code: `"" + -2147483648`,
+    output: { type: 'string', value: '-2147483648' },
+  },
+  {
+    code: `"" + 9223372036854775807L`,
+    output: { type: 'string', value: '9223372036854775807' },
+  },
+  {
+    code: `"" + (-9223372036854775808L)`,
+    output: { type: 'string', value: '-9223372036854775808' },
+  },
+  {
+    code: `"" + (byte)200`,
+    output: { type: 'string', value: '-56' },
+  },
+  // ------------------------- string concatenation: char -------------------------
+  {
+    code: `"" + 'a'`,
+    output: { type: 'string', value: 'a' },
+  },
+  {
+    code: `"" + (char)65`,
+    output: { type: 'string', value: 'A' },
+  },
+  {
+    code: `"c=" + 'x'`,
+    output: { type: 'string', value: 'c=x' },
+  },
+  {
+    code: `"" + 'a' + 1`,
+    output: { type: 'string', value: 'a1' },
+  },
+  {
+    code: `"" + ('a' + 1)`,
+    output: { type: 'string', value: '98' },
+  },
+  {
+    code: `'x' + ""`,
+    output: { type: 'string', value: 'x' },
+  },
+  // ------------------------- string concatenation: boolean & null -------------------------
+  {
+    code: `"" + true`,
+    output: { type: 'string', value: 'true' },
+  },
+  {
+    code: `"" + false`,
+    output: { type: 'string', value: 'false' },
+  },
+  {
+    code: `true + ""`,
+    output: { type: 'string', value: 'true' },
+  },
+  {
+    code: `"" + null`,
+    output: { type: 'string', value: 'null' },
+  },
+  {
+    code: `null + ""`,
+    output: { type: 'string', value: 'null' },
+  },
+  // ------------------------- string concatenation: Infinity / NaN -------------------------
+  {
+    code: `"" + (1.0 / 0.0)`,
+    output: { type: 'string', value: 'Infinity' },
+  },
+  {
+    code: `"" + (-1.0 / 0.0)`,
+    output: { type: 'string', value: '-Infinity' },
+  },
+  {
+    code: `"" + (0.0 / 0.0)`,
+    output: { type: 'string', value: 'NaN' },
+  },
+  {
+    code: `"" + (1.0f / 0.0f)`,
+    output: { type: 'string', value: 'Infinity' },
+  },
+  {
+    code: `"" + (1e308 * 10)`,
+    output: { type: 'string', value: 'Infinity' },
+  },
+  // ------------------------- string concatenation: float & double that Java prints plainly -------------------------
+  {
+    code: `"" + 0.5`,
+    output: { type: 'string', value: '0.5' },
+  },
+  {
+    code: `"" + 2.5`,
+    output: { type: 'string', value: '2.5' },
+  },
+  {
+    code: `"" + 0.1`,
+    output: { type: 'string', value: '0.1' },
+  },
+  // ------------------------- string concatenation: float & double formatting (expected values = Java reference) -------------------------
+  {
+    code: `"" + 100.0`,
+    output: { type: 'string', value: '100.0' },
+  },
+  {
+    code: `"" + 2f`,
+    output: { type: 'string', value: '2.0' },
+  },
+  {
+    code: `"" + 0.1f`,
+    output: { type: 'string', value: '0.1' },
+  },
+  {
+    code: `"" + (1f / 3f)`,
+    output: { type: 'string', value: '0.33333334' },
+  },
+  {
+    code: `"" + -0.0`,
+    output: { type: 'string', value: '-0.0' },
+  },
+  // ------------------------- string used with non-'+' operators (expected: Java compile error) -------------------------
+  {
+    code: `"a" + "b" * 2`,
+    isError: true,
+  },
+  {
+    code: `"x" - 1`,
+    isError: true,
+  },
+  {
+    code: `1 / "x"`,
+    isError: true,
+  },
 ]

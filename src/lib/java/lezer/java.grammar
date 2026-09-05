@@ -59,7 +59,7 @@ BinaryExpression {
   expression !bitOr op<Bit, "|"> expression |
   expression !bitXor op<Bit, "^"> expression |
   expression !plus op<Arith, "+" | "-"> expression |
-  expression !times (times | op<Arith, "%">) expression |
+  expression !times times expression |
   expression !shift (op<Bit, "<<" | ">>" ">"?>) expression
 }
 
@@ -139,5 +139,5 @@ kw<term> { @specialize[@name={term}]<identifier, term> }
 
   op[@name={name} "Op"]<name, body> { body }
 
-  times[@name=ArithOp] { "*" | "/" }
+  times[@name=ArithOp] { "*" | "/" | "%" }
 }

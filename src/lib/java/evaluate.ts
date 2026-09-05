@@ -124,6 +124,16 @@ export function evaluate(node: AstNode): JavaValue {
       })
     }
 
+    if (
+      node.op == '+' &&
+      (innerLeft.type == 'string' || innerRight.type == 'string')
+    ) {
+      return {
+        type: 'string',
+        value: javaValueToString(innerLeft) + javaValueToString(innerRight),
+      }
+    }
+
     throw new Error('invalid binary operator')
   }
 
@@ -246,4 +256,29 @@ function binaryNumericPromotion(
     return [toLong(left), toLong(right)]
   }
   return [toInt(left), toInt(right)]
+}
+
+function javaValueToString(val: JavaValue): string {
+  switch (val.type) {
+    case 'boolean':
+      return val.value ? 'true' : 'false'
+    case 'byte':
+    case 'short':
+    case 'int':
+    case 'long':
+      return val.value.toString()
+    case 'char':
+      return String.fromCodePoint(val.value)
+    case 'float':
+    case 'double':
+      if (Number.isNaN(val.value)) return 'NaN'
+      if (val.value === Infinity) return 'Infinity'
+      if (val.value === -Infinity) return '-Infinity'
+      if (Object.is(val.value, -0)) return '-0.0'
+      return val.value.toString()
+    case 'string':
+      return val.value
+    case 'null':
+      return 'null'
+  }
 }
