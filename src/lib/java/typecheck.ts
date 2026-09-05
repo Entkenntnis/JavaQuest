@@ -3,8 +3,42 @@ import type {
   BinaryExpressionAstNode,
   CastExpressionAstNode,
   JavaValue,
+  TypedLiteralAstNode,
+  TypedNode,
   UnaryExpressionAstNode,
 } from '../state/types'
+import { isNumeric } from './evaluate'
+
+export function typecheck(node: AstNode): TypedNode<JavaValue> {
+  switch (node.kind) {
+    case 'literal':
+      // every literal is intrinsically valid
+      return node as TypedLiteralAstNode<JavaValue>
+    case 'unary': {
+      const operand = typecheck(node.operand)
+      if (node.op == '+') {
+        if (isNumeric(operand)) {
+        }
+      }
+    }
+    case 'cast':
+    case 'binary':
+  }
+  throw 'TODO'
+}
+
+export function typecheck__LEGACY(node: AstNode): Type {
+  switch (node.kind) {
+    case 'literal':
+      return node.value.type
+    case 'unary':
+      return typecheckUnary(node)
+    case 'cast':
+      return typecheckCast(node)
+    case 'binary':
+      return typecheckBinary(node)
+  }
+}
 
 type Type = JavaValue['type']
 
@@ -54,26 +88,13 @@ function unaryResultType(operand: Type, op: string): Type {
     : operand
 }
 
-export function typecheck(node: AstNode): Type {
-  switch (node.kind) {
-    case 'literal':
-      return node.value.type
-    case 'unary':
-      return typecheckUnary(node)
-    case 'cast':
-      return typecheckCast(node)
-    case 'binary':
-      return typecheckBinary(node)
-  }
-}
-
 function typecheckUnary(node: UnaryExpressionAstNode): Type {
-  const operand = typecheck(node.operand)
+  const operand = typecheck__LEGACY(node.operand)
   return unaryResultType(operand, node.op)
 }
 
 function typecheckCast(node: CastExpressionAstNode): Type {
-  const operand = typecheck(node.operand)
+  const operand = typecheck__LEGACY(node.operand)
   if (node.type == 'boolean') {
     if (operand != 'boolean') {
       fail(`cannot cast ${operand} to boolean`)
@@ -87,14 +108,16 @@ function typecheckCast(node: CastExpressionAstNode): Type {
 }
 
 function typecheckBinary(node: BinaryExpressionAstNode): Type {
-  const left = typecheck(node.left)
-  const right = typecheck(node.right)
+  const left = typecheck__LEGACY(node.left)
+  const right = typecheck__LEGACY(node.right)
 
   switch (node.op) {
     case '&&':
     case '||':
       if (left != 'boolean' || right != 'boolean') {
-        fail(`'${node.op}' requires boolean operands, found ${left} and ${right}`)
+        fail(
+          `'${node.op}' requires boolean operands, found ${left} and ${right}`,
+        )
       }
       return 'boolean'
     case '+':
@@ -102,7 +125,9 @@ function typecheckBinary(node: BinaryExpressionAstNode): Type {
       if (numericTypes.has(left) && numericTypes.has(right)) {
         return promote(left, right)
       }
-      fail(`'+' requires numeric or string operands, found ${left} and ${right}`)
+      fail(
+        `'+' requires numeric or string operands, found ${left} and ${right}`,
+      )
     case '-':
     case '*':
     case '/':
@@ -114,7 +139,8 @@ function typecheckBinary(node: BinaryExpressionAstNode): Type {
     case '==':
       if (numericTypes.has(left) && numericTypes.has(right)) return 'boolean'
       if (left == 'boolean' && right == 'boolean') return 'boolean'
-      if (referenceTypes.has(left) && referenceTypes.has(right)) return 'boolean'
+      if (referenceTypes.has(left) && referenceTypes.has(right))
+        return 'boolean'
       fail(`'==' cannot compare ${left} with ${right}`)
   }
 }

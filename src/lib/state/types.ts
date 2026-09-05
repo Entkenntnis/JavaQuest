@@ -95,6 +95,13 @@ export type JavaNumericPrimitiveValue =
   | JavaFloatValue
   | JavaDoubleValue
 
+export type JavaIntegerValue =
+  | JavaByteValue
+  | JavaCharValue
+  | JavaShortValue
+  | JavaIntValue
+  | JavaLongValue
+
 export type JavaValue =
   | JavaNumericPrimitiveValue
   | JavaStringValue
@@ -153,3 +160,98 @@ export type AstNode =
   | UnaryExpressionAstNode
   | CastExpressionAstNode
   | BinaryExpressionAstNode
+
+// ----------------------------
+
+// So, what is the idea here?
+// Ich möchte die gesamten Typ-Informationen, die ich im Ast aufgebaut habe, jetzt ganz explizit typisieren
+// Geht das? Ich meine, wahrscheinlich mit TypedNode<type>
+
+export interface TypedLiteralAstNode<T extends JavaValue> {
+  kind: 'literal'
+  value: T
+}
+
+export interface TypedUnaryPlusMinusNode<_ extends JavaNumericPrimitiveValue> {
+  kind: 'unary'
+  op: '+' | '-'
+  operand: TypedNode<JavaNumericPrimitiveValue>
+}
+
+export interface TypedNegateNode<T extends JavaBooleanValue> {
+  kind: 'unary'
+  op: '!'
+  operand: TypedNode<T>
+}
+
+export interface TypedComplementNode<T extends JavaIntegerValue> {
+  kind: 'unary'
+  op: '~'
+  operand: TypedNode<T>
+}
+
+export interface TypedNumericCastNode<T extends JavaNumericPrimitiveValue> {
+  kind: 'cast'
+  type: T['type']
+  operand: TypedNode<JavaNumericPrimitiveValue>
+}
+
+export interface TypedBooleanCastNode<T extends JavaBooleanValue> {
+  kind: 'cast'
+  type: 'boolean'
+  operand: TypedNode<T>
+}
+
+export interface TypedNumericArithNode<_ extends JavaNumericPrimitiveValue> {
+  kind: 'binary'
+  op: '+' | '-' | '*' | '/' | '%'
+  left: TypedNode<JavaNumericPrimitiveValue>
+  right: TypedNode<JavaNumericPrimitiveValue>
+}
+
+export interface TypedStringConcatNode<_ extends JavaStringValue> {
+  kind: 'binary'
+  op: 'concat'
+  left: TypedNode<JavaValue>
+  right: TypedNode<JavaValue>
+}
+
+export interface TypedOrAndNode<T extends JavaBooleanValue> {
+  kind: 'binary'
+  op: '&&' | '||'
+  left: TypedNode<T>
+  right: TypedNode<T>
+}
+
+export interface TypedNumericEqualsNode<_ extends JavaNumericPrimitiveValue> {
+  kind: 'binary'
+  op: '==n'
+  left: TypedNode<JavaNumericPrimitiveValue>
+  right: TypedNode<JavaNumericPrimitiveValue>
+}
+
+export interface TypedBooleanEqualsNode<T extends JavaBooleanValue> {
+  kind: 'binary'
+  op: '==b'
+  left: TypedNode<T>
+  right: TypedNode<T>
+}
+
+export type TypedNode<T extends JavaValue> =
+  | TypedLiteralAstNode<T>
+  | (T extends JavaNumericPrimitiveValue
+      ?
+          | TypedUnaryPlusMinusNode<T>
+          | TypedNumericCastNode<T>
+          | TypedNumericArithNode<T>
+          | TypedNumericEqualsNode<T>
+      : never)
+  | (T extends JavaBooleanValue
+      ?
+          | TypedNegateNode<T>
+          | TypedBooleanCastNode<T>
+          | TypedOrAndNode<T>
+          | TypedBooleanEqualsNode<T>
+      : never)
+  | (T extends JavaIntegerValue ? TypedComplementNode<T> : never)
+  | (T extends JavaStringValue ? TypedStringConcatNode<T> : never)
