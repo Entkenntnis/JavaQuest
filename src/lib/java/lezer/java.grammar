@@ -93,7 +93,7 @@ type {
 
 kw<term> { @specialize[@name={term}]<identifier, term> }
 
-@skip { whitespace }
+@skip { BlockComment | whitespace }
 
 @tokens {
   whitespace { @whitespace+ }
@@ -140,4 +140,12 @@ kw<term> { @specialize[@name={term}]<identifier, term> }
   op[@name={name} "Op"]<name, body> { body }
 
   times[@name=ArithOp] { "*" | "/" | "%" }
+
+  BlockComment[isolate] { "/*" blockCommentRest }
+
+  blockCommentRest { ![*] blockCommentRest | "*" blockCommentAfterStar }
+
+  blockCommentAfterStar { "/" | "*" blockCommentAfterStar | ![/*] blockCommentRest }
+
+  @precedence { BlockComment, times }
 }

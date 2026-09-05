@@ -6,7 +6,7 @@ something new
 
 ### Things that not feasible to support and are therefore left out:
 
-- Comments
+- Line Comments
 - Text blocks
 - Raw-source Unicode escape preprocessing
 - Annotated types

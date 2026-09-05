@@ -15,7 +15,9 @@ export function cursorToCstNode(cursor: TreeCursor, doc: Text): CstNode {
   }
   if (cursor.firstChild()) {
     do {
-      node.children.push(cursorToCstNode(cursor.node.cursor(), doc))
+      if (cursor.name != 'BlockComment') {
+        node.children.push(cursorToCstNode(cursor.node.cursor(), doc))
+      }
     } while (cursor.nextSibling())
   }
   return node
