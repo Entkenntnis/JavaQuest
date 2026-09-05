@@ -6,8 +6,8 @@ export default defineConfig({
   root: 'app',
   publicDir: '../public',
   build: {
-    target: 'es2015',
-    chunkSizeWarningLimit: 3000,
+    target: 'es2020',
+    chunkSizeWarningLimit: 1000,
     outDir: '../dist',
     emptyOutDir: true,
   },
