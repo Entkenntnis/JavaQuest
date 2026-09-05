@@ -87,64 +87,41 @@ export function evaluate(node: AstNode): JavaValue {
         left.type == 'int' ||
         right.type == 'int'
 
-      function applyBig(op: (a: bigint, b: bigint) => bigint) {
-        return convertTo(left.type, {
-          type: 'long',
-          value: op(BigInt(left.value), BigInt(right.value)).toString(),
-        })
+      const ops: Record<string, (a: number, b: number) => number> = {
+        '+': (a, b) => a + b,
+        '-': (a, b) => a - b,
+        '*': (a, b) => a * b,
+        '/': (a, b) => a / b,
+        '%': (a, b) => a % b,
       }
 
-      if (node.op == '+') {
-        if (isInteger) {
-          return applyBig((a, b) => a + b)
+      const opsBig: Record<string, (a: bigint, b: bigint) => bigint> = {
+        '+': (a, b) => a + b,
+        '-': (a, b) => a - b,
+        '*': (a, b) => a * b,
+        '/': (a, b) => a / b,
+        '%': (a, b) => a % b,
+      }
+
+      if (isInteger) {
+        if (node.op == '/' && BigInt(right.value) == 0n) {
+          throw new Error('Division by zero')
+        }
+        if (node.op == '%' && BigInt(right.value) == 0n) {
+          throw new Error('Modulo by zero')
         }
         return convertTo(left.type, {
-          type: 'double',
-          value: left.value + right.value,
+          type: 'long',
+          value: opsBig[node.op](
+            BigInt(left.value),
+            BigInt(right.value),
+          ).toString(),
         })
       }
-      if (node.op == '-') {
-        if (isInteger) {
-          return applyBig((a, b) => a - b)
-        }
-        return convertTo(left.type, {
-          type: 'double',
-          value: left.value - right.value,
-        })
-      }
-      if (node.op == '*') {
-        if (isInteger) {
-          return applyBig((a, b) => a * b)
-        }
-        return convertTo(left.type, {
-          type: 'double',
-          value: left.value * right.value,
-        })
-      }
-      if (node.op == '/') {
-        if (isInteger) {
-          if (BigInt(right.value) == 0n) {
-            throw new Error('Division by zero')
-          }
-          return applyBig((a, b) => a / b)
-        }
-        return convertTo(left.type, {
-          type: 'double',
-          value: left.value / right.value,
-        })
-      }
-      if (node.op == '%') {
-        if (isInteger) {
-          if (BigInt(right.value) == 0n) {
-            throw new Error('Modulo by zero')
-          }
-          return applyBig((a, b) => a % b)
-        }
-        return convertTo(left.type, {
-          type: 'double',
-          value: left.value % right.value,
-        })
-      }
+      return convertTo(left.type, {
+        type: 'double',
+        value: ops[node.op](left.value, right.value),
+      })
     }
 
     throw new Error('invalid binary operator')
