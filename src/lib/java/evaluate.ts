@@ -1,52 +1,3 @@
-// ============================================================================
-// KNOWN IMPLEMENTATION ERRORS (found while writing the arithmetic test suite)
-// ----------------------------------------------------------------------------
-// 1. int overflow wraps wrong: binary arithmetic is computed in double and then
-//    funnelled through toInt(), which SATURATES for float/double sources
-//    (see toInt below). Java int arithmetic must wrap (two's complement), so
-//      - 2147483647 + 1           -> 2147483647  (Java: -2147483648)
-//      - 2000000000 + 2000000000  -> 2147483647  (Java: -294967296)
-//      - -2147483648 - 1          -> -2147483648 (Java: 2147483647)
-//      - 2147483647 * 2           -> 2147483647  (Java: -2)
-//      - -2147483648 / -1         -> 2147483647  (Java: -2147483648)
-//    long arithmetic is unaffected (it wraps via BigInt.asIntN(64, ...)).
-//
-// 2. int division/modulo by zero (1 / 0, 1 % 0, 0 / 0) return values instead
-//    of erroring: int division becomes Infinity (saturates to 2147483647),
-//    modulo becomes NaN (maps to 0). Long division/modulo by zero happens to
-//    throw (BigInt RangeError) and therefore reports an error, so behaviour is
-//    inconsistent between int and long.
-//
-// 3. (parser, not this file) '%' has the wrong precedence in
-//    src/lib/java/lezer/java.grammar: it sits on the 'shift' level, i.e.
-//    BELOW '+'/'-'. Java gives '%' multiplicative precedence (same as '*','/').
-//    As a result 10 % 4 + 1 parses as 10 % (4 + 1) = 0 instead of 3, etc.
-//
-// FLOATING-POINT REMARKS (expected behaviours that are NOT yet testable,
-// because the JavaValue model and the JSON comparison both silently collapse
-// NaN / +-Infinity to null and -0.0 to 0):
-//   a) float/double division by zero is NOT an error (unlike int/long):
-//       1.0 / 0.0  -> +Infinity   (1 / 0.0, i.e. an int 0 promoted, does too)
-//       -1.0 / 0.0 -> -Infinity
-//       0.0 / 0.0  -> NaN
-//      The current double path yields these naturally as JS numbers, but they
-//      cannot be asserted: JSON.stringify(NaN/Infinity) === 'null'. The Java
-//      cross-check wrapper already prints such values as { special: ... }.
-//   b) double/float '%' with a zero divisor gives NaN (e.g. 1.0 % 0.0, 0.0 % 0.0)
-//      and with an Infinity divisor returns the dividend (5.0 % Infinity -> 5.0).
-//      Infinity operands: Infinity % x -> NaN, x % Infinity -> x.
-//   c) Signed zero: Java distinguishes -0.0 from 0.0, e.g. -0.0 is the result of
-//      unary minus on 0.0 and 1.0 / -0.0 is -Infinity while 1.0 / 0.0 is
-//      +Infinity. The evaluator produces JS -0, but JSON.stringify(-0) === '0',
-//      so the sign is invisible to tests and to == comparisons (JS -0 == 0).
-//   d) Precision: single float ops round via double then Math.fround, which
-//      matches Java's direct single rounding for the cases above; chained
-//      float expressions are re-rounded after every step, as Java requires.
-//      Still, avoid hand-written float/double expectations that rely on more
-//      than ~15 significant digits unless they were produced by the evaluator
-//      AND confirmed by the java cross-check.
-// ============================================================================
-
 import type {
   AstNode,
   JavaByteValue,
@@ -137,8 +88,13 @@ export function evaluate(node: AstNode): JavaValue {
       const [left, right] = binaryNumericPromotion(innerLeft, innerRight)
 
       if (node.op == '+') {
-        if (left.type == 'long' || right.type == 'long') {
-          return toLong({
+        if (
+          left.type == 'long' ||
+          right.type == 'long' ||
+          left.type == 'int' ||
+          right.type == 'int'
+        ) {
+          return convertTo(left.type, {
             type: 'long',
             value: (BigInt(left.value) + BigInt(right.value)).toString(),
           })
@@ -149,8 +105,13 @@ export function evaluate(node: AstNode): JavaValue {
         })
       }
       if (node.op == '-') {
-        if (left.type == 'long' || right.type == 'long') {
-          return toLong({
+        if (
+          left.type == 'long' ||
+          right.type == 'long' ||
+          left.type == 'int' ||
+          right.type == 'int'
+        ) {
+          return convertTo(left.type, {
             type: 'long',
             value: (BigInt(left.value) - BigInt(right.value)).toString(),
           })
@@ -161,8 +122,13 @@ export function evaluate(node: AstNode): JavaValue {
         })
       }
       if (node.op == '*') {
-        if (left.type == 'long' || right.type == 'long') {
-          return toLong({
+        if (
+          left.type == 'long' ||
+          right.type == 'long' ||
+          left.type == 'int' ||
+          right.type == 'int'
+        ) {
+          return convertTo(left.type, {
             type: 'long',
             value: (BigInt(left.value) * BigInt(right.value)).toString(),
           })
@@ -173,8 +139,16 @@ export function evaluate(node: AstNode): JavaValue {
         })
       }
       if (node.op == '/') {
-        if (left.type == 'long' || right.type == 'long') {
-          return toLong({
+        if (
+          left.type == 'long' ||
+          right.type == 'long' ||
+          left.type == 'int' ||
+          right.type == 'int'
+        ) {
+          if (BigInt(right.value) == 0n) {
+            throw new Error('Division by zero')
+          }
+          return convertTo(left.type, {
             type: 'long',
             value: (BigInt(left.value) / BigInt(right.value)).toString(),
           })
@@ -185,8 +159,16 @@ export function evaluate(node: AstNode): JavaValue {
         })
       }
       if (node.op == '%') {
-        if (left.type == 'long' || right.type == 'long') {
-          return toLong({
+        if (
+          left.type == 'long' ||
+          right.type == 'long' ||
+          left.type == 'int' ||
+          right.type == 'int'
+        ) {
+          if (BigInt(right.value) == 0n) {
+            throw new Error('Modulo by zero')
+          }
+          return convertTo(left.type, {
             type: 'long',
             value: (BigInt(left.value) % BigInt(right.value)).toString(),
           })
