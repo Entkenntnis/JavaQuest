@@ -76,6 +76,9 @@ export function cst2ast(node: CstNode): AstNode {
     }
     return { kind: 'cast', type, operand: cst2ast(operandNode) }
   }
+  if (node.name == 'ParenthesizedExpression') {
+    return cst2ast(node.children[0])
+  }
   throw conversionError(node, 'no converter registered for this node')
 }
 
