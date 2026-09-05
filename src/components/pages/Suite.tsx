@@ -1,14 +1,15 @@
 import { testSuite } from '../../lib/data/test-suite'
-import type { TestSuiteEntry } from '../../lib/state/types'
+import type { JavaValue, TestSuiteEntry } from '../../lib/state/types'
 import { parser } from '../../lib/java/lezer/parser'
 import { Text } from '@codemirror/state'
 import { cursorToCstNode } from '../../lib/java/helper/cst'
 import { checkForParseErrors, cst2ast } from '../../lib/java/cst2ast'
 import clsx from 'clsx'
+import { evaluate } from '../../lib/java/evaluate'
 
 interface SuiteResult {
   error?: string
-  ast?: object
+  value?: JavaValue
 }
 
 function runCase(code: string) {
@@ -17,7 +18,8 @@ function runCase(code: string) {
     const cst = cursorToCstNode(tree.cursor(), Text.of([code]))
     checkForParseErrors(cst)
     const ast = cst2ast(cst)
-    return { ast }
+    const value = evaluate(ast)
+    return { value }
   } catch (e) {
     return { error: (e as any).toString() }
   }
@@ -29,8 +31,8 @@ function isPass(entry: TestSuiteEntry, result: SuiteResult) {
   if (result.error) return entry.isError == true
   if (entry.isError) return false
   return (
-    result.ast !== undefined &&
-    JSON.stringify(result.ast) === JSON.stringify(entry.output)
+    result.value !== undefined &&
+    JSON.stringify(result.value) === JSON.stringify(entry.output)
   )
 }
 
@@ -60,9 +62,9 @@ function Entry({
   result: SuiteResult
   entry: TestSuiteEntry
 }) {
-  const { error, ast } = result
+  const { error, value } = result
 
-  const hasResult = error || ast
+  const hasResult = error || value
 
   return (
     <div className="flex justify-between border-2 border-pink-300">
@@ -77,14 +79,14 @@ function Entry({
           <pre>OK, mit Fehler {error}</pre>
         </div>
       )}
-      {((error && !entry.isError) || (!entry.isError && !ast)) && (
+      {((error && !entry.isError) || (!entry.isError && !value)) && (
         <div className="p-1 text-red-600">
           <pre>FAIL! Fehler: {error}</pre>
         </div>
       )}
-      {ast &&
+      {value &&
         (() => {
-          const outputStr = JSON.stringify(ast, null, 2)
+          const outputStr = JSON.stringify(value, null, 2)
           const expectedStr = JSON.stringify(entry.output, null, 2)
           const isTheSame = outputStr === expectedStr
           return (

@@ -30,7 +30,7 @@ export interface QuestData {
 export interface TestSuiteEntry {
   code: string
   isError?: boolean
-  output?: AstNode
+  output?: JavaValue
 }
 
 // --------------------- Java System -------------------------
@@ -92,6 +92,12 @@ export type JavaNumericPrimitiveValue =
   | JavaLongValue
   | JavaFloatValue
   | JavaDoubleValue
+
+export type JavaValue =
+  | JavaNumericPrimitiveValue
+  | JavaStringValue
+  | JavaNullValue
+  | JavaBooleanValue
 
 export interface CstNode {
   name: string
