@@ -86,11 +86,44 @@ export function evaluate(node: AstNode): JavaValue {
   }
 
   if (node.kind == 'binary') {
+    if (node.op == '||' || node.op == '&&') {
+      const innerLeft = evaluate(node.left)
+      if (innerLeft.type != 'boolean') {
+        throw new Error('Boolean expected')
+      }
+      if (node.op == '||') {
+        if (innerLeft.value) {
+          return innerLeft
+        } else {
+          const innerRight = evaluate(node.right)
+          if (innerRight.type != 'boolean') {
+            throw new Error('Boolean expected')
+          }
+          return innerRight
+        }
+      }
+      if (node.op == '&&') {
+        if (!innerLeft.value) {
+          return innerLeft
+        } else {
+          const innerRight = evaluate(node.right)
+          if (innerRight.type != 'boolean') {
+            throw new Error('Boolean expected')
+          }
+          return innerRight
+        }
+      }
+    }
+
     const innerLeft = evaluate(node.left)
     const innerRight = evaluate(node.right)
 
     // handle +, -, *, /, % on numerics
-    if (isNumeric(innerLeft) && isNumeric(innerRight)) {
+    if (
+      isNumeric(innerLeft) &&
+      isNumeric(innerRight) &&
+      '+-*/%'.includes(node.op)
+    ) {
       const [left, right] = binaryNumericPromotion(innerLeft, innerRight)
       const isInteger =
         left.type == 'long' ||
@@ -133,6 +166,16 @@ export function evaluate(node: AstNode): JavaValue {
         type: 'double',
         value: ops[node.op](left.value, right.value),
       })
+    }
+
+    if (node.op == '==') {
+      if (isNumeric(innerLeft) && isNumeric(innerRight)) {
+        const [left, right] = binaryNumericPromotion(innerLeft, innerRight)
+        return { type: 'boolean', value: left.value === right.value }
+      }
+      if (innerLeft.type == 'boolean' && innerRight.type == 'boolean') {
+        return { type: 'boolean', value: innerLeft.value === innerRight.value }
+      }
     }
 
     if (

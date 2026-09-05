@@ -126,7 +126,7 @@ export interface UnaryExpressionAstNode {
 
 export interface BinaryExpressionAstNode {
   kind: 'binary'
-  op: '+' | '-' | '*' | '/' | '%'
+  op: '+' | '-' | '*' | '/' | '%' | '||' | '&&' | '=='
   left: AstNode
   right: AstNode
 }

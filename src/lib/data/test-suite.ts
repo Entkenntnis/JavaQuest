@@ -1844,4 +1844,85 @@ export const testSuite: TestSuiteEntry[] = [
     code: `~true`,
     isError: true,
   },
+  // ------------------------- logical operators: && and || (short circuit) -------------------------
+  {
+    code: `true && true`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `true && false`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `false && true`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `false || true`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `false || false`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `true || false`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `true || true && false`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true || true) && false`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `1 && true`,
+    isError: true,
+  },
+  {
+    code: `true && (1/0 == 1)`,
+    isError: true,
+  },
+  {
+    code: `false && (1/0 == 1)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `true || (1/0 == 1)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `false || (1/0 == 1)`,
+    isError: true,
+  },
+  {
+    code: `true || 1`,
+    isError: true,
+  },
+  {
+    code: `false && 1`,
+    isError: true,
+  },
+  {
+    code: `false && null`,
+    isError: true,
+  },
+  {
+    code: `true || "x"`,
+    isError: true,
+  },
+  {
+    code: `false && 'a'`,
+    isError: true,
+  },
+  {
+    code: `true || 9223372036854775807L`,
+    isError: true,
+  },
+  {
+    code: `true || (boolean)5`,
+    isError: true,
+  },
 ]
