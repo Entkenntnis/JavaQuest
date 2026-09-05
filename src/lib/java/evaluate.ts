@@ -56,7 +56,26 @@ export function evaluate(node: AstNode): JavaValue {
       }
       throw new Error('type error for unary minus')
     }
-    throw new Error('operator not implemented yet')
+    if (node.op == '!') {
+      if (inner.type == 'boolean') {
+        return { type: 'boolean', value: !inner.value }
+      }
+    }
+    if (node.op == '~') {
+      if (
+        inner.type == 'byte' ||
+        inner.type == 'short' ||
+        inner.type == 'char' ||
+        inner.type == 'int' ||
+        inner.type == 'long'
+      ) {
+        return convertTo(inner.type == 'long' ? 'long' : 'int', {
+          type: 'long',
+          value: (~BigInt(inner.value)).toString(),
+        })
+      }
+    }
+    throw new Error('invalid operator')
   }
 
   if (node.kind == 'cast') {

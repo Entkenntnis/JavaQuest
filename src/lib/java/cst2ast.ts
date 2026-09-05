@@ -46,6 +46,12 @@ export function cst2ast(node: CstNode): AstNode {
       }
       return { kind: 'unary', op, operand: cst2ast(operand) }
     }
+    if (op == '!') {
+      return { kind: 'unary', op, operand: cst2ast(operand) }
+    }
+    if (op == '~') {
+      return { kind: 'unary', op, operand: cst2ast(operand) }
+    }
     throw conversionError(node, 'unknown unary operator')
   } else if (node.name == 'IntegerLiteral') {
     return { kind: 'literal', value: parseIntegerLiteral(node) }

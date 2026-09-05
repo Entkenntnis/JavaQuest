@@ -120,7 +120,7 @@ export interface LiteralAstNode {
 
 export interface UnaryExpressionAstNode {
   kind: 'unary'
-  op: '+' | '-'
+  op: '+' | '-' | '!' | '~'
   operand: AstNode
 }
 

@@ -1778,4 +1778,70 @@ export const testSuite: TestSuiteEntry[] = [
     code: `1 / "x"`,
     isError: true,
   },
+  // ------------------------- unary logical complement '!' -------------------------
+  {
+    code: `!true`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `!false`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `!!true`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `!((boolean)false)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `!0`,
+    isError: true,
+  },
+  {
+    code: `!"hi"`,
+    isError: true,
+  },
+  {
+    code: `!null`,
+    isError: true,
+  },
+  // ------------------------- unary bitwise complement '~' -------------------------
+  {
+    code: `~0`,
+    output: { type: 'int', value: -1 },
+  },
+  {
+    code: `~5`,
+    output: { type: 'int', value: -6 },
+  },
+  {
+    code: `~~5`,
+    output: { type: 'int', value: 5 },
+  },
+  {
+    code: `~2147483647`,
+    output: { type: 'int', value: -2147483648 },
+  },
+  {
+    code: `~-2147483648`,
+    output: { type: 'int', value: 2147483647 },
+  },
+  {
+    code: `~'a'`,
+    output: { type: 'int', value: -98 },
+  },
+  {
+    code: `~(byte)200`,
+    output: { type: 'int', value: 55 },
+  },
+  {
+    code: `~-9223372036854775808L`,
+    output: { type: 'long', value: '9223372036854775807' },
+  },
+  {
+    code: `~true`,
+    isError: true,
+  },
 ]
