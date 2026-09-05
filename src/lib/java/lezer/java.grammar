@@ -1,17 +1,30 @@
 @precedence {
+  cast
+  // update @left
   unaryPlus @left
+  negate @left
+  // instanceof
+  times @left
+  plus @left
+  shift @left
+  compare @left
+  bitAnd @left
+  bitOr @left
+  bitXor @left
+  and @left
+  or @left
+  // ternary @right
+  // valuePair
+  // assign @right
+  // array @right
+  // new @right
+  // else @right
+  // scope @left
+  // typeArgs
 }
 
 @top Expression { expression }
 
-expression {
-  UnaryExpression |
-  literal
-}
-
-UnaryExpression {
-  op<Arith, "+" | "-"> !unaryPlus expression
-}
 
 literal {
   IntegerLiteral |
@@ -20,6 +33,62 @@ literal {
   CharacterLiteral |
   StringLiteral |
   kw<"null">
+}
+
+expression {
+  // AssignmentExpression |
+  BinaryExpression |
+  // InstanceofExpression |
+  // LambdaExpression |
+  // TernaryExpression |
+  // UpdateExpression |
+  baseExpression |
+  UnaryExpression |
+  CastExpression
+}
+
+CastExpression {
+  "(" type ")" !cast expression
+}
+
+BinaryExpression {
+  expression !compare (op<Compare, "==" | ">=" | "<=" | "!="> | CompareOp { "<" | ">" }) expression |
+  expression !and op<Logic, "&&"> expression |
+  expression !or op<Logic, "||"> expression |
+  expression !bitAnd BitOp { "&" } expression |
+  expression !bitOr op<Bit, "|"> expression |
+  expression !bitXor op<Bit, "^"> expression |
+  expression !plus op<Arith, "+" | "-"> expression |
+  expression !times times expression |
+  expression !shift (op<Arith, "%"> | op<Bit, "<<" | ">>" ">"?>) expression
+}
+
+UnaryExpression {
+  op<Arith, "+" | "-"> !unaryPlus expression |
+  (op<Logic, "!"> | op<Bit, "~">) !negate expression
+}
+
+
+baseExpression {
+  literal |
+  // ClassLiteral |
+  // kw<"this"> |
+  // Identifier ~identifier |
+  ParenthesizedExpression
+  // ObjectCreationExpression |
+  // FieldAccess |
+  // ArrayAccess |
+  // MethodInvocation |
+  // MethodReference |
+  // ArrayCreationExpression
+}
+
+ParenthesizedExpression {
+  "(" expression ")"
+}
+
+type {
+  @specialize[@name=PrimitiveType]<identifier, "byte" | "short" | "int" | "long" | "char" | "float" | "double" | "boolean">
 }
 
 kw<term> { @specialize[@name={term}]<identifier, term> }
@@ -69,4 +138,6 @@ kw<term> { @specialize[@name={term}]<identifier, term> }
   @precedence { whitespace, identifier }
 
   op[@name={name} "Op"]<name, body> { body }
+
+  times[@name=ArithOp] { "*" | "/" }
 }

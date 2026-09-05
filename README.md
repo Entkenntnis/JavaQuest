@@ -9,3 +9,5 @@ something new
 - Comments
 - Text blocks
 - Raw-source Unicode escape preprocessing
+- Annotated types
+- Union type casts

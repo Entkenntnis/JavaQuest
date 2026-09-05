@@ -3,6 +3,7 @@ import { cursorToCstNode, prettyPrintCstNode } from '../../lib/java/helper/cst'
 import { parser } from '../../lib/java/lezer/parser'
 import { useCore } from '../../lib/state/core'
 import { checkForParseErrors, cst2ast } from '../../lib/java/cst2ast'
+import { evaluate } from '../../lib/java/evaluate'
 
 export function Test() {
   const core = useCore()
@@ -13,12 +14,17 @@ export function Test() {
       ws.ui.testCst = cst
       ws.ui.testError = undefined
       ws.ui.testAst = undefined
+      ws.ui.testOutput = undefined
     })
     try {
       checkForParseErrors(cst)
       const ast = cst2ast(cst)
       core.mutateWs((ws) => {
         ws.ui.testAst = ast
+      })
+      const value = evaluate(ast)
+      core.mutateWs((ws) => {
+        ws.ui.testOutput = value
       })
     } catch (e) {
       core.mutateWs((ws) => {
@@ -61,6 +67,14 @@ export function Test() {
           <h2>Abstract Syntax Tree</h2>
           <pre className="mt-4">
             {JSON.stringify(core.ws.ui.testAst, null, 2)}
+          </pre>
+        </div>
+      )}
+      {core.ws.ui.testOutput && (
+        <div className="mt-6 bg-lime-300 p-3">
+          <h2>Evaluation</h2>
+          <pre className="mt-4">
+            {JSON.stringify(core.ws.ui.testOutput, null, 2)}
           </pre>
         </div>
       )}

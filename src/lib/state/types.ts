@@ -9,6 +9,7 @@ interface Ui {
   testCst?: CstNode
   testError?: string
   testAst?: AstNode
+  testOutput?: JavaValue
 }
 
 interface Quest {
