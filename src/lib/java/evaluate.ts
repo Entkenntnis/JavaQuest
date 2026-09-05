@@ -20,15 +20,11 @@ export function evaluate(node: AstNode): JavaValue {
 
   if (node.kind == 'unary') {
     const inner = evaluate(node.operand)
-    const isSmallInt =
-      inner.type == 'byte' ||
-      inner.type == 'short' ||
-      inner.type == 'char' ||
-      inner.type == 'int'
+    const smallInt = isSmallInt(inner)
 
     if (node.op == '+') {
       // promotion
-      if (isSmallInt) {
+      if (smallInt) {
         return toInt(inner)
       }
       if (
@@ -42,7 +38,7 @@ export function evaluate(node: AstNode): JavaValue {
       throw new Error('type error for unary plus')
     }
     if (node.op == '-') {
-      if (isSmallInt) {
+      if (smallInt) {
         return toInt({ type: 'int', value: -inner.value })
       }
       if (inner.type == 'long') {
@@ -62,13 +58,7 @@ export function evaluate(node: AstNode): JavaValue {
       }
     }
     if (node.op == '~') {
-      if (
-        inner.type == 'byte' ||
-        inner.type == 'short' ||
-        inner.type == 'char' ||
-        inner.type == 'int' ||
-        inner.type == 'long'
-      ) {
+      if (isSmallInt(inner) || inner.type == 'long') {
         return convertTo(inner.type == 'long' ? 'long' : 'int', {
           type: 'long',
           value: (~BigInt(inner.value)).toString(),
@@ -161,12 +151,20 @@ export function evaluate(node: AstNode): JavaValue {
   throw new Error(`Evaluation of node failed`)
 }
 
-function isNumeric(val: JavaValue): val is JavaNumericPrimitiveValue {
+function isSmallInt(
+  val: JavaValue,
+): val is JavaByteValue | JavaShortValue | JavaCharValue | JavaIntValue {
   return (
     val.type == 'byte' ||
     val.type == 'short' ||
     val.type == 'char' ||
-    val.type == 'int' ||
+    val.type == 'int'
+  )
+}
+
+function isNumeric(val: JavaValue): val is JavaNumericPrimitiveValue {
+  return (
+    isSmallInt(val) ||
     val.type == 'long' ||
     val.type == 'float' ||
     val.type == 'double'
