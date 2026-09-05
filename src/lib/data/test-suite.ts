@@ -950,6 +950,31 @@ export const testSuite: TestSuiteEntry[] = [
     code: `-null`,
     isError: true,
   },
+  // ------------------------- unary plus: evaluate branches -------------------------
+  {
+    code: `+'a'`,
+    output: { type: 'int', value: 97 },
+  },
+  {
+    code: `+(byte)5`,
+    output: { type: 'int', value: 5 },
+  },
+  {
+    code: `+1.5`,
+    output: { type: 'double', value: 1.5 },
+  },
+  {
+    code: `+(long)5`,
+    output: { type: 'long', value: '5' },
+  },
+  {
+    code: `+true`,
+    isError: true,
+  },
+  {
+    code: `+null`,
+    isError: true,
+  },
   // ------------------------- casts: integer sources -------------------------
   {
     code: `(byte)200`,
@@ -1019,6 +1044,14 @@ export const testSuite: TestSuiteEntry[] = [
   {
     code: `(int)1e10`,
     output: { type: 'int', value: 2147483647 },
+  },
+  {
+    code: `(int)-1e10`,
+    output: { type: 'int', value: -2147483648 },
+  },
+  {
+    code: `(long)-1e20`,
+    output: { type: 'long', value: '-9223372036854775808' },
   },
   // ------------------------- casts: errors -------------------------
   {
