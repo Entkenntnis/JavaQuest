@@ -555,7 +555,7 @@ export const testSuite: TestSuiteEntry[] = [
   },
   {
     code: `null`,
-    output: { type: 'null' },
+    output: { type: 'null', value: null },
   },
   // ------------------------- char -------------------------
   {
@@ -1341,19 +1341,19 @@ export const testSuite: TestSuiteEntry[] = [
   // ------------------------- binary arithmetic: non-numeric operands (errors) -------------------------
   {
     code: `true + 1`,
-    isError: true
+    isError: true,
   },
   {
     code: `false * 2`,
-    isError: true
+    isError: true,
   },
   {
     code: `null - 1`,
-    isError: true
+    isError: true,
   },
   {
     code: `true / false`,
-    isError: true
+    isError: true,
   },
 
   // ------------------------- binary arithmetic: precedence, parens, associativity -------------------------

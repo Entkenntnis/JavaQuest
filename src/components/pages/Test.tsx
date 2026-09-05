@@ -4,6 +4,7 @@ import { parser } from '../../lib/java/lezer/parser'
 import { useCore } from '../../lib/state/core'
 import { checkForParseErrors, cst2ast } from '../../lib/java/cst2ast'
 import { evaluate } from '../../lib/java/evaluate'
+import { typecheck } from '../../lib/java/typecheck'
 
 export function Test() {
   const core = useCore()
@@ -22,6 +23,7 @@ export function Test() {
       core.mutateWs((ws) => {
         ws.ui.testAst = ast
       })
+      typecheck(ast)
       const value = evaluate(ast)
       core.mutateWs((ws) => {
         ws.ui.testOutput = value

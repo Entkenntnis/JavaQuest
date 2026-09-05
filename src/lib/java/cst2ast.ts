@@ -64,7 +64,7 @@ export function cst2ast(node: CstNode): AstNode {
   } else if (node.name == 'StringLiteral') {
     return { kind: 'literal', value: parseStringLiteral(node) }
   } else if (node.name == 'null') {
-    return { kind: 'literal', value: { type: 'null' } }
+    return { kind: 'literal', value: { type: 'null', value: null } }
   } else if (node.name == 'CastExpression') {
     const [typeNode, operandNode] = node.children
     const type = typeNode.text

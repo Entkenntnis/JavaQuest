@@ -6,6 +6,7 @@ import { cursorToCstNode } from '../../lib/java/helper/cst'
 import { checkForParseErrors, cst2ast } from '../../lib/java/cst2ast'
 import clsx from 'clsx'
 import { evaluate } from '../../lib/java/evaluate'
+import { typecheck } from '../../lib/java/typecheck'
 
 interface SuiteResult {
   error?: string
@@ -18,6 +19,7 @@ function runCase(code: string) {
     const cst = cursorToCstNode(tree.cursor(), Text.of([code]))
     checkForParseErrors(cst)
     const ast = cst2ast(cst)
+    typecheck(ast)
     const value = evaluate(ast)
     return { value }
   } catch (e) {

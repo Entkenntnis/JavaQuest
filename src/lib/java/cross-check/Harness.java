@@ -176,7 +176,7 @@ public class Harness {
 
   public static void out(Object v) {
     if (v == null) {
-      System.out.println("{\"type\":\"null\"}");
+      System.out.println("{\"type\":\"null\",\"value\": null}");
       return;
     }
     if (v instanceof Boolean) {

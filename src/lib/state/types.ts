@@ -83,6 +83,7 @@ export interface JavaStringValue {
 
 export interface JavaNullValue {
   type: 'null'
+  value: null
 }
 
 export type JavaNumericPrimitiveValue =
