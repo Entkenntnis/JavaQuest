@@ -17,15 +17,16 @@ export function evaluate(node: AstNode): JavaValue {
   }
 
   if (node.kind == 'unary') {
+    const inner = evaluate(node.operand)
+    const isSmallInt =
+      inner.type == 'byte' ||
+      inner.type == 'short' ||
+      inner.type == 'char' ||
+      inner.type == 'int'
+
     if (node.op == '+') {
-      const inner = evaluate(node.operand)
       // promotion
-      if (
-        inner.type == 'byte' ||
-        inner.type == 'short' ||
-        inner.type == 'char' ||
-        inner.type == 'int'
-      ) {
+      if (isSmallInt) {
         return toInt(inner)
       }
       if (
@@ -39,13 +40,7 @@ export function evaluate(node: AstNode): JavaValue {
       throw new Error('type error for unary plus')
     }
     if (node.op == '-') {
-      const inner = evaluate(node.operand)
-      if (
-        inner.type == 'byte' ||
-        inner.type == 'short' ||
-        inner.type == 'char' ||
-        inner.type == 'int'
-      ) {
+      if (isSmallInt) {
         return toInt({ type: 'int', value: -inner.value })
       }
       if (inner.type == 'long') {
@@ -86,18 +81,22 @@ export function evaluate(node: AstNode): JavaValue {
     // handle +, -, *, /, % on numerics
     if (isNumeric(innerLeft) && isNumeric(innerRight)) {
       const [left, right] = binaryNumericPromotion(innerLeft, innerRight)
+      const isInteger =
+        left.type == 'long' ||
+        right.type == 'long' ||
+        left.type == 'int' ||
+        right.type == 'int'
+
+      function applyBig(op: (a: bigint, b: bigint) => bigint) {
+        return convertTo(left.type, {
+          type: 'long',
+          value: op(BigInt(left.value), BigInt(right.value)).toString(),
+        })
+      }
 
       if (node.op == '+') {
-        if (
-          left.type == 'long' ||
-          right.type == 'long' ||
-          left.type == 'int' ||
-          right.type == 'int'
-        ) {
-          return convertTo(left.type, {
-            type: 'long',
-            value: (BigInt(left.value) + BigInt(right.value)).toString(),
-          })
+        if (isInteger) {
+          return applyBig((a, b) => a + b)
         }
         return convertTo(left.type, {
           type: 'double',
@@ -105,16 +104,8 @@ export function evaluate(node: AstNode): JavaValue {
         })
       }
       if (node.op == '-') {
-        if (
-          left.type == 'long' ||
-          right.type == 'long' ||
-          left.type == 'int' ||
-          right.type == 'int'
-        ) {
-          return convertTo(left.type, {
-            type: 'long',
-            value: (BigInt(left.value) - BigInt(right.value)).toString(),
-          })
+        if (isInteger) {
+          return applyBig((a, b) => a - b)
         }
         return convertTo(left.type, {
           type: 'double',
@@ -122,16 +113,8 @@ export function evaluate(node: AstNode): JavaValue {
         })
       }
       if (node.op == '*') {
-        if (
-          left.type == 'long' ||
-          right.type == 'long' ||
-          left.type == 'int' ||
-          right.type == 'int'
-        ) {
-          return convertTo(left.type, {
-            type: 'long',
-            value: (BigInt(left.value) * BigInt(right.value)).toString(),
-          })
+        if (isInteger) {
+          return applyBig((a, b) => a * b)
         }
         return convertTo(left.type, {
           type: 'double',
@@ -139,19 +122,11 @@ export function evaluate(node: AstNode): JavaValue {
         })
       }
       if (node.op == '/') {
-        if (
-          left.type == 'long' ||
-          right.type == 'long' ||
-          left.type == 'int' ||
-          right.type == 'int'
-        ) {
+        if (isInteger) {
           if (BigInt(right.value) == 0n) {
             throw new Error('Division by zero')
           }
-          return convertTo(left.type, {
-            type: 'long',
-            value: (BigInt(left.value) / BigInt(right.value)).toString(),
-          })
+          return applyBig((a, b) => a / b)
         }
         return convertTo(left.type, {
           type: 'double',
@@ -159,19 +134,11 @@ export function evaluate(node: AstNode): JavaValue {
         })
       }
       if (node.op == '%') {
-        if (
-          left.type == 'long' ||
-          right.type == 'long' ||
-          left.type == 'int' ||
-          right.type == 'int'
-        ) {
+        if (isInteger) {
           if (BigInt(right.value) == 0n) {
             throw new Error('Modulo by zero')
           }
-          return convertTo(left.type, {
-            type: 'long',
-            value: (BigInt(left.value) % BigInt(right.value)).toString(),
-          })
+          return applyBig((a, b) => a % b)
         }
         return convertTo(left.type, {
           type: 'double',
@@ -180,7 +147,7 @@ export function evaluate(node: AstNode): JavaValue {
       }
     }
 
-    throw new Error('binary operator not implemented')
+    throw new Error('invalid binary operator')
   }
 
   throw new Error(`Evaluation of node failed`)
