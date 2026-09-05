@@ -124,6 +124,13 @@ export interface UnaryExpressionAstNode {
   operand: AstNode
 }
 
+export interface BinaryExpressionAstNode {
+  kind: 'binary'
+  op: '+' | '-' | '*' | '/'
+  left: AstNode
+  right: AstNode
+}
+
 export type PrimitiveTypeName =
   | 'byte'
   | 'short'
@@ -144,3 +151,4 @@ export type AstNode =
   | LiteralAstNode
   | UnaryExpressionAstNode
   | CastExpressionAstNode
+  | BinaryExpressionAstNode

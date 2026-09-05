@@ -75,9 +75,25 @@ export function cst2ast(node: CstNode): AstNode {
       throw conversionError(node, 'invalid cast target type')
     }
     return { kind: 'cast', type, operand: cst2ast(operandNode) }
-  }
-  if (node.name == 'ParenthesizedExpression') {
+  } else if (node.name == 'ParenthesizedExpression') {
     return cst2ast(node.children[0])
+  } else if (node.name == 'BinaryExpression') {
+    const [left, op, right] = node.children
+    const operator = op.text
+    if (
+      operator != '+' &&
+      operator != '-' &&
+      operator != '*' &&
+      operator != '/'
+    ) {
+      throw conversionError(node, 'unsupported operator')
+    }
+    return {
+      kind: 'binary',
+      op: operator,
+      left: cst2ast(left),
+      right: cst2ast(right),
+    }
   }
   throw conversionError(node, 'no converter registered for this node')
 }
