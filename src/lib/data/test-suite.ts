@@ -1925,4 +1925,173 @@ export const testSuite: TestSuiteEntry[] = [
     code: `true || (boolean)5`,
     isError: true,
   },
+  // ------------------------- equality ==: booleans, strings & null -------------------------
+  {
+    code: `true == true`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `true == false`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `null == null`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `"a" == "a"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `"a" == "b"`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `"a" == null`,
+    output: { type: 'boolean', value: false },
+  },
+  // ------------------------- equality ==: int & radix literals -------------------------
+  {
+    code: `0xffffffff == -1`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `010 == 8`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `'a' == 97`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `'a' == 'b'`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `'Ω' == 937`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(char)-1 == 65535`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(byte)200 == -56`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(byte)128 == -128`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- equality ==: long widening -------------------------
+  {
+    code: `1L == 1`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `9223372036854775807L == 9223372036854775807L`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `0xFFFFFFFFL == 4294967295L`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- equality ==: float/double & precision traps -------------------------
+  {
+    code: `1.5 == 1.5f`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `0.1f == 0.1`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `16777217 == 16777216f`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `9007199254740993L == 9007199254740992.0`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- equality ==: arithmetic expressions -------------------------
+  {
+    code: `1 + 2 == 3`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(1 + 2) * 3 == 9`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `7 % 4 == 3`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `-7 % 3 == -1`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `'z' - 'a' == 25`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(byte)100 + (byte)100 == 200`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- equality ==: conversion & casting oddities -------------------------
+  {
+    code: `(long)1e20 == 9223372036854775807L`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(int)(0.0/0.0) == 0`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- equality ==: Infinity, NaN and -0.0 -------------------------
+  {
+    code: `(1.0/0.0) == (1.0/0.0)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(0.0/0.0) == (0.0/0.0)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `-0.0 == 0.0`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- equality ==: wild boolean algebra & short circuit -------------------------
+  {
+    code: `(1 == 1) == (2 == 2)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `!(1 == 2) == (2 == 2)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `false == true && (1/0 == 1)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `1 == 2 || 2 == 2`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- equality ==: errors -------------------------
+  {
+    code: `1/0 == 1`,
+    isError: true,
+  },
+  {
+    code: `true == 1`,
+    isError: true,
+  },
+  {
+    code: `1 == "x"`,
+    isError: true,
+  },
+  {
+    code: `null == 1`,
+    isError: true,
+  },
 ]
