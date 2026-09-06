@@ -1,7 +1,6 @@
 import { printDouble } from './helper/floating/double'
 import { printFloat } from './helper/floating/float'
 import {
-  JavaSmallIntegerValue,
   type AstNode,
   type JavaByteValue,
   type JavaCharValue,
@@ -74,8 +73,8 @@ function evaluate_internal(node: TypedNode<JavaValue>): JavaValue {
         case '*':
         case '/':
         case '%': {
-          const innerLeft = evaluate(node.left)
-          const innerRight = evaluate<JavaSmallIntegerValue>(node.right)
+          const innerLeft = evaluate<JavaNumericPrimitiveValue>(node.left)
+          const innerRight = evaluate<JavaNumericPrimitiveValue>(node.right)
 
           const [left, right] = binaryNumericPromotion(innerLeft, innerRight)
           const isInteger =

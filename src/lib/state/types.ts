@@ -95,6 +95,7 @@ export type JavaNumericPrimitiveValue =
   | JavaFloatValue
   | JavaDoubleValue
 
+// byte and short do not exist as Java literals, they only arise through casts
 export type JavaAllowedLiteralValue =
   | JavaCharValue
   | JavaIntValue
@@ -228,7 +229,6 @@ export type TypedNode<T extends JavaValue> =
 export interface TypedLiteralAstNode<T extends JavaAllowedLiteralValue> {
   kind: 'literal'
   value: T // <-- this is an important contract to avoid bypassing the expectation with literals
-  // technically, there are no short and byte literals, but the TypedAST is allowing it
 }
 
 // ---- UNARY ----
