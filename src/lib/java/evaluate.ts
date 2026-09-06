@@ -1,12 +1,13 @@
 import { printDouble } from './helper/floating/double'
 import { printFloat } from './helper/floating/float'
 import {
-  type JavaIntegerValue,
+  JavaSmallIntegerValue,
   type AstNode,
   type JavaByteValue,
   type JavaCharValue,
   type JavaDoubleValue,
   type JavaFloatValue,
+  type JavaIntegerValue,
   type JavaIntValue,
   type JavaLongValue,
   type JavaNumericPrimitiveValue,
@@ -74,7 +75,7 @@ function evaluate_internal(node: TypedNode<JavaValue>): JavaValue {
         case '/':
         case '%': {
           const innerLeft = evaluate(node.left)
-          const innerRight = evaluate(node.right)
+          const innerRight = evaluate<JavaSmallIntegerValue>(node.right)
 
           const [left, right] = binaryNumericPromotion(innerLeft, innerRight)
           const isInteger =
@@ -123,8 +124,8 @@ function evaluate_internal(node: TypedNode<JavaValue>): JavaValue {
           return {
             type: 'string',
             value:
-              javaValueToString(evaluate(node.left)) +
-              javaValueToString(evaluate(node.right)),
+              javaValueToString(evaluate<JavaValue>(node.left)) +
+              javaValueToString(evaluate<JavaValue>(node.right)),
           }
         case '==b':
           return {
@@ -143,7 +144,7 @@ function evaluate_internal(node: TypedNode<JavaValue>): JavaValue {
       if (node.type == 'boolean') {
         return evaluate(node.operand)
       } else {
-        const inner = evaluate<JavaNumericPrimitiveValue>(node.operand)
+        const inner = evaluate(node.operand)
         return convertTo(node.type, inner)
       }
   }

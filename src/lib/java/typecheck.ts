@@ -2,30 +2,82 @@ import type {
   AstNode,
   BinaryExpressionAstNode,
   CastExpressionAstNode,
+  JavaAllowedLiteralValue,
   JavaValue,
+  LiteralAstNode,
+  TypecheckResult,
   TypedLiteralAstNode,
-  TypedNode,
   UnaryExpressionAstNode,
 } from '../state/types'
-import { isNumeric } from './evaluate'
 
-export function typecheck(node: AstNode): TypedNode<JavaValue> {
+// The problem is: I actually would like to know the infered type, right?
+// Otherwise I can't really work
+// And the problem compounds because I can't extract the type from ts type
+
+export function typecheck(node: AstNode): TypecheckResult {
   switch (node.kind) {
     case 'literal':
       // every literal is intrinsically valid
-      return node as TypedLiteralAstNode<JavaValue>
+      // this is basically a type guard
+      return constructLiteralNodeResult(node)
     case 'unary': {
-      const operand = typecheck(node.operand)
-      if (node.op == '+') {
-        if (isNumeric(operand)) {
-        }
+      const [type, inner] = typecheck(node.operand)
+
+      // I need this type == to ensure that I'm narrowing type as well
+      if (type == 'boolean') {
+        const i = inner
+        throw 'test'
       }
+
+      const t = type
+
+      // MEIN KOPF EXPLODIERT!!!!
+      // WAS PASSIERT HIER?
+      // WAS WILL ICH?
+      // if (node.op == '+') {
+      //   if () {
+      //   }
+      // }
     }
     case 'cast':
     case 'binary':
   }
   throw 'TODO'
 }
+
+function typedLiteral<T extends JavaAllowedLiteralValue>(
+  value: T,
+): TypedLiteralAstNode<T> {
+  return { kind: 'literal', value }
+}
+
+// not really pretty, but this type checks and avoids any drifts between
+function constructLiteralNodeResult(node: LiteralAstNode): TypecheckResult {
+  switch (node.value.type) {
+    case 'boolean':
+      return ['boolean', typedLiteral(node.value)]
+    case 'byte':
+      throw new Error('impossible literal')
+    case 'short':
+      throw new Error('impossible literal')
+    case 'char':
+      return ['char', typedLiteral(node.value)]
+    case 'int':
+      return ['int', typedLiteral(node.value)]
+    case 'long':
+      return ['long', typedLiteral(node.value)]
+    case 'float':
+      return ['float', typedLiteral(node.value)]
+    case 'double':
+      return ['double', typedLiteral(node.value)]
+    case 'string':
+      return ['string', typedLiteral(node.value)]
+    case 'null':
+      return ['null', typedLiteral(node.value)]
+  }
+}
+
+// ---------------------------------- SLOP!!!!! -----------------------------
 
 export function typecheck__LEGACY(node: AstNode): Type {
   switch (node.kind) {

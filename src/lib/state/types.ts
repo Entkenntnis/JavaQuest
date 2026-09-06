@@ -95,12 +95,33 @@ export type JavaNumericPrimitiveValue =
   | JavaFloatValue
   | JavaDoubleValue
 
+export type JavaAllowedLiteralValue =
+  | JavaCharValue
+  | JavaIntValue
+  | JavaLongValue
+  | JavaFloatValue
+  | JavaDoubleValue
+  | JavaBooleanValue
+  | JavaStringValue
+  | JavaNullValue
+
 export type JavaIntegerValue =
   | JavaByteValue
   | JavaCharValue
   | JavaShortValue
   | JavaIntValue
   | JavaLongValue
+
+export type JavaSmallIntegerValue =
+  | JavaByteValue
+  | JavaCharValue
+  | JavaShortValue
+  | JavaIntValue
+
+export type JavaLongFloatDoubleValue =
+  | JavaLongValue
+  | JavaFloatValue
+  | JavaDoubleValue
 
 export type JavaValue =
   | JavaNumericPrimitiveValue
@@ -166,92 +187,187 @@ export type AstNode =
 // So, what is the idea here?
 // Ich möchte die gesamten Typ-Informationen, die ich im Ast aufgebaut habe, jetzt ganz explizit typisieren
 // Geht das? Ich meine, wahrscheinlich mit TypedNode<type>
+// Also, der Type Parameter gibt den AUSGABE-WERT der Node an
 
-export interface TypedLiteralAstNode<T extends JavaValue> {
+// Jeder Node muss einen Wert produzieren, dieser Wert ist der Typ-Parameter
+// Ich möchte den Typ wissen, um die Children zu spezifizieren
+// Optional kann ich auch die Struktur näher festlegen.
+// Ah, die Deambiguiation
+
+// Das ist die Schaltzentrale, abhängig von T sind unterschiedliche Sub-Nodes verfügbar
+export type TypedNode<T extends JavaValue> =
+  | (T extends JavaAllowedLiteralValue ? TypedLiteralAstNode<T> : never)
+  | (T extends JavaNumericPrimitiveValue ? TypedNumericCastNode<T> : never)
+  | (T extends JavaLongFloatDoubleValue ? TypedUnaryPlusMinusNodeB<T> : never)
+  | (T extends JavaStringValue
+      ? TypedStringConcatNodeL | TypedStringConcatNodeR
+      : never)
+  | (T extends JavaIntValue
+      ? TypedUnaryPlusMinusNodeS | TypedComplementNodeS | TypedNumericArithNodeS
+      : never)
+  | (T extends JavaLongValue ? TypedComplementNodeB : never)
+  | (T extends JavaBooleanValue
+      ?
+          | TypedNegateNode
+          | TypedBooleanCastNode
+          | TypedOrAndNode
+          | TypedNumericEqualsNode
+          | TypedBooleanEqualsNode
+      : never)
+  | (T extends JavaLongValue
+      ? TypedNumericArithNodeBLL | TypedNumericArithNodeBLR
+      : never)
+  | (T extends JavaFloatValue
+      ? TypedNumericArithNodeBFL | TypedNumericArithNodeBFR
+      : never)
+  | (T extends JavaDoubleValue
+      ? TypedNumericArithNodeBDL | TypedNumericArithNodeBDR
+      : never)
+
+// ---- LITERAL -----
+export interface TypedLiteralAstNode<T extends JavaAllowedLiteralValue> {
   kind: 'literal'
-  value: T
+  value: T // <-- this is an important contract to avoid bypassing the expectation with literals
+  // technically, there are no short and byte literals, but the TypedAST is allowing it
 }
 
-export interface TypedUnaryPlusMinusNode<_ extends JavaNumericPrimitiveValue> {
+// ---- UNARY ----
+export interface TypedUnaryPlusMinusNodeS {
   kind: 'unary'
   op: '+' | '-'
-  operand: TypedNode<JavaNumericPrimitiveValue>
+  operand: TypedNode<JavaSmallIntegerValue>
 }
 
-export interface TypedNegateNode<T extends JavaBooleanValue> {
+export interface TypedUnaryPlusMinusNodeB<T extends JavaLongFloatDoubleValue> {
+  kind: 'unary'
+  op: '+' | '-'
+  operand: TypedNode<T>
+}
+
+export interface TypedNegateNode {
   kind: 'unary'
   op: '!'
-  operand: TypedNode<T>
+  operand: TypedNode<JavaBooleanValue>
 }
 
-export interface TypedComplementNode<T extends JavaIntegerValue> {
+export interface TypedComplementNodeS {
   kind: 'unary'
   op: '~'
-  operand: TypedNode<T>
+  operand: TypedNode<JavaSmallIntegerValue>
 }
 
+export interface TypedComplementNodeB {
+  kind: 'unary'
+  op: '~'
+  operand: TypedNode<JavaLongValue>
+}
+
+// ----- CAST -----
 export interface TypedNumericCastNode<T extends JavaNumericPrimitiveValue> {
   kind: 'cast'
   type: T['type']
   operand: TypedNode<JavaNumericPrimitiveValue>
 }
 
-export interface TypedBooleanCastNode<T extends JavaBooleanValue> {
+export interface TypedBooleanCastNode {
   kind: 'cast'
   type: 'boolean'
-  operand: TypedNode<T>
+  operand: TypedNode<JavaBooleanValue>
 }
 
-export interface TypedNumericArithNode<_ extends JavaNumericPrimitiveValue> {
+// ----- BINARY OPS
+export interface TypedNumericArithNodeS {
   kind: 'binary'
   op: '+' | '-' | '*' | '/' | '%'
-  left: TypedNode<JavaNumericPrimitiveValue>
+  left: TypedNode<JavaSmallIntegerValue>
+  right: TypedNode<JavaSmallIntegerValue>
+}
+
+export interface TypedNumericArithNodeBLL {
+  kind: 'binary'
+  op: '+' | '-' | '*' | '/' | '%'
+  left: TypedNode<JavaLongValue>
+  right: TypedNode<JavaSmallIntegerValue | JavaLongValue>
+}
+
+export interface TypedNumericArithNodeBLR {
+  kind: 'binary'
+  op: '+' | '-' | '*' | '/' | '%'
+  left: TypedNode<JavaSmallIntegerValue | JavaLongValue>
+  right: TypedNode<JavaLongValue>
+}
+
+export interface TypedNumericArithNodeBFL {
+  kind: 'binary'
+  op: '+' | '-' | '*' | '/' | '%'
+  left: TypedNode<JavaFloatValue>
+  right: TypedNode<JavaIntegerValue | JavaFloatValue>
+}
+
+export interface TypedNumericArithNodeBFR {
+  kind: 'binary'
+  op: '+' | '-' | '*' | '/' | '%'
+  left: TypedNode<JavaIntegerValue | JavaFloatValue>
+  right: TypedNode<JavaFloatValue>
+}
+
+export interface TypedNumericArithNodeBDL {
+  kind: 'binary'
+  op: '+' | '-' | '*' | '/' | '%'
+  left: TypedNode<JavaDoubleValue>
   right: TypedNode<JavaNumericPrimitiveValue>
 }
 
-export interface TypedStringConcatNode<_ extends JavaStringValue> {
+export interface TypedNumericArithNodeBDR {
+  kind: 'binary'
+  op: '+' | '-' | '*' | '/' | '%'
+  left: TypedNode<JavaNumericPrimitiveValue>
+  right: TypedNode<JavaDoubleValue>
+}
+
+export interface TypedStringConcatNodeL {
   kind: 'binary'
   op: 'concat'
-  left: TypedNode<JavaValue>
+  left: TypedNode<JavaStringValue>
   right: TypedNode<JavaValue>
 }
 
-export interface TypedOrAndNode<T extends JavaBooleanValue> {
+export interface TypedStringConcatNodeR {
   kind: 'binary'
-  op: '&&' | '||'
-  left: TypedNode<T>
-  right: TypedNode<T>
+  op: 'concat'
+  left: TypedNode<JavaValue>
+  right: TypedNode<JavaStringValue>
 }
 
-export interface TypedNumericEqualsNode<_ extends JavaNumericPrimitiveValue> {
+export interface TypedOrAndNode {
+  kind: 'binary'
+  op: '&&' | '||'
+  left: TypedNode<JavaBooleanValue>
+  right: TypedNode<JavaBooleanValue>
+}
+
+export interface TypedNumericEqualsNode {
   kind: 'binary'
   op: '==n'
   left: TypedNode<JavaNumericPrimitiveValue>
   right: TypedNode<JavaNumericPrimitiveValue>
 }
 
-export interface TypedBooleanEqualsNode<T extends JavaBooleanValue> {
+export interface TypedBooleanEqualsNode {
   kind: 'binary'
   op: '==b'
-  left: TypedNode<T>
-  right: TypedNode<T>
+  left: TypedNode<JavaBooleanValue>
+  right: TypedNode<JavaBooleanValue>
 }
 
-export type TypedNode<T extends JavaValue> =
-  | TypedLiteralAstNode<T>
-  | (T extends JavaNumericPrimitiveValue
-      ?
-          | TypedUnaryPlusMinusNode<T>
-          | TypedNumericCastNode<T>
-          | TypedNumericArithNode<T>
-          | TypedNumericEqualsNode<T>
-      : never)
-  | (T extends JavaBooleanValue
-      ?
-          | TypedNegateNode<T>
-          | TypedBooleanCastNode<T>
-          | TypedOrAndNode<T>
-          | TypedBooleanEqualsNode<T>
-      : never)
-  | (T extends JavaIntegerValue ? TypedComplementNode<T> : never)
-  | (T extends JavaStringValue ? TypedStringConcatNode<T> : never)
+export type TypecheckResult =
+  | [type: 'boolean', node: TypedNode<JavaBooleanValue>]
+  | [type: 'byte', node: TypedNode<JavaByteValue>]
+  | [type: 'short', node: TypedNode<JavaShortValue>]
+  | [type: 'char', node: TypedNode<JavaCharValue>]
+  | [type: 'int', node: TypedNode<JavaIntValue>]
+  | [type: 'long', node: TypedNode<JavaLongValue>]
+  | [type: 'float', node: TypedNode<JavaFloatValue>]
+  | [type: 'double', node: TypedNode<JavaDoubleValue>]
+  | [type: 'string', node: TypedNode<JavaStringValue>]
+  | [type: 'null', node: TypedNode<JavaNullValue>]
