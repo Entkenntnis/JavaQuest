@@ -229,9 +229,10 @@ public class Harness {
         System.out.println("{\"type\":\"double\",\"value\":" + Double.toString(d) + "}");
       }
     } else if (v instanceof String) {
-      System.out.println("{\"type\":\"string\",\"value\":\"" + esc((String) v) + "\"}");
+      System.out.println("{\"type\":\"__str\",\"value\":\"" + esc((String) v) + "\"}");
     } else {
-      System.out.println("{\"type\":\"other\"}");
+      throw new IllegalArgumentException(
+          "comparison with reference not meaningful in test harness");
     }
   }
 

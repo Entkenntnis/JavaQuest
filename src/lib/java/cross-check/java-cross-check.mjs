@@ -9,7 +9,10 @@ const pexec = promisify(execFile)
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
 // Optional positional argument filters entries by substring of the code.
-const filter = process.argv[2]
+// -v / --verbose prints debug output for every test case.
+const verbose =
+  process.argv.includes('-v') || process.argv.includes('--verbose')
+const filter = process.argv.slice(2).find((arg) => !arg.startsWith('-'))
 
 const { testSuite } = await import(
   join(__dirname, '../../data/test-suite.ts') + `?t=${Date.now()}`
@@ -28,16 +31,18 @@ if (entries.length == 0) {
 //   int a = 5;
 //   long xl = java.lang.Long.parseLong("123");
 // so that an identifier expression can reference them inside the harness.
-function renderDecls(local) {
+function renderDecls(entry) {
+  const local = entry.env && entry.env.local
+  const heap = (entry.env && entry.env.heap) || {}
   if (!local) return ''
   const lines = []
   for (const [name, value] of Object.entries(local)) {
-    lines.push(renderDecl(name, value))
+    lines.push(renderDecl(name, value, heap))
   }
   return lines.join('\n')
 }
 
-function renderDecl(name, value) {
+function renderDecl(name, value, heap) {
   switch (value.type) {
     case 'byte':
       return `byte ${name} = (byte) ${value.value};`
@@ -59,8 +64,23 @@ function renderDecl(name, value) {
       return `double ${name} = ${value.value};`
     case 'boolean':
       return `boolean ${name} = ${value.value ? 'true' : 'false'};`
-    case 'string':
-      return `String ${name} = ${javaStringLiteral(value.value)};`
+    case 'reference': {
+      const obj = heap[value.ref]
+      if (!obj) {
+        throw new Error(
+          `cannot render env value ${name}: dangling reference ${value.ref}`,
+        )
+      }
+      if (obj.class != 'java.lang.String') {
+        throw new Error(
+          'comparison with reference not meaningful in test harness',
+        )
+      }
+      const literal = javaStringLiteral(obj.value)
+      return obj.isInterned
+        ? `String ${name} = ${literal};`
+        : `String ${name} = new String(${literal});`
+    }
     case 'null':
       return `Object ${name} = null;`
     default:
@@ -109,7 +129,7 @@ let done = 0
 // Requests to the harness are framed:
 //   int32 declsLength + utf8 decls bytes + int32 codeLength + utf8 code bytes.
 function buildRequest(entry) {
-  const decls = renderDecls(entry.env && entry.env.local)
+  const decls = renderDecls(entry)
   const declBuf = Buffer.from(decls, 'utf8')
   const codeBuf = Buffer.from(entry.code, 'utf8')
   const head = Buffer.alloc(4)
@@ -260,22 +280,38 @@ let valueMatch = 0
 let errorMatch = 0
 const mismatches = []
 for (let i = 0; i < entries.length; i++) {
-  const { entry } = entries[i]
+  const { entry, index } = entries[i]
   const actual = results[i]
-  if (isMatch(entry, actual)) {
+  const matched = isMatch(entry, actual)
+  if (matched) {
     if (entry.isError) errorMatch += 1
     else valueMatch += 1
-    continue
-  }
-  let detail
-  if (entry.isError && !actual.error) {
-    detail = `expected error, but Java evaluates to ${JSON.stringify(actual.value)}`
-  } else if (!entry.isError && actual.error) {
-    detail = `expected ${JSON.stringify(entry.output)}, but Java ${actual.error.kind} error: ${actual.error.msg}`
   } else {
-    detail = `expected ${JSON.stringify(entry.output)}, got ${JSON.stringify(actual.value)}`
+    let detail
+    if (entry.isError && !actual.error) {
+      detail = `expected error, but Java evaluates to ${JSON.stringify(actual.value)}`
+    } else if (!entry.isError && actual.error) {
+      detail = `expected ${JSON.stringify(entry.output)}, but Java ${actual.error.kind} error: ${actual.error.msg}`
+    } else {
+      detail = `expected ${JSON.stringify(entry.output)}, got ${JSON.stringify(actual.value)}`
+    }
+    mismatches.push({ entry, actual, detail })
   }
-  mismatches.push({ entry, actual, detail })
+  if (verbose) {
+    const status = matched
+      ? entry.isError
+        ? 'ok   (error)'
+        : 'ok   (value)'
+      : 'MISMATCH'
+    console.log(`\n[${index}] ${status} ${JSON.stringify(entry.code)}`)
+    if (entry.env) {
+      console.log(`      env:      ${JSON.stringify(entry.env)}`)
+    }
+    console.log(`      expected: ${entry.isError ? 'error' : JSON.stringify(entry.output)}`)
+    console.log(
+      `      actual:   ${actual.error ? `${actual.error.kind} error: ${summary(actual.error.msg)}` : JSON.stringify(actual.value)}`,
+    )
+  }
 }
 
 console.log(`checked ${entries.length} test cases against java`)
