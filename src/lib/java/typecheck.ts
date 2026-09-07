@@ -12,6 +12,7 @@ import type {
   LiteralAstNode,
   TypecheckResult,
   TypedBooleanCastNode,
+  TypedBooleanEqualsNode,
   TypedComplementNodeL,
   TypedComplementNodeS,
   TypedLiteralAstNode,
@@ -25,6 +26,11 @@ import type {
   TypedNumericArithNodeBLR,
   TypedNumericArithNodeS,
   TypedNumericCastNode,
+  TypedNumericEqualsNode,
+  TypedOrAndNode,
+  TypedStringConcatNodeL,
+  TypedStringConcatNodeR,
+  TypedStringEqualsNode,
   TypedUnaryPlusMinusNodeB,
   TypedUnaryPlusMinusNodeS,
 } from '../state/types'
@@ -90,14 +96,6 @@ function typecheck_internal(node: AstNode): TypecheckResult {
         }
       }
       if (node.op == '~') {
-        if (type == 'boolean') {
-          const tn: TypedNegateNode = {
-            kind: 'unary',
-            op: '!',
-            operand: inner,
-          }
-          return ['boolean', tn]
-        }
         if (
           type == 'byte' ||
           type == 'char' ||
@@ -284,7 +282,75 @@ function typecheck_internal(node: AstNode): TypecheckResult {
           }
           return ['int', tn]
         }
+
+        // <-- insert numeric stuff here
+        if (node.op == '==') {
+          const tn: TypedNumericEqualsNode = {
+            kind: 'binary',
+            op: '==n',
+            left: innerL,
+            right: innerR,
+          }
+          return ['boolean', tn]
+        }
       }
+
+      if (typeL == 'string' && node.op == '+') {
+        const tn: TypedStringConcatNodeL = {
+          kind: 'binary',
+          op: 'concat',
+          left: innerL,
+          right: innerR,
+        }
+        return ['string', tn]
+      }
+
+      if (typeR == 'string' && node.op == '+') {
+        const tn: TypedStringConcatNodeR = {
+          kind: 'binary',
+          op: 'concat',
+          left: innerL,
+          right: innerR,
+        }
+        return ['string', tn]
+      }
+
+      if (
+        (node.op == '||' || node.op == '&&') &&
+        typeL == 'boolean' &&
+        typeR == 'boolean'
+      ) {
+        const tn: TypedOrAndNode = {
+          kind: 'binary',
+          op: node.op,
+          left: innerL,
+          right: innerR,
+        }
+        return ['boolean', tn]
+      }
+
+      if (node.op == '==' && typeL == 'boolean' && typeR == 'boolean') {
+        const tn: TypedBooleanEqualsNode = {
+          kind: 'binary',
+          op: '==b',
+          left: innerL,
+          right: innerR,
+        }
+        return ['boolean', tn]
+      }
+
+      if (node.op == '==' && typeL == 'string' && typeR == 'string') {
+        const tn: TypedStringEqualsNode = {
+          kind: 'binary',
+          op: '==s',
+          left: innerL,
+          right: innerR,
+        }
+        return ['string', tn]
+      }
+
+      // <--- insert open stuff here
+
       throw new Error('invalid binary operation')
   }
 }

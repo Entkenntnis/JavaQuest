@@ -201,7 +201,7 @@ export type TypedNode<T extends JavaValue> =
   | (T extends JavaNumericPrimitiveValue ? TypedNumericCastNode<T> : never)
   | (T extends JavaLongFloatDoubleValue ? TypedUnaryPlusMinusNodeB<T> : never)
   | (T extends JavaStringValue
-      ? TypedStringConcatNodeL | TypedStringConcatNodeR
+      ? TypedStringConcatNodeL | TypedStringConcatNodeR | TypedStringEqualsNode
       : never)
   | (T extends JavaIntValue
       ? TypedUnaryPlusMinusNodeS | TypedComplementNodeS | TypedNumericArithNodeS
@@ -358,6 +358,13 @@ export interface TypedBooleanEqualsNode {
   op: '==b'
   left: TypedNode<JavaBooleanValue>
   right: TypedNode<JavaBooleanValue>
+}
+
+export interface TypedStringEqualsNode {
+  kind: 'binary'
+  op: '==s'
+  left: TypedNode<JavaStringValue>
+  right: TypedNode<JavaStringValue>
 }
 
 export type TypecheckResult =

@@ -137,6 +137,11 @@ function evaluate_internal(node: TypedNode<JavaValue>): JavaValue {
           )
           return { type: 'boolean', value: left.value === right.value }
         }
+        case '==s': {
+          const left = evaluate(node.left)
+          const right = evaluate(node.right)
+          return { type: 'boolean', value: left.value === right.value }
+        }
       }
     case 'cast':
       if (node.type == 'boolean') {
