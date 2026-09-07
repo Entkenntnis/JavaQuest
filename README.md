@@ -11,3 +11,4 @@ something new
 - Raw-source Unicode escape preprocessing
 - Annotated types
 - Union type casts
+- Anonymous classes (!)
