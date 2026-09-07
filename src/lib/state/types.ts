@@ -206,7 +206,7 @@ export type TypedNode<T extends JavaValue> =
   | (T extends JavaIntValue
       ? TypedUnaryPlusMinusNodeS | TypedComplementNodeS | TypedNumericArithNodeS
       : never)
-  | (T extends JavaLongValue ? TypedComplementNodeB : never)
+  | (T extends JavaLongValue ? TypedComplementNodeL : never)
   | (T extends JavaBooleanValue
       ?
           | TypedNegateNode
@@ -256,7 +256,7 @@ export interface TypedComplementNodeS {
   operand: TypedNode<JavaSmallIntegerValue>
 }
 
-export interface TypedComplementNodeB {
+export interface TypedComplementNodeL {
   kind: 'unary'
   op: '~'
   operand: TypedNode<JavaLongValue>

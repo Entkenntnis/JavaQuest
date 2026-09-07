@@ -1,48 +1,286 @@
 import type {
   AstNode,
-  BinaryExpressionAstNode,
-  CastExpressionAstNode,
   JavaAllowedLiteralValue,
-  JavaValue,
+  JavaByteValue,
+  JavaCharValue,
+  JavaDoubleValue,
+  JavaFloatValue,
+  JavaIntValue,
+  JavaLongValue,
+  JavaShortValue,
   LiteralAstNode,
   TypecheckResult,
+  TypedBooleanCastNode,
+  TypedComplementNodeL,
+  TypedComplementNodeS,
   TypedLiteralAstNode,
-  UnaryExpressionAstNode,
+  TypedNegateNode,
+  TypedNumericArithNodeBDL,
+  TypedNumericArithNodeBDR,
+  TypedNumericArithNodeBFL,
+  TypedNumericArithNodeBFR,
+  TypedNumericArithNodeBLL,
+  TypedNumericArithNodeBLR,
+  TypedNumericArithNodeS,
+  TypedNumericCastNode,
+  TypedUnaryPlusMinusNodeB,
+  TypedUnaryPlusMinusNodeS,
 } from '../state/types'
-
-// The problem is: I actually would like to know the infered type, right?
-// Otherwise I can't really work
-// And the problem compounds because I can't extract the type from ts type
 
 export function typecheck(node: AstNode): TypecheckResult {
   switch (node.kind) {
     case 'literal':
-      // every literal is intrinsically valid
-      // this is basically a type guard
       return constructLiteralNodeResult(node)
     case 'unary': {
       const [type, inner] = typecheck(node.operand)
 
-      // I need this type == to ensure that I'm narrowing type as well
-      if (type == 'boolean') {
-        const i = inner
-        throw 'test'
+      if (node.op == '+' || node.op == '-') {
+        if (
+          type == 'byte' ||
+          type == 'char' ||
+          type == 'short' ||
+          type == 'int'
+        ) {
+          const tn: TypedUnaryPlusMinusNodeS = {
+            kind: 'unary',
+            op: node.op,
+            operand: inner,
+          }
+          return ['int', tn]
+        }
+        if (type == 'long') {
+          const tn: TypedUnaryPlusMinusNodeB<JavaLongValue> = {
+            kind: 'unary',
+            op: node.op,
+            operand: inner,
+          }
+          return [type, tn]
+        }
+        if (type == 'float') {
+          const tn: TypedUnaryPlusMinusNodeB<JavaFloatValue> = {
+            kind: 'unary',
+            op: node.op,
+            operand: inner,
+          }
+          return [type, tn]
+        }
+        if (type == 'double') {
+          const tn: TypedUnaryPlusMinusNodeB<JavaDoubleValue> = {
+            kind: 'unary',
+            op: node.op,
+            operand: inner,
+          }
+          return [type, tn]
+        }
       }
-
-      const t = type
-
-      // MEIN KOPF EXPLODIERT!!!!
-      // WAS PASSIERT HIER?
-      // WAS WILL ICH?
-      // if (node.op == '+') {
-      //   if () {
-      //   }
-      // }
+      if (node.op == '!') {
+        if (type == 'boolean') {
+          const tn: TypedNegateNode = {
+            kind: 'unary',
+            op: '!',
+            operand: inner,
+          }
+          return ['boolean', tn]
+        }
+      }
+      if (node.op == '~') {
+        if (type == 'boolean') {
+          const tn: TypedNegateNode = {
+            kind: 'unary',
+            op: '!',
+            operand: inner,
+          }
+          return ['boolean', tn]
+        }
+        if (
+          type == 'byte' ||
+          type == 'char' ||
+          type == 'short' ||
+          type == 'int'
+        ) {
+          const tn: TypedComplementNodeS = {
+            kind: 'unary',
+            op: node.op,
+            operand: inner,
+          }
+          return ['int', tn]
+        }
+        if (type == 'long') {
+          const tn: TypedComplementNodeL = {
+            kind: 'unary',
+            op: node.op,
+            operand: inner,
+          }
+          return ['long', tn]
+        }
+      }
+      throw new Error('invalid input type for unary operator')
     }
     case 'cast':
+      const [type, inner] = typecheck(node.operand)
+      if (node.type == 'boolean') {
+        if (type == 'boolean') {
+          const tn: TypedBooleanCastNode = {
+            kind: 'cast',
+            type: 'boolean',
+            operand: inner,
+          }
+          return ['boolean', tn]
+        }
+        throw new Error('boolean expected in cast')
+      }
+      if (type == 'null' || type == 'string' || type == 'boolean') {
+        throw new Error('cast expected for numeric value')
+      }
+      if (node.type == 'byte') {
+        const tn: TypedNumericCastNode<JavaByteValue> = {
+          kind: 'cast',
+          type: 'byte',
+          operand: inner,
+        }
+        return ['byte', tn]
+      }
+      if (node.type == 'short') {
+        const tn: TypedNumericCastNode<JavaShortValue> = {
+          kind: 'cast',
+          type: 'short',
+          operand: inner,
+        }
+        return ['short', tn]
+      }
+      if (node.type == 'char') {
+        const tn: TypedNumericCastNode<JavaCharValue> = {
+          kind: 'cast',
+          type: 'char',
+          operand: inner,
+        }
+        return ['char', tn]
+      }
+      if (node.type == 'int') {
+        const tn: TypedNumericCastNode<JavaIntValue> = {
+          kind: 'cast',
+          type: 'int',
+          operand: inner,
+        }
+        return ['int', tn]
+      }
+      if (node.type == 'long') {
+        const tn: TypedNumericCastNode<JavaLongValue> = {
+          kind: 'cast',
+          type: 'long',
+          operand: inner,
+        }
+        return ['long', tn]
+      }
+      if (node.type == 'float') {
+        const tn: TypedNumericCastNode<JavaFloatValue> = {
+          kind: 'cast',
+          type: 'float',
+          operand: inner,
+        }
+        return ['float', tn]
+      }
+      if (node.type == 'double') {
+        const tn: TypedNumericCastNode<JavaDoubleValue> = {
+          kind: 'cast',
+          type: 'double',
+          operand: inner,
+        }
+        return ['double', tn]
+      }
+      throw new Error('invalid input type for cast')
     case 'binary':
+      const [typeL, innerL] = typecheck(node.left)
+      const [typeR, innerR] = typecheck(node.right)
+      if (
+        (typeL == 'byte' ||
+          typeL == 'char' ||
+          typeL == 'short' ||
+          typeL == 'int' ||
+          typeL == 'long' ||
+          typeL == 'float' ||
+          typeL == 'double') &&
+        (typeR == 'byte' ||
+          typeR == 'char' ||
+          typeR == 'short' ||
+          typeR == 'int' ||
+          typeR == 'long' ||
+          typeR == 'float' ||
+          typeR == 'double')
+      ) {
+        // full numeric operands
+        if (
+          node.op == '+' ||
+          node.op == '-' ||
+          node.op == '*' ||
+          node.op == '/' ||
+          node.op == '%'
+        ) {
+          if (typeL == 'double') {
+            const tn: TypedNumericArithNodeBDL = {
+              kind: 'binary',
+              op: node.op,
+              left: innerL,
+              right: innerR,
+            }
+            return ['double', tn]
+          }
+          if (typeR == 'double') {
+            const tn: TypedNumericArithNodeBDR = {
+              kind: 'binary',
+              op: node.op,
+              left: innerL,
+              right: innerR,
+            }
+            return ['double', tn]
+          }
+          if (typeL == 'float') {
+            const tn: TypedNumericArithNodeBFL = {
+              kind: 'binary',
+              op: node.op,
+              left: innerL,
+              right: innerR,
+            }
+            return ['float', tn]
+          }
+          if (typeR == 'float') {
+            const tn: TypedNumericArithNodeBFR = {
+              kind: 'binary',
+              op: node.op,
+              left: innerL,
+              right: innerR,
+            }
+            return ['float', tn]
+          }
+          if (typeL == 'long') {
+            const tn: TypedNumericArithNodeBLL = {
+              kind: 'binary',
+              op: node.op,
+              left: innerL,
+              right: innerR,
+            }
+            return ['long', tn]
+          }
+          if (typeR == 'long') {
+            const tn: TypedNumericArithNodeBLR = {
+              kind: 'binary',
+              op: node.op,
+              left: innerL,
+              right: innerR,
+            }
+            return ['long', tn]
+          }
+          const tn: TypedNumericArithNodeS = {
+            kind: 'binary',
+            op: node.op,
+            left: innerL,
+            right: innerR,
+          }
+          return ['int', tn]
+        }
+      }
+      throw new Error('invalid binary operation')
   }
-  throw 'TODO'
 }
 
 function typedLiteral<T extends JavaAllowedLiteralValue>(
@@ -74,125 +312,5 @@ function constructLiteralNodeResult(node: LiteralAstNode): TypecheckResult {
       return ['string', typedLiteral(node.value)]
     case 'null':
       return ['null', typedLiteral(node.value)]
-  }
-}
-
-// ---------------------------------- SLOP!!!!! -----------------------------
-
-export function typecheck__LEGACY(node: AstNode): Type {
-  switch (node.kind) {
-    case 'literal':
-      return node.value.type
-    case 'unary':
-      return typecheckUnary(node)
-    case 'cast':
-      return typecheckCast(node)
-    case 'binary':
-      return typecheckBinary(node)
-  }
-}
-
-type Type = JavaValue['type']
-
-const numericTypes = new Set<Type>([
-  'byte',
-  'short',
-  'char',
-  'int',
-  'long',
-  'float',
-  'double',
-])
-
-const integralTypes = new Set<Type>(['byte', 'short', 'char', 'int', 'long'])
-
-const referenceTypes = new Set<Type>(['string', 'null'])
-
-function fail(message: string): never {
-  throw new Error(`[typecheck] ${message}`)
-}
-
-function promote(a: Type, b: Type): Type {
-  if (a == 'double' || b == 'double') return 'double'
-  if (a == 'float' || b == 'float') return 'float'
-  if (a == 'long' || b == 'long') return 'long'
-  return 'int'
-}
-
-function unaryResultType(operand: Type, op: string): Type {
-  if (op == '!') {
-    if (operand != 'boolean') {
-      fail(`'!' requires a boolean operand, found ${operand}`)
-    }
-    return 'boolean'
-  }
-  if (op == '~') {
-    if (!integralTypes.has(operand)) {
-      fail(`'~' requires an integral operand, found ${operand}`)
-    }
-    return operand == 'long' ? 'long' : 'int'
-  }
-  if (!numericTypes.has(operand)) {
-    fail(`'${op}' requires a numeric operand, found ${operand}`)
-  }
-  return operand == 'byte' || operand == 'short' || operand == 'char'
-    ? 'int'
-    : operand
-}
-
-function typecheckUnary(node: UnaryExpressionAstNode): Type {
-  const operand = typecheck__LEGACY(node.operand)
-  return unaryResultType(operand, node.op)
-}
-
-function typecheckCast(node: CastExpressionAstNode): Type {
-  const operand = typecheck__LEGACY(node.operand)
-  if (node.type == 'boolean') {
-    if (operand != 'boolean') {
-      fail(`cannot cast ${operand} to boolean`)
-    }
-    return 'boolean'
-  }
-  if (!numericTypes.has(operand)) {
-    fail(`cannot cast ${operand} to ${node.type}`)
-  }
-  return node.type
-}
-
-function typecheckBinary(node: BinaryExpressionAstNode): Type {
-  const left = typecheck__LEGACY(node.left)
-  const right = typecheck__LEGACY(node.right)
-
-  switch (node.op) {
-    case '&&':
-    case '||':
-      if (left != 'boolean' || right != 'boolean') {
-        fail(
-          `'${node.op}' requires boolean operands, found ${left} and ${right}`,
-        )
-      }
-      return 'boolean'
-    case '+':
-      if (left == 'string' || right == 'string') return 'string'
-      if (numericTypes.has(left) && numericTypes.has(right)) {
-        return promote(left, right)
-      }
-      fail(
-        `'+' requires numeric or string operands, found ${left} and ${right}`,
-      )
-    case '-':
-    case '*':
-    case '/':
-    case '%':
-      if (numericTypes.has(left) && numericTypes.has(right)) {
-        return promote(left, right)
-      }
-      fail(`'${node.op}' requires numeric operands, found ${left} and ${right}`)
-    case '==':
-      if (numericTypes.has(left) && numericTypes.has(right)) return 'boolean'
-      if (left == 'boolean' && right == 'boolean') return 'boolean'
-      if (referenceTypes.has(left) && referenceTypes.has(right))
-        return 'boolean'
-      fail(`'==' cannot compare ${left} with ${right}`)
   }
 }

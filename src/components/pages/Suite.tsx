@@ -5,8 +5,8 @@ import { Text } from '@codemirror/state'
 import { cursorToCstNode } from '../../lib/java/helper/cst'
 import { checkForParseErrors, cst2ast } from '../../lib/java/cst2ast'
 import clsx from 'clsx'
-import { evaluateLegacy } from '../../lib/java/evaluate'
-import { typecheck__LEGACY } from '../../lib/java/typecheck'
+import { evaluate } from '../../lib/java/evaluate'
+import { typecheck } from '../../lib/java/typecheck'
 
 interface SuiteResult {
   error?: string
@@ -19,8 +19,8 @@ function runCase(code: string) {
     const cst = cursorToCstNode(tree.cursor(), Text.of([code]))
     checkForParseErrors(cst)
     const ast = cst2ast(cst)
-    typecheck__LEGACY(ast)
-    const value = evaluateLegacy(ast)
+    const typed = typecheck(ast)[1]
+    const value = evaluate(typed)
     return { value }
   } catch (e) {
     return { error: (e as any).toString() }

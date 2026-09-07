@@ -3,8 +3,8 @@ import { cursorToCstNode, prettyPrintCstNode } from '../../lib/java/helper/cst'
 import { parser } from '../../lib/java/lezer/parser'
 import { useCore } from '../../lib/state/core'
 import { checkForParseErrors, cst2ast } from '../../lib/java/cst2ast'
-import { evaluateLegacy } from '../../lib/java/evaluate'
-import { typecheck__LEGACY } from '../../lib/java/typecheck'
+import { typecheck } from '../../lib/java/typecheck'
+import { evaluate } from '../../lib/java/evaluate'
 
 export function Test() {
   const core = useCore()
@@ -23,8 +23,8 @@ export function Test() {
       core.mutateWs((ws) => {
         ws.ui.testAst = ast
       })
-      typecheck__LEGACY(ast)
-      const value = evaluateLegacy(ast)
+      const typed = typecheck(ast)[1]
+      const value = evaluate(typed)
       core.mutateWs((ws) => {
         ws.ui.testOutput = value
       })
