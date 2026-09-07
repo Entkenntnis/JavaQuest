@@ -38,7 +38,7 @@ export function Test() {
   return (
     <div className="w-[600px] mx-auto">
       <form
-        className="py-6 px-3 bg-pink-500 mt-4"
+        className="py-6 px-3 bg-pink-500 mt-4 sticky top-0"
         onSubmit={(e) => {
           run()
           e.preventDefault()
@@ -51,6 +51,7 @@ export function Test() {
             core.mutateWs((ws) => {
               ws.ui.testInput = e.target.value
             })
+            run()
           }}
         />
         <br />
