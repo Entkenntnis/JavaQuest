@@ -671,83 +671,83 @@ export const testSuite: TestSuiteEntry[] = [
   // ------------------------- string -------------------------
   {
     code: `""`,
-    output: { type: 'string', value: '' },
+    output: { type: '__str', value: '' },
   },
   {
     code: `"a"`,
-    output: { type: 'string', value: 'a' },
+    output: { type: '__str', value: 'a' },
   },
   {
     code: `"hello world"`,
-    output: { type: 'string', value: 'hello world' },
+    output: { type: '__str', value: 'hello world' },
   },
   {
     code: `"line1\\nline2"`,
-    output: { type: 'string', value: 'line1\nline2' },
+    output: { type: '__str', value: 'line1\nline2' },
   },
   {
     code: `"tab\\there"`,
-    output: { type: 'string', value: 'tab\there' },
+    output: { type: '__str', value: 'tab\there' },
   },
   {
     code: `"back\\bspace"`,
-    output: { type: 'string', value: 'back\bspace' },
+    output: { type: '__str', value: 'back\bspace' },
   },
   {
     code: `"form\\ffeed"`,
-    output: { type: 'string', value: 'form\ffeed' },
+    output: { type: '__str', value: 'form\ffeed' },
   },
   {
     code: `"carriage\\rreturn"`,
-    output: { type: 'string', value: 'carriage\rreturn' },
+    output: { type: '__str', value: 'carriage\rreturn' },
   },
   {
     code: `"\\\\"`,
-    output: { type: 'string', value: '\\' },
+    output: { type: '__str', value: '\\' },
   },
   {
     code: `"a\\"b"`,
-    output: { type: 'string', value: 'a"b' },
+    output: { type: '__str', value: 'a"b' },
   },
   {
     code: `"\\u0041\\u00df"`,
-    output: { type: 'string', value: 'Aß' },
+    output: { type: '__str', value: 'Aß' },
   },
   {
     code: `"\\uu0041"`,
-    output: { type: 'string', value: 'A' },
+    output: { type: '__str', value: 'A' },
   },
   {
     code: `"\\\\uu0041"`,
-    output: { type: 'string', value: '\\uu0041' },
+    output: { type: '__str', value: '\\uu0041' },
   },
   {
     code: `"\\\\60"`,
-    output: { type: 'string', value: '\\60' },
+    output: { type: '__str', value: '\\60' },
   },
   {
     code: `"\\101"`,
-    output: { type: 'string', value: 'A' },
+    output: { type: '__str', value: 'A' },
   },
   {
     code: `"\\377"`,
-    output: { type: 'string', value: '\u00ff' },
+    output: { type: '__str', value: '\u00ff' },
   },
   {
     code: `"\\45"`,
-    output: { type: 'string', value: '%' },
+    output: { type: '__str', value: '%' },
   },
   {
     code: `"\\458"`,
-    output: { type: 'string', value: '%8' },
+    output: { type: '__str', value: '%8' },
   },
   {
     code: `"\\400"`,
-    output: { type: 'string', value: ' 0' },
+    output: { type: '__str', value: ' 0' },
   },
   {
     code: `"\\777"`,
-    output: { type: 'string', value: '?7' },
+    output: { type: '__str', value: '?7' },
   },
   {
     code: `"a\\q"`,
@@ -1490,280 +1490,280 @@ export const testSuite: TestSuiteEntry[] = [
   // ------------------------- string concatenation: basics & ordering -------------------------
   {
     code: `"" + ""`,
-    output: { type: 'string', value: '' },
+    output: { type: '__str', value: '' },
   },
   {
     code: `"ab" + "cd"`,
-    output: { type: 'string', value: 'abcd' },
+    output: { type: '__str', value: 'abcd' },
   },
   {
     code: `"x" + 1`,
-    output: { type: 'string', value: 'x1' },
+    output: { type: '__str', value: 'x1' },
   },
   {
     code: `1 + "x"`,
-    output: { type: 'string', value: '1x' },
+    output: { type: '__str', value: '1x' },
   },
   {
     code: `"x" + 1 + 2`,
-    output: { type: 'string', value: 'x12' },
+    output: { type: '__str', value: 'x12' },
   },
   {
     code: `1 + 2 + "x"`,
-    output: { type: 'string', value: '3x' },
+    output: { type: '__str', value: '3x' },
   },
   {
     code: `"x" + (1 + 2)`,
-    output: { type: 'string', value: 'x3' },
+    output: { type: '__str', value: 'x3' },
   },
   {
     code: `2 * 3 + "x"`,
-    output: { type: 'string', value: '6x' },
+    output: { type: '__str', value: '6x' },
   },
   // ------------------------- string concatenation: int / long / byte -------------------------
   {
     code: `"" + 42`,
-    output: { type: 'string', value: '42' },
+    output: { type: '__str', value: '42' },
   },
   {
     code: `"" + -2147483648`,
-    output: { type: 'string', value: '-2147483648' },
+    output: { type: '__str', value: '-2147483648' },
   },
   {
     code: `"" + 9223372036854775807L`,
-    output: { type: 'string', value: '9223372036854775807' },
+    output: { type: '__str', value: '9223372036854775807' },
   },
   {
     code: `"" + (-9223372036854775808L)`,
-    output: { type: 'string', value: '-9223372036854775808' },
+    output: { type: '__str', value: '-9223372036854775808' },
   },
   {
     code: `"" + (byte)200`,
-    output: { type: 'string', value: '-56' },
+    output: { type: '__str', value: '-56' },
   },
   // ------------------------- string concatenation: char -------------------------
   {
     code: `"" + 'a'`,
-    output: { type: 'string', value: 'a' },
+    output: { type: '__str', value: 'a' },
   },
   {
     code: `"" + (char)65`,
-    output: { type: 'string', value: 'A' },
+    output: { type: '__str', value: 'A' },
   },
   {
     code: `"c=" + 'x'`,
-    output: { type: 'string', value: 'c=x' },
+    output: { type: '__str', value: 'c=x' },
   },
   {
     code: `"" + 'a' + 1`,
-    output: { type: 'string', value: 'a1' },
+    output: { type: '__str', value: 'a1' },
   },
   {
     code: `"" + ('a' + 1)`,
-    output: { type: 'string', value: '98' },
+    output: { type: '__str', value: '98' },
   },
   {
     code: `'x' + ""`,
-    output: { type: 'string', value: 'x' },
+    output: { type: '__str', value: 'x' },
   },
   // ------------------------- string concatenation: boolean & null -------------------------
   {
     code: `"" + true`,
-    output: { type: 'string', value: 'true' },
+    output: { type: '__str', value: 'true' },
   },
   {
     code: `"" + false`,
-    output: { type: 'string', value: 'false' },
+    output: { type: '__str', value: 'false' },
   },
   {
     code: `true + ""`,
-    output: { type: 'string', value: 'true' },
+    output: { type: '__str', value: 'true' },
   },
   {
     code: `"" + null`,
-    output: { type: 'string', value: 'null' },
+    output: { type: '__str', value: 'null' },
   },
   {
     code: `null + ""`,
-    output: { type: 'string', value: 'null' },
+    output: { type: '__str', value: 'null' },
   },
   // ------------------------- string concatenation: Infinity / NaN -------------------------
   {
     code: `"" + (1.0 / 0.0)`,
-    output: { type: 'string', value: 'Infinity' },
+    output: { type: '__str', value: 'Infinity' },
   },
   {
     code: `"" + (-1.0 / 0.0)`,
-    output: { type: 'string', value: '-Infinity' },
+    output: { type: '__str', value: '-Infinity' },
   },
   {
     code: `"" + (0.0 / 0.0)`,
-    output: { type: 'string', value: 'NaN' },
+    output: { type: '__str', value: 'NaN' },
   },
   {
     code: `"" + (1.0f / 0.0f)`,
-    output: { type: 'string', value: 'Infinity' },
+    output: { type: '__str', value: 'Infinity' },
   },
   {
     code: `"" + (1e308 * 10)`,
-    output: { type: 'string', value: 'Infinity' },
+    output: { type: '__str', value: 'Infinity' },
   },
   // ------------------------- string concatenation: float & double that Java prints plainly -------------------------
   {
     code: `"" + 0.5`,
-    output: { type: 'string', value: '0.5' },
+    output: { type: '__str', value: '0.5' },
   },
   {
     code: `"" + 2.5`,
-    output: { type: 'string', value: '2.5' },
+    output: { type: '__str', value: '2.5' },
   },
   {
     code: `"" + 0.1`,
-    output: { type: 'string', value: '0.1' },
+    output: { type: '__str', value: '0.1' },
   },
   // ------------------------- string concatenation: float & double formatting (expected values = Java reference) -------------------------
   {
     code: `"" + 100.0`,
-    output: { type: 'string', value: '100.0' },
+    output: { type: '__str', value: '100.0' },
   },
   {
     code: `"" + 2f`,
-    output: { type: 'string', value: '2.0' },
+    output: { type: '__str', value: '2.0' },
   },
   {
     code: `"" + 0.1f`,
-    output: { type: 'string', value: '0.1' },
+    output: { type: '__str', value: '0.1' },
   },
   {
     code: `"" + (1f / 3f)`,
-    output: { type: 'string', value: '0.33333334' },
+    output: { type: '__str', value: '0.33333334' },
   },
   {
     code: `"" + -0.0`,
-    output: { type: 'string', value: '-0.0' },
+    output: { type: '__str', value: '-0.0' },
   },
   // ------------------------- string conversion: double sizes (expected values = Java reference) -------------------------
   {
     code: `"" + 1e6`,
-    output: { type: 'string', value: '1000000.0' },
+    output: { type: '__str', value: '1000000.0' },
   },
   {
     code: `"" + 1e7`,
-    output: { type: 'string', value: '1.0E7' },
+    output: { type: '__str', value: '1.0E7' },
   },
   {
     code: `"" + 12345678.0`,
-    output: { type: 'string', value: '1.2345678E7' },
+    output: { type: '__str', value: '1.2345678E7' },
   },
   {
     code: `"" + 1.7976931348623157e308`,
-    output: { type: 'string', value: '1.7976931348623157E308' },
+    output: { type: '__str', value: '1.7976931348623157E308' },
   },
   {
     code: `"" + 4.9e-324`,
-    output: { type: 'string', value: '4.9E-324' },
+    output: { type: '__str', value: '4.9E-324' },
   },
   {
     code: `"" + 0.001`,
-    output: { type: 'string', value: '0.001' },
+    output: { type: '__str', value: '0.001' },
   },
   {
     code: `"" + 0.0001`,
-    output: { type: 'string', value: '1.0E-4' },
+    output: { type: '__str', value: '1.0E-4' },
   },
   {
     code: `"" + (1.0 / 3.0)`,
-    output: { type: 'string', value: '0.3333333333333333' },
+    output: { type: '__str', value: '0.3333333333333333' },
   },
   {
     code: `"" + (0.1 + 0.2)`,
-    output: { type: 'string', value: '0.30000000000000004' },
+    output: { type: '__str', value: '0.30000000000000004' },
   },
   {
     code: `"" + -1e7`,
-    output: { type: 'string', value: '-1.0E7' },
+    output: { type: '__str', value: '-1.0E7' },
   },
   // ------------------------- string conversion: float sizes (expected values = Java reference) -------------------------
   {
     code: `"" + 3.4028235e38f`,
-    output: { type: 'string', value: '3.4028235E38' },
+    output: { type: '__str', value: '3.4028235E38' },
   },
   {
     code: `"" + 1e-45f`,
-    output: { type: 'string', value: '1.4E-45' },
+    output: { type: '__str', value: '1.4E-45' },
   },
   {
     code: `"" + 16777216f`,
-    output: { type: 'string', value: '1.6777216E7' },
+    output: { type: '__str', value: '1.6777216E7' },
   },
   {
     code: `"" + 1e20f`,
-    output: { type: 'string', value: '1.0E20' },
+    output: { type: '__str', value: '1.0E20' },
   },
   {
     code: `"" + 0.5f`,
-    output: { type: 'string', value: '0.5' },
+    output: { type: '__str', value: '0.5' },
   },
   // ------------------------- string conversion: double & float edge cases (expected values = Java reference) -------------------------
   {
     code: `"" + 1e15`,
-    output: { type: 'string', value: '1.0E15' },
+    output: { type: '__str', value: '1.0E15' },
   },
   {
     code: `"" + 1e21`,
-    output: { type: 'string', value: '1.0E21' },
+    output: { type: '__str', value: '1.0E21' },
   },
   {
     code: `"" + 2.2250738585072014e-308`,
-    output: { type: 'string', value: '2.2250738585072014E-308' },
+    output: { type: '__str', value: '2.2250738585072014E-308' },
   },
   {
     code: `"" + 5e-324`,
-    output: { type: 'string', value: '4.9E-324' },
+    output: { type: '__str', value: '4.9E-324' },
   },
   {
     code: `"" + 1.5e-5`,
-    output: { type: 'string', value: '1.5E-5' },
+    output: { type: '__str', value: '1.5E-5' },
   },
   {
     code: `"" + -0.0001`,
-    output: { type: 'string', value: '-1.0E-4' },
+    output: { type: '__str', value: '-1.0E-4' },
   },
   {
     code: `"" + 9.999999e6`,
-    output: { type: 'string', value: '9999999.0' },
+    output: { type: '__str', value: '9999999.0' },
   },
   {
     code: `"" + 0.9999999999999999`,
-    output: { type: 'string', value: '0.9999999999999999' },
+    output: { type: '__str', value: '0.9999999999999999' },
   },
   {
     code: `"" + 123.456`,
-    output: { type: 'string', value: '123.456' },
+    output: { type: '__str', value: '123.456' },
   },
   {
     code: `"" + -123.456`,
-    output: { type: 'string', value: '-123.456' },
+    output: { type: '__str', value: '-123.456' },
   },
   {
     code: `"" + 3.1415927f`,
-    output: { type: 'string', value: '3.1415927' },
+    output: { type: '__str', value: '3.1415927' },
   },
   {
     code: `"" + 1.17549435e-38f`,
-    output: { type: 'string', value: '1.1754944E-38' },
+    output: { type: '__str', value: '1.1754944E-38' },
   },
   {
     code: `"" + 100.0f`,
-    output: { type: 'string', value: '100.0' },
+    output: { type: '__str', value: '100.0' },
   },
   {
     code: `"" + 16777215f`,
-    output: { type: 'string', value: '1.6777215E7' },
+    output: { type: '__str', value: '1.6777215E7' },
   },
   {
     code: `"" + -1.5e10f`,
-    output: { type: 'string', value: '-1.5E10' },
+    output: { type: '__str', value: '-1.5E10' },
   },
   // ------------------------- string used with non-'+' operators (expected: Java compile error) -------------------------
   {
@@ -2285,15 +2285,15 @@ export const testSuite: TestSuiteEntry[] = [
   // ------------------------- regression guards: string concatenation with odd operands -------------------------
   {
     code: `"x" + null`,
-    output: { type: 'string', value: 'xnull' },
+    output: { type: '__str', value: 'xnull' },
   },
   {
     code: `"a" + 1 + true`,
-    output: { type: 'string', value: 'a1true' },
+    output: { type: '__str', value: 'a1true' },
   },
   {
     code: `"" + ~0`,
-    output: { type: 'string', value: '-1' },
+    output: { type: '__str', value: '-1' },
   },
   // ------------------------- regression guards: long & chained inputs -------------------------
   {
@@ -2377,8 +2377,11 @@ export const testSuite: TestSuiteEntry[] = [
   },
   {
     code: `str`,
-    output: { type: 'string', value: 'JavaQuest' },
-    env: { local: { str: { type: 'string', value: 'JavaQuest' } }, heap: {} },
+    output: { type: '__str', value: 'JavaQuest' },
+    env: {
+      local: { str: { type: 'reference', ref: 'heap0' } },
+      heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
+    },
   },
   // ------------------------- identifiers: int arithmetic -------------------------
   {
@@ -2517,57 +2520,57 @@ export const testSuite: TestSuiteEntry[] = [
   // ------------------------- identifiers: string concatenation -------------------------
   {
     code: `str + a`,
-    output: { type: 'string', value: 'JavaQuest5' },
+    output: { type: '__str', value: 'JavaQuest5' },
     env: {
       local: {
-        str: { type: 'string', value: 'JavaQuest' },
+        str: { type: 'reference', ref: 'heap0' },
         a: { type: 'int', value: 5 },
       },
-      heap: {},
+      heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
     },
   },
   {
     code: `str + xl`,
-    output: { type: 'string', value: 'JavaQuest123' },
+    output: { type: '__str', value: 'JavaQuest123' },
     env: {
       local: {
-        str: { type: 'string', value: 'JavaQuest' },
+        str: { type: 'reference', ref: 'heap0' },
         xl: { type: 'long', value: '123' },
       },
-      heap: {},
+      heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
     },
   },
   {
     code: `str + ch`,
-    output: { type: 'string', value: 'JavaQuestA' },
+    output: { type: '__str', value: 'JavaQuestA' },
     env: {
       local: {
-        str: { type: 'string', value: 'JavaQuest' },
+        str: { type: 'reference', ref: 'heap0' },
         ch: { type: 'char', value: 65 },
       },
-      heap: {},
+      heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
     },
   },
   {
     code: `str + flag`,
-    output: { type: 'string', value: 'JavaQuesttrue' },
+    output: { type: '__str', value: 'JavaQuesttrue' },
     env: {
       local: {
-        str: { type: 'string', value: 'JavaQuest' },
+        str: { type: 'reference', ref: 'heap0' },
         flag: { type: 'boolean', value: true },
       },
-      heap: {},
+      heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
     },
   },
   {
     code: `a + str`,
-    output: { type: 'string', value: '5JavaQuest' },
+    output: { type: '__str', value: '5JavaQuest' },
     env: {
       local: {
         a: { type: 'int', value: 5 },
-        str: { type: 'string', value: 'JavaQuest' },
+        str: { type: 'reference', ref: 'heap0' },
       },
-      heap: {},
+      heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
     },
   },
   // ------------------------- identifiers: logical operators & equality -------------------------

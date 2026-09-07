@@ -30,6 +30,27 @@ function evaluate_internal(
     case 'literal': {
       return node.value
     }
+    case 'string-literal': {
+      // TODO: should move to separate constant folding pass (later)
+      // walk the heap
+      for (const [key, val] of Object.entries(env.heap)) {
+        if (
+          val.class == 'java.lang.String' &&
+          val.value == node.value &&
+          val.isInterned
+        ) {
+          return { type: 'reference', ref: key }
+        }
+      }
+      // new string to be interned
+      const ref = freshHeapRef(env)
+      env.heap[ref] = {
+        class: 'java.lang.String',
+        value: node.value,
+        isInterned: true,
+      }
+      return { type: 'reference', ref }
+    }
     case 'unary': {
       switch (node.op) {
         case '+': {
@@ -130,13 +151,17 @@ function evaluate_internal(
             value: ops[node.op](left.value, right.value),
           })
         }
-        case 'concat':
-          return {
-            type: 'string',
-            value:
-              javaValueToString(evaluate<JavaValue>(node.left, env)) +
-              javaValueToString(evaluate<JavaValue>(node.right, env)),
+        case 'concat': {
+          const value =
+            javaValueToString(evaluate<JavaValue>(node.left, env), env) +
+            javaValueToString(evaluate<JavaValue>(node.right, env), env)
+          const ref = freshHeapRef(env)
+          env.heap[ref] = {
+            class: 'java.lang.String',
+            value,
           }
+          return { type: 'reference', ref }
+        }
         case '==b':
           return {
             type: 'boolean',
@@ -152,8 +177,8 @@ function evaluate_internal(
           return { type: 'boolean', value: left.value === right.value }
         }
         case '==s': {
-          const left = evaluate(node.left, env)
-          const right = evaluate(node.right, env)
+          const left = env.heap[evaluate(node.left, env).ref]
+          const right = env.heap[evaluate(node.right, env).ref]
           return { type: 'boolean', value: left.value === right.value }
         }
       }
@@ -170,6 +195,14 @@ function evaluate_internal(
       return env.local[node.name]
     }
   }
+}
+
+function freshHeapRef(env: JavaEnvironment) {
+  let i = 0
+  while (`heap${i}` in env.heap) {
+    i++
+  }
+  return `heap${i}`
 }
 
 function isSmallInt(
@@ -289,7 +322,7 @@ function binaryNumericPromotion(
   return [toInt(left), toInt(right)]
 }
 
-function javaValueToString(val: JavaValue): string {
+function javaValueToString(val: JavaValue, env: JavaEnvironment): string {
   switch (val.type) {
     case 'boolean':
       return val.value ? 'true' : 'false'
@@ -304,8 +337,10 @@ function javaValueToString(val: JavaValue): string {
       return printFloat(val.value)
     case 'double':
       return printDouble(val.value)
-    case 'string':
-      return val.value
+    case 'reference':
+      // TODO: if new methods arrive, find the toString method and invoke it
+      const obj = env.heap[val.ref]
+      return obj.value
     case 'null':
       return 'null'
   }

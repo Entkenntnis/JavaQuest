@@ -7,7 +7,6 @@ import type {
   JavaFloatValue,
   JavaIntValue,
   JavaLongValue,
-  JavaStringValue,
 } from '../state/types'
 
 function conversionError(node: CstNode, reason: string) {
@@ -62,7 +61,7 @@ export function cst2ast(node: CstNode): AstNode {
   } else if (node.name == 'CharacterLiteral') {
     return { kind: 'literal', value: parseCharacterLiteral(node) }
   } else if (node.name == 'StringLiteral') {
-    return { kind: 'literal', value: parseStringLiteral(node) }
+    return { kind: 'string-literal', value: parseStringLiteral(node) }
   } else if (node.name == 'null') {
     return { kind: 'literal', value: { type: 'null', value: null } }
   } else if (node.name == 'CastExpression') {
@@ -361,12 +360,12 @@ function parseCharacterLiteral(node: CstNode): JavaCharValue {
   return { type: 'char', value: decoded.charCodeAt(0) }
 }
 
-function parseStringLiteral(node: CstNode): JavaStringValue {
+function parseStringLiteral(node: CstNode): string {
   const raw = node.text
   if (raw.length < 2 || raw[0] != '"' || raw[raw.length - 1] != '"') {
     throw conversionError(node, 'malformed string literal')
   }
-  return { type: 'string', value: unescape(raw.slice(1, -1)) }
+  return unescape(raw.slice(1, -1))
 }
 
 function parseBooleanLiteral(node: CstNode): JavaBooleanValue {

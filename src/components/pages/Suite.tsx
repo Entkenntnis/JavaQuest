@@ -12,7 +12,7 @@ import clsx from 'clsx'
 import { evaluate } from '../../lib/java/evaluate'
 import { typecheck } from '../../lib/java/typecheck'
 
-function runCase(code: string, env: JavaEnvironment) {
+function runCase(code: string, env: JavaEnvironment): SuiteResult {
   try {
     const tree = parser.parse(code)
     const cst = cursorToCstNode(tree.cursor(), Text.of([code]))
@@ -20,6 +20,19 @@ function runCase(code: string, env: JavaEnvironment) {
     const ast = cst2ast(cst)
     const typed = typecheck(ast, env)
     const value = evaluate(typed, env)
+    if (
+      value.type == 'reference' &&
+      env.heap[value.ref].class == 'java.lang.String'
+    ) {
+      return {
+        value: { type: '__str', value: env.heap[value.ref].value },
+      }
+    }
+    if (value.type == 'reference') {
+      throw new Error(
+        'comparison with reference not meaningful in test harness',
+      )
+    }
     return { value }
   } catch (e) {
     return { error: (e as any).toString() }
@@ -27,8 +40,12 @@ function runCase(code: string, env: JavaEnvironment) {
 }
 
 const suiteResults = testSuite.map((el) =>
-  runCase(el.code, el.env ?? { local: {}, heap: {} }),
+  runCase(el.code, el.env ? cloneEnv(el.env) : { local: {}, heap: {} }),
 )
+
+function cloneEnv(env: JavaEnvironment): JavaEnvironment {
+  return JSON.parse(JSON.stringify(env))
+}
 
 function isPass(entry: TestSuiteEntry, result: SuiteResult) {
   if (result.error) return entry.isError == true

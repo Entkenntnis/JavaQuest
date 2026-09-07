@@ -11,6 +11,7 @@ interface Ui {
   testError?: string
   testAst?: AstNode
   testOutput?: JavaValue
+  testOutputEnv?: string
 }
 
 interface Quest {
@@ -29,16 +30,29 @@ export interface QuestData {
   code: string
 }
 
+export interface TestHarnessDerefStringValue {
+  type: '__str'
+  value: string
+}
+
 export interface TestSuiteEntry {
   code: string
   isError?: boolean
-  output?: JavaValue
+  output?:
+    | JavaBooleanValue
+    | JavaNumericPrimitiveValue
+    | JavaNullValue
+    | TestHarnessDerefStringValue
   env?: JavaEnvironment
 }
 
 export interface SuiteResult {
   error?: string
-  value?: JavaValue
+  value?:
+    | JavaBooleanValue
+    | JavaNumericPrimitiveValue
+    | JavaNullValue
+    | TestHarnessDerefStringValue
 }
 
 // --------------------- Java System -------------------------
@@ -83,9 +97,9 @@ export interface JavaLongValue {
   value: string // from bigint
 }
 
-export interface JavaStringValue {
-  type: 'string'
-  value: string
+export interface JavaReferenceValue {
+  type: 'reference'
+  ref: string // <-- pointing to an entry on the heap
 }
 
 export interface JavaNullValue {
@@ -110,7 +124,6 @@ export type JavaAllowedLiteralValue =
   | JavaFloatValue
   | JavaDoubleValue
   | JavaBooleanValue
-  | JavaStringValue
   | JavaNullValue
 
 export type JavaIntegerValue =
@@ -132,10 +145,10 @@ export type JavaLongFloatDoubleValue =
   | JavaDoubleValue
 
 export type JavaValue =
-  | JavaNumericPrimitiveValue
-  | JavaStringValue
-  | JavaNullValue
   | JavaBooleanValue
+  | JavaNumericPrimitiveValue
+  | JavaReferenceValue
+  | JavaNullValue
 
 export interface CstNode {
   name: string
@@ -148,11 +161,12 @@ export interface CstNode {
 
 export interface LiteralAstNode {
   kind: 'literal'
-  value:
-    | JavaNumericPrimitiveValue
-    | JavaBooleanValue
-    | JavaStringValue
-    | JavaNullValue
+  value: JavaNumericPrimitiveValue | JavaBooleanValue | JavaNullValue
+}
+
+export interface LiteralStringAstNode {
+  kind: 'string-literal'
+  value: string
 }
 
 export interface UnaryExpressionAstNode {
@@ -191,6 +205,7 @@ export interface IdentifierAstNode {
 
 export type AstNode =
   | LiteralAstNode
+  | LiteralStringAstNode
   | UnaryExpressionAstNode
   | CastExpressionAstNode
   | BinaryExpressionAstNode
@@ -211,11 +226,11 @@ export type AstNode =
 // Das ist die Schaltzentrale, abhängig von T sind unterschiedliche Sub-Nodes verfügbar
 export type TypedNode<T extends JavaValue> =
   | TypedIdentifierNode
-  | (T extends JavaAllowedLiteralValue ? TypedLiteralAstNode<T> : never)
+  | (T extends JavaAllowedLiteralValue ? TypedLiteralNode<T> : never)
   | (T extends JavaNumericPrimitiveValue ? TypedNumericCastNode<T> : never)
   | (T extends JavaLongFloatDoubleValue ? TypedUnaryPlusMinusNodeB<T> : never)
-  | (T extends JavaStringValue
-      ? TypedStringConcatNodeL | TypedStringConcatNodeR | TypedStringEqualsNode
+  | (T extends JavaReferenceValue
+      ? TypedLiteralStringNode | TypedStringConcatNodeL | TypedStringConcatNodeR
       : never)
   | (T extends JavaIntValue
       ? TypedUnaryPlusMinusNodeS | TypedComplementNodeS | TypedNumericArithNodeS
@@ -228,6 +243,7 @@ export type TypedNode<T extends JavaValue> =
           | TypedOrAndNode
           | TypedNumericEqualsNode
           | TypedBooleanEqualsNode
+          | TypedStringEqualsNode
       : never)
   | (T extends JavaLongValue
       ? TypedNumericArithNodeBLL | TypedNumericArithNodeBLR
@@ -240,9 +256,17 @@ export type TypedNode<T extends JavaValue> =
       : never)
 
 // ---- LITERAL -----
-export interface TypedLiteralAstNode<T extends JavaAllowedLiteralValue> {
+export interface TypedLiteralNode<T extends JavaAllowedLiteralValue> {
   kind: 'literal'
   value: T // <-- this is an important contract to avoid bypassing the expectation with literals
+}
+
+// The job of this node is to INTERN its value
+// Can be done in the constant folding pass?
+// It's a bit more dynamic than I would like it to be, but should keep the "observable" equivalence
+export interface TypedLiteralStringNode {
+  kind: 'string-literal'
+  value: string
 }
 
 // ---- UNARY ----
@@ -342,7 +366,7 @@ export interface TypedNumericArithNodeBDR {
 export interface TypedStringConcatNodeL {
   kind: 'binary'
   op: 'concat'
-  left: TypedNode<JavaStringValue>
+  left: TypedNode<JavaReferenceValue>
   right: TypedNode<JavaValue>
 }
 
@@ -350,7 +374,7 @@ export interface TypedStringConcatNodeR {
   kind: 'binary'
   op: 'concat'
   left: TypedNode<JavaValue>
-  right: TypedNode<JavaStringValue>
+  right: TypedNode<JavaReferenceValue>
 }
 
 export interface TypedOrAndNode {
@@ -377,8 +401,8 @@ export interface TypedBooleanEqualsNode {
 export interface TypedStringEqualsNode {
   kind: 'binary'
   op: '==s'
-  left: TypedNode<JavaStringValue>
-  right: TypedNode<JavaStringValue>
+  left: TypedNode<JavaReferenceValue>
+  right: TypedNode<JavaReferenceValue>
 }
 
 export interface TypedIdentifierNode {
@@ -395,17 +419,20 @@ export type TypecheckResult =
   | [type: 'long', node: TypedNode<JavaLongValue>]
   | [type: 'float', node: TypedNode<JavaFloatValue>]
   | [type: 'double', node: TypedNode<JavaDoubleValue>]
-  | [type: 'string', node: TypedNode<JavaStringValue>]
+  | [type: { reference: string }, node: TypedNode<JavaReferenceValue>]
   | [type: 'null', node: TypedNode<JavaNullValue>]
 
 // ------- Environment Stuff -------
 
 export interface JavaEnvironment {
   local: Record<string, JavaValue>
-  heap: Record<number, JavaHeapObject>
+  heap: Record<string, JavaHeapObject>
 }
 
-export interface JavaHeapObject {
-  class: string
-  // TODO: make this implementation actually work
+export type JavaHeapObject = JavaStringHeapObject
+
+export interface JavaStringHeapObject {
+  class: 'java.lang.String'
+  value: string
+  isInterned?: boolean
 }

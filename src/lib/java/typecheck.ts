@@ -16,7 +16,7 @@ import type {
   TypedBooleanEqualsNode,
   TypedComplementNodeL,
   TypedComplementNodeS,
-  TypedLiteralAstNode,
+  TypedLiteralNode,
   TypedNegateNode,
   TypedNode,
   TypedNumericArithNodeBDL,
@@ -50,6 +50,12 @@ function typecheck_internal(
   switch (node.kind) {
     case 'literal': {
       return constructLiteralNodeResult(node)
+    }
+    case 'string-literal': {
+      return [
+        { reference: 'java.lang.String' },
+        { kind: 'string-literal', value: node.value },
+      ]
     }
     case 'unary': {
       const [type, inner] = typecheck_internal(node.operand, env)
@@ -141,7 +147,7 @@ function typecheck_internal(
         }
         throw new Error('boolean expected in cast')
       }
-      if (type == 'null' || type == 'string' || type == 'boolean') {
+      if (type == 'null' || type == 'boolean' || typeof type == 'object') {
         throw new Error('cast expected for numeric value')
       }
       if (node.type == 'byte') {
@@ -304,24 +310,32 @@ function typecheck_internal(
         }
       }
 
-      if (typeL == 'string' && node.op == '+') {
+      if (
+        typeof typeL == 'object' &&
+        typeL.reference == 'java.lang.String' &&
+        node.op == '+'
+      ) {
         const tn: TypedStringConcatNodeL = {
           kind: 'binary',
           op: 'concat',
           left: innerL,
           right: innerR,
         }
-        return ['string', tn]
+        return [{ reference: 'java.lang.String' }, tn]
       }
 
-      if (typeR == 'string' && node.op == '+') {
+      if (
+        typeof typeR == 'object' &&
+        typeR.reference == 'java.lang.String' &&
+        node.op == '+'
+      ) {
         const tn: TypedStringConcatNodeR = {
           kind: 'binary',
           op: 'concat',
           left: innerL,
           right: innerR,
         }
-        return ['string', tn]
+        return [{ reference: 'java.lang.String' }, tn]
       }
 
       if (
@@ -348,14 +362,20 @@ function typecheck_internal(
         return ['boolean', tn]
       }
 
-      if (node.op == '==' && typeL == 'string' && typeR == 'string') {
+      if (
+        node.op == '==' &&
+        typeof typeL == 'object' &&
+        typeL.reference == 'java.lang.String' &&
+        typeof typeR == 'object' &&
+        typeR.reference == 'java.lang.String'
+      ) {
         const tn: TypedStringEqualsNode = {
           kind: 'binary',
           op: '==s',
           left: innerL,
           right: innerR,
         }
-        return ['string', tn]
+        return ['boolean', tn]
       }
 
       // <--- insert open stuff here
@@ -367,6 +387,9 @@ function typecheck_internal(
       if (!value) {
         throw new Error('unknown identifier')
       }
+      if (value.type == 'reference') {
+        return [{ reference: env.heap[value.ref].class }, node]
+      }
       return [value.type, node]
     }
   }
@@ -374,7 +397,7 @@ function typecheck_internal(
 
 function typedLiteral<T extends JavaAllowedLiteralValue>(
   value: T,
-): TypedLiteralAstNode<T> {
+): TypedLiteralNode<T> {
   return { kind: 'literal', value }
 }
 
@@ -397,8 +420,6 @@ function constructLiteralNodeResult(node: LiteralAstNode): TypecheckResult {
       return ['float', typedLiteral(node.value)]
     case 'double':
       return ['double', typedLiteral(node.value)]
-    case 'string':
-      return ['string', typedLiteral(node.value)]
     case 'null':
       return ['null', typedLiteral(node.value)]
   }

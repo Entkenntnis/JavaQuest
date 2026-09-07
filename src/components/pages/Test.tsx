@@ -22,17 +22,20 @@ export function Test() {
       ws.ui.testError = undefined
       ws.ui.testAst = undefined
       ws.ui.testOutput = undefined
+      ws.ui.testOutputEnv = undefined
     })
     try {
+      const env: JavaEnvironment = JSON.parse(JSON.stringify(testEnv))
       checkForParseErrors(cst)
       const ast = cst2ast(cst)
       core.mutateWs((ws) => {
         ws.ui.testAst = ast
       })
-      const typed = typecheck(ast, testEnv)
-      const value = evaluate(typed, testEnv)
+      const typed = typecheck(ast, env)
+      const value = evaluate(typed, env)
       core.mutateWs((ws) => {
         ws.ui.testOutput = value
+        ws.ui.testOutputEnv = JSON.stringify(env)
       })
     } catch (e) {
       core.mutateWs((ws) => {
@@ -64,6 +67,15 @@ export function Test() {
         <br />
         Env: {JSON.stringify(testEnv)}
       </form>
+      {core.ws.ui.testOutput && (
+        <div className="mt-6 bg-lime-300 p-3">
+          <h2>Evaluation</h2>
+          <pre className="mt-4">
+            {JSON.stringify(core.ws.ui.testOutput, null, 2)}
+          </pre>
+          <p className="mt-4 text-sm">{core.ws.ui.testOutputEnv}</p>
+        </div>
+      )}
       <div className="mt-6 bg-emerald-300 p-3">
         <h2>Lezer Concrete Syntax Tree</h2>
         {core.ws.ui.testCst && (
@@ -77,14 +89,6 @@ export function Test() {
           <h2>Abstract Syntax Tree</h2>
           <pre className="mt-4">
             {JSON.stringify(core.ws.ui.testAst, null, 2)}
-          </pre>
-        </div>
-      )}
-      {core.ws.ui.testOutput && (
-        <div className="mt-6 bg-lime-300 p-3">
-          <h2>Evaluation</h2>
-          <pre className="mt-4">
-            {JSON.stringify(core.ws.ui.testOutput, null, 2)}
           </pre>
         </div>
       )}
