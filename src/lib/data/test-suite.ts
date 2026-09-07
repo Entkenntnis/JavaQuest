@@ -2313,4 +2313,378 @@ export const testSuite: TestSuiteEntry[] = [
     output: { type: 'int', value: 42 },
     env: { local: { zahl: { type: 'int', value: 42 } }, heap: {} },
   },
+  // ------------------------- identifiers: different names -------------------------
+  {
+    code: `alpha`,
+    output: { type: 'int', value: 7 },
+    env: { local: { alpha: { type: 'int', value: 7 } }, heap: {} },
+  },
+  {
+    code: `Abc`,
+    output: { type: 'int', value: 13 },
+    env: { local: { Abc: { type: 'int', value: 13 } }, heap: {} },
+  },
+  {
+    code: `camelCase`,
+    output: { type: 'int', value: 9 },
+    env: { local: { camelCase: { type: 'int', value: 9 } }, heap: {} },
+  },
+  {
+    code: `_under`,
+    output: { type: 'int', value: 11 },
+    env: { local: { _under: { type: 'int', value: 11 } }, heap: {} },
+  },
+  {
+    code: `$cash`,
+    output: { type: 'int', value: 12 },
+    env: { local: { $cash: { type: 'int', value: 12 } }, heap: {} },
+  },
+  {
+    code: `Ω`,
+    output: { type: 'int', value: 14 },
+    env: { local: { Ω: { type: 'int', value: 14 } }, heap: {} },
+  },
+  // ------------------------- identifiers: reading values of each type -------------------------
+  {
+    code: `a`,
+    output: { type: 'int', value: 5 },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  {
+    code: `xl`,
+    output: { type: 'long', value: '123' },
+    env: { local: { xl: { type: 'long', value: '123' } }, heap: {} },
+  },
+  {
+    code: `zz`,
+    output: { type: 'long', value: '10000000000' },
+    env: { local: { zz: { type: 'long', value: '10000000000' } }, heap: {} },
+  },
+  {
+    code: `d`,
+    output: { type: 'double', value: 3.5 },
+    env: { local: { d: { type: 'double', value: 3.5 } }, heap: {} },
+  },
+  {
+    code: `ch`,
+    output: { type: 'char', value: 65 },
+    env: { local: { ch: { type: 'char', value: 65 } }, heap: {} },
+  },
+  {
+    code: `by`,
+    output: { type: 'byte', value: 100 },
+    env: { local: { by: { type: 'byte', value: 100 } }, heap: {} },
+  },
+  {
+    code: `str`,
+    output: { type: 'string', value: 'JavaQuest' },
+    env: { local: { str: { type: 'string', value: 'JavaQuest' } }, heap: {} },
+  },
+  // ------------------------- identifiers: int arithmetic -------------------------
+  {
+    code: `a + a`,
+    output: { type: 'int', value: 10 },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  {
+    code: `a + b`,
+    output: { type: 'int', value: 2 },
+    env: {
+      local: { a: { type: 'int', value: 5 }, b: { type: 'int', value: -3 } },
+      heap: {},
+    },
+  },
+  {
+    code: `a / b`,
+    output: { type: 'int', value: -1 },
+    env: {
+      local: { a: { type: 'int', value: 5 }, b: { type: 'int', value: -3 } },
+      heap: {},
+    },
+  },
+  {
+    code: `a % b`,
+    output: { type: 'int', value: 2 },
+    env: {
+      local: { a: { type: 'int', value: 5 }, b: { type: 'int', value: -3 } },
+      heap: {},
+    },
+  },
+  {
+    code: `-a`,
+    output: { type: 'int', value: -5 },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  // ------------------------- identifiers: long interactions -------------------------
+  {
+    code: `xl + a`,
+    output: { type: 'long', value: '128' },
+    env: {
+      local: {
+        xl: { type: 'long', value: '123' },
+        a: { type: 'int', value: 5 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `-xl`,
+    output: { type: 'long', value: '-123' },
+    env: { local: { xl: { type: 'long', value: '123' } }, heap: {} },
+  },
+  {
+    code: `~xl`,
+    output: { type: 'long', value: '-124' },
+    env: { local: { xl: { type: 'long', value: '123' } }, heap: {} },
+  },
+  {
+    code: `mx + 1L`,
+    output: { type: 'long', value: '-9223372036854775808' },
+    env: {
+      local: { mx: { type: 'long', value: '9223372036854775807' } },
+      heap: {},
+    },
+  },
+  // ------------------------- identifiers: float & double -------------------------
+  {
+    code: `a + d`,
+    output: { type: 'double', value: 8.5 },
+    env: {
+      local: {
+        a: { type: 'int', value: 5 },
+        d: { type: 'double', value: 3.5 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `d - a`,
+    output: { type: 'double', value: -1.5 },
+    env: {
+      local: {
+        a: { type: 'int', value: 5 },
+        d: { type: 'double', value: 3.5 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `fd + a`,
+    output: { type: 'float', value: 6.5 },
+    env: {
+      local: {
+        fd: { type: 'float', value: 1.5 },
+        a: { type: 'int', value: 5 },
+      },
+      heap: {},
+    },
+  },
+  // ------------------------- identifiers: char / byte / short promote to int -------------------------
+  {
+    code: `ch + a`,
+    output: { type: 'int', value: 70 },
+    env: {
+      local: { ch: { type: 'char', value: 65 }, a: { type: 'int', value: 5 } },
+      heap: {},
+    },
+  },
+  {
+    code: `ch2 - ch`,
+    output: { type: 'int', value: 33 },
+    env: {
+      local: {
+        ch2: { type: 'char', value: 98 },
+        ch: { type: 'char', value: 65 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `by + by`,
+    output: { type: 'int', value: 200 },
+    env: { local: { by: { type: 'byte', value: 100 } }, heap: {} },
+  },
+  {
+    code: `~ch`,
+    output: { type: 'int', value: -66 },
+    env: { local: { ch: { type: 'char', value: 65 } }, heap: {} },
+  },
+  {
+    code: `-by`,
+    output: { type: 'int', value: -100 },
+    env: { local: { by: { type: 'byte', value: 100 } }, heap: {} },
+  },
+  // ------------------------- identifiers: string concatenation -------------------------
+  {
+    code: `str + a`,
+    output: { type: 'string', value: 'JavaQuest5' },
+    env: {
+      local: {
+        str: { type: 'string', value: 'JavaQuest' },
+        a: { type: 'int', value: 5 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `str + xl`,
+    output: { type: 'string', value: 'JavaQuest123' },
+    env: {
+      local: {
+        str: { type: 'string', value: 'JavaQuest' },
+        xl: { type: 'long', value: '123' },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `str + ch`,
+    output: { type: 'string', value: 'JavaQuestA' },
+    env: {
+      local: {
+        str: { type: 'string', value: 'JavaQuest' },
+        ch: { type: 'char', value: 65 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `str + flag`,
+    output: { type: 'string', value: 'JavaQuesttrue' },
+    env: {
+      local: {
+        str: { type: 'string', value: 'JavaQuest' },
+        flag: { type: 'boolean', value: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a + str`,
+    output: { type: 'string', value: '5JavaQuest' },
+    env: {
+      local: {
+        a: { type: 'int', value: 5 },
+        str: { type: 'string', value: 'JavaQuest' },
+      },
+      heap: {},
+    },
+  },
+  // ------------------------- identifiers: logical operators & equality -------------------------
+  {
+    code: `!flag`,
+    output: { type: 'boolean', value: false },
+    env: { local: { flag: { type: 'boolean', value: true } }, heap: {} },
+  },
+  {
+    code: `flag && flag2`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        flag: { type: 'boolean', value: true },
+        flag2: { type: 'boolean', value: false },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `flag || flag2`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        flag: { type: 'boolean', value: true },
+        flag2: { type: 'boolean', value: false },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == xl`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'int', value: 5 },
+        xl: { type: 'long', value: '123' },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == 123L`,
+    output: { type: 'boolean', value: false },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  {
+    code: `xl == 123L`,
+    output: { type: 'boolean', value: true },
+    env: { local: { xl: { type: 'long', value: '123' } }, heap: {} },
+  },
+  // ------------------------- identifiers: casts -------------------------
+  {
+    code: `(byte)a`,
+    output: { type: 'byte', value: 5 },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  {
+    code: `(int)xl`,
+    output: { type: 'int', value: 123 },
+    env: { local: { xl: { type: 'long', value: '123' } }, heap: {} },
+  },
+  {
+    code: `(long)a`,
+    output: { type: 'long', value: '5' },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  {
+    code: `(double)a`,
+    output: { type: 'double', value: 5 },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  {
+    code: `(char)zz`,
+    output: { type: 'char', value: 58368 },
+    env: { local: { zz: { type: 'long', value: '10000000000' } }, heap: {} },
+  },
+  // ------------------------- identifiers: precedence & parentheses -------------------------
+  {
+    code: `(a + b) * 2`,
+    output: { type: 'int', value: 4 },
+    env: {
+      local: { a: { type: 'int', value: 5 }, b: { type: 'int', value: -3 } },
+      heap: {},
+    },
+  },
+  {
+    code: `a - b - a`,
+    output: { type: 'int', value: 3 },
+    env: {
+      local: { a: { type: 'int', value: 5 }, b: { type: 'int', value: -3 } },
+      heap: {},
+    },
+  },
+  // ------------------------- identifiers: unbound & keyword error cases -------------------------
+  {
+    code: `definitelyNotThere`,
+    isError: true,
+  },
+  {
+    code: `if`,
+    isError: true,
+  },
+  {
+    code: `int`,
+    isError: true,
+  },
+  {
+    code: `boolean`,
+    isError: true,
+  },
+  {
+    code: `this`,
+    isError: true,
+  },
+  {
+    code: `super`,
+    isError: true,
+  },
 ]

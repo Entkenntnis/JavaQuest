@@ -33,27 +33,33 @@ public class Harness {
     DataInputStream in = new DataInputStream(new BufferedInputStream(System.in));
     int seq = 0;
     while (true) {
-      int length;
+      int declLength;
       try {
-        length = in.readInt();
+        declLength = in.readInt();
       } catch (EOFException eof) {
         break;
       }
-      byte[] raw = new byte[length];
-      in.readFully(raw);
-      String code = new String(raw, StandardCharsets.UTF_8);
-      handle("T" + seq, code);
+      byte[] declRaw = new byte[declLength];
+      in.readFully(declRaw);
+      int codeLength = in.readInt();
+      byte[] codeRaw = new byte[codeLength];
+      in.readFully(codeRaw);
+      String decls = new String(declRaw, StandardCharsets.UTF_8);
+      String code = new String(codeRaw, StandardCharsets.UTF_8);
+      handle("T" + seq, decls, code);
       seq += 1;
     }
   }
 
-  // Each request on stdin: int32 length + utf8 bytes of the expression.
+  // Each request on stdin: int32 declsLength + utf8 decls bytes (may be empty)
+  // + int32 codeLength + utf8 bytes of the expression.
   // Each response on stdout: byte status (1 = value, 2 = error), then payload.
-  private static void handle(String className, String code) throws IOException {
+  private static void handle(String className, String decls, String code)
+      throws IOException {
     ByteArrayOutputStream frame = new ByteArrayOutputStream();
     DataOutputStream out = new DataOutputStream(frame);
     try {
-      Map<String, byte[]> classes = compile(className, code);
+      Map<String, byte[]> classes = compile(className, decls, code);
       String printed = runMain(className, classes);
       byte[] body = printed.getBytes(StandardCharsets.UTF_8);
       out.writeByte(1);
@@ -86,8 +92,8 @@ public class Harness {
     return message == null || message.isEmpty() ? t.toString() : message;
   }
 
-  private static Map<String, byte[]> compile(String className, String code)
-      throws CompileFailure {
+  private static Map<String, byte[]> compile(
+      String className, String decls, String code) throws CompileFailure {
     JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     if (compiler == null) {
       throw new CompileFailure("no in-process java compiler available (JDK required)");
@@ -106,9 +112,15 @@ public class Harness {
             + className
             + " {"
             + NEWLINE
-            + "  public static void main(String[] a){ Harness.out("
+            + "  public static void main(String[] __jqHarnessArgs){"
+            + NEWLINE
+            + decls
+            + NEWLINE
+            + "    Harness.out("
             + code
-            + "); }"
+            + ");"
+            + NEWLINE
+            + "  }"
             + NEWLINE
             + "}";
     Boolean success =

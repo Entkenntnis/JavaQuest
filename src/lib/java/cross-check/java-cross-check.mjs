@@ -24,6 +24,69 @@ if (entries.length == 0) {
   process.exit(2)
 }
 
+// Render the local variables of a test env as Java declarations, e.g.
+//   int a = 5;
+//   long xl = java.lang.Long.parseLong("123");
+// so that an identifier expression can reference them inside the harness.
+function renderDecls(local) {
+  if (!local) return ''
+  const lines = []
+  for (const [name, value] of Object.entries(local)) {
+    lines.push(renderDecl(name, value))
+  }
+  return lines.join('\n')
+}
+
+function renderDecl(name, value) {
+  switch (value.type) {
+    case 'byte':
+      return `byte ${name} = (byte) ${value.value};`
+    case 'short':
+      return `short ${name} = (short) ${value.value};`
+    case 'int':
+      return value.value === -2147483648
+        ? `int ${name} = java.lang.Integer.parseInt("-2147483648");`
+        : `int ${name} = ${value.value};`
+    case 'long':
+      return value.value === '-9223372036854775808'
+        ? `long ${name} = java.lang.Long.parseLong("-9223372036854775808");`
+        : `long ${name} = ${value.value}L;`
+    case 'char':
+      return `char ${name} = (char) ${value.value};`
+    case 'float':
+      return `float ${name} = ${value.value}f;`
+    case 'double':
+      return `double ${name} = ${value.value};`
+    case 'boolean':
+      return `boolean ${name} = ${value.value ? 'true' : 'false'};`
+    case 'string':
+      return `String ${name} = ${javaStringLiteral(value.value)};`
+    case 'null':
+      return `Object ${name} = null;`
+    default:
+      throw new Error(`cannot render env value of type ${value.type}`)
+  }
+}
+
+// Java source string literal, with the characters that need escaping handled
+// so that a UTF-8 encoded source file parses correctly.
+function javaStringLiteral(text) {
+  let out = '"'
+  for (const ch of text) {
+    if (ch == '\\') out += '\\\\'
+    else if (ch == '"') out += '\\"'
+    else if (ch == '\n') out += '\\n'
+    else if (ch == '\r') out += '\\r'
+    else if (ch == '\t') out += '\\t'
+    else if (ch == '\b') out += '\\b'
+    else if (ch == '\f') out += '\\f'
+    else if (ch.charCodeAt(0) < 0x20 || ch.charCodeAt(0) == 0x7f)
+      out += '\\u' + ch.charCodeAt(0).toString(16).padStart(4, '0')
+    else out += ch
+  }
+  return out + '"'
+}
+
 const dir = mkdtempSync(join(tmpdir(), 'java-cross-check-'))
 
 // Compile the persistent Java harness once (single javac launch).
@@ -43,15 +106,22 @@ try {
 const results = new Array(entries.length)
 let done = 0
 
-// Requests to the harness are framed: int32 length + utf8 expression bytes.
-function writeRequest(stdin, code) {
-  const body = Buffer.from(code, 'utf8')
-  const header = Buffer.alloc(4)
-  header.writeInt32BE(body.length, 0)
+// Requests to the harness are framed:
+//   int32 declsLength + utf8 decls bytes + int32 codeLength + utf8 code bytes.
+function buildRequest(entry) {
+  const decls = renderDecls(entry.env && entry.env.local)
+  const declBuf = Buffer.from(decls, 'utf8')
+  const codeBuf = Buffer.from(entry.code, 'utf8')
+  const head = Buffer.alloc(4)
+  head.writeInt32BE(declBuf.length, 0)
+  const mid = Buffer.alloc(4)
+  mid.writeInt32BE(codeBuf.length, 0)
+  return Buffer.concat([head, declBuf, mid, codeBuf])
+}
+
+function writeRequest(stdin, body) {
   return new Promise((resolve, reject) => {
-    stdin.write(Buffer.concat([header, body]), (err) =>
-      err ? reject(err) : resolve(),
-    )
+    stdin.write(body, (err) => (err ? reject(err) : resolve()))
   })
 }
 
@@ -117,7 +187,7 @@ async function processChunk(child, reader, start, end) {
   }
   for (let i = start; i < end; i++) {
     try {
-      await writeRequest(child.stdin, entries[i].entry.code)
+      await writeRequest(child.stdin, buildRequest(entries[i].entry))
     } catch (e) {
       failRest(i, `worker io: ${e.message}`)
       return

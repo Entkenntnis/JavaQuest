@@ -363,7 +363,11 @@ function typecheck_internal(
       throw new Error('invalid binary operation')
     }
     case 'identifier': {
-      return [env.local[node.name].type, node]
+      const value = env.local[node.name]
+      if (!value) {
+        throw new Error('unknown identifier')
+      }
+      return [value.type, node]
     }
   }
 }
