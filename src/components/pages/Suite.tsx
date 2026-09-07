@@ -19,7 +19,7 @@ function runCase(code: string) {
     const cst = cursorToCstNode(tree.cursor(), Text.of([code]))
     checkForParseErrors(cst)
     const ast = cst2ast(cst)
-    const typed = typecheck(ast)[1]
+    const typed = typecheck(ast)
     const value = evaluate(typed)
     return { value }
   } catch (e) {

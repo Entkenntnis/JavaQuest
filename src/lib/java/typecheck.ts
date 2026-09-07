@@ -8,6 +8,7 @@ import type {
   JavaIntValue,
   JavaLongValue,
   JavaShortValue,
+  JavaValue,
   LiteralAstNode,
   TypecheckResult,
   TypedBooleanCastNode,
@@ -15,6 +16,7 @@ import type {
   TypedComplementNodeS,
   TypedLiteralAstNode,
   TypedNegateNode,
+  TypedNode,
   TypedNumericArithNodeBDL,
   TypedNumericArithNodeBDR,
   TypedNumericArithNodeBFL,
@@ -27,12 +29,16 @@ import type {
   TypedUnaryPlusMinusNodeS,
 } from '../state/types'
 
-export function typecheck(node: AstNode): TypecheckResult {
+export function typecheck(node: AstNode): TypedNode<JavaValue> {
+  return typecheck_internal(node)[1]
+}
+
+function typecheck_internal(node: AstNode): TypecheckResult {
   switch (node.kind) {
     case 'literal':
       return constructLiteralNodeResult(node)
     case 'unary': {
-      const [type, inner] = typecheck(node.operand)
+      const [type, inner] = typecheck_internal(node.operand)
 
       if (node.op == '+' || node.op == '-') {
         if (
@@ -117,7 +123,7 @@ export function typecheck(node: AstNode): TypecheckResult {
       throw new Error('invalid input type for unary operator')
     }
     case 'cast':
-      const [type, inner] = typecheck(node.operand)
+      const [type, inner] = typecheck_internal(node.operand)
       if (node.type == 'boolean') {
         if (type == 'boolean') {
           const tn: TypedBooleanCastNode = {
@@ -190,8 +196,8 @@ export function typecheck(node: AstNode): TypecheckResult {
       }
       throw new Error('invalid input type for cast')
     case 'binary':
-      const [typeL, innerL] = typecheck(node.left)
-      const [typeR, innerR] = typecheck(node.right)
+      const [typeL, innerL] = typecheck_internal(node.left)
+      const [typeR, innerR] = typecheck_internal(node.right)
       if (
         (typeL == 'byte' ||
           typeL == 'char' ||

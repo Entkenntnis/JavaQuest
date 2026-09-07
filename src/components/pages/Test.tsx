@@ -23,7 +23,7 @@ export function Test() {
       core.mutateWs((ws) => {
         ws.ui.testAst = ast
       })
-      const typed = typecheck(ast)[1]
+      const typed = typecheck(ast)
       const value = evaluate(typed)
       core.mutateWs((ws) => {
         ws.ui.testOutput = value
