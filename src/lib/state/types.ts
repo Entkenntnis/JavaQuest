@@ -6,6 +6,7 @@ export interface CoreState {
 
 interface Ui {
   testInput: string
+  testEnv: string
   testCst?: CstNode
   testError?: string
   testAst?: AstNode
@@ -32,6 +33,12 @@ export interface TestSuiteEntry {
   code: string
   isError?: boolean
   output?: JavaValue
+  env?: JavaEnvironment
+}
+
+export interface SuiteResult {
+  error?: string
+  value?: JavaValue
 }
 
 // --------------------- Java System -------------------------
@@ -177,11 +184,17 @@ export interface CastExpressionAstNode {
   operand: AstNode
 }
 
+export interface IdentifierAstNode {
+  kind: 'identifier'
+  name: string
+}
+
 export type AstNode =
   | LiteralAstNode
   | UnaryExpressionAstNode
   | CastExpressionAstNode
   | BinaryExpressionAstNode
+  | IdentifierAstNode
 
 // ----------------------------
 
@@ -197,6 +210,7 @@ export type AstNode =
 
 // Das ist die Schaltzentrale, abhängig von T sind unterschiedliche Sub-Nodes verfügbar
 export type TypedNode<T extends JavaValue> =
+  | TypedIdentifierNode
   | (T extends JavaAllowedLiteralValue ? TypedLiteralAstNode<T> : never)
   | (T extends JavaNumericPrimitiveValue ? TypedNumericCastNode<T> : never)
   | (T extends JavaLongFloatDoubleValue ? TypedUnaryPlusMinusNodeB<T> : never)
@@ -367,6 +381,11 @@ export interface TypedStringEqualsNode {
   right: TypedNode<JavaStringValue>
 }
 
+export interface TypedIdentifierNode {
+  kind: 'identifier'
+  name: string
+}
+
 export type TypecheckResult =
   | [type: 'boolean', node: TypedNode<JavaBooleanValue>]
   | [type: 'byte', node: TypedNode<JavaByteValue>]
@@ -378,3 +397,15 @@ export type TypecheckResult =
   | [type: 'double', node: TypedNode<JavaDoubleValue>]
   | [type: 'string', node: TypedNode<JavaStringValue>]
   | [type: 'null', node: TypedNode<JavaNullValue>]
+
+// ------- Environment Stuff -------
+
+export interface JavaEnvironment {
+  local: Record<string, JavaValue>
+  heap: Record<number, JavaHeapObject>
+}
+
+export interface JavaHeapObject {
+  class: string
+  // TODO: make this implementation actually work
+}

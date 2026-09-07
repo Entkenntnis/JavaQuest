@@ -5,6 +5,12 @@ import { useCore } from '../../lib/state/core'
 import { checkForParseErrors, cst2ast } from '../../lib/java/cst2ast'
 import { typecheck } from '../../lib/java/typecheck'
 import { evaluate } from '../../lib/java/evaluate'
+import type { JavaEnvironment } from '../../lib/state/types'
+
+const testEnv: JavaEnvironment = {
+  local: { zahl: { type: 'int', value: 42 } },
+  heap: {},
+}
 
 export function Test() {
   const core = useCore()
@@ -23,8 +29,8 @@ export function Test() {
       core.mutateWs((ws) => {
         ws.ui.testAst = ast
       })
-      const typed = typecheck(ast)
-      const value = evaluate(typed)
+      const typed = typecheck(ast, testEnv)
+      const value = evaluate(typed, testEnv)
       core.mutateWs((ws) => {
         ws.ui.testOutput = value
       })
@@ -55,7 +61,8 @@ export function Test() {
           }}
         />
         <br />
-        <button className="px-2 py-0.5 bg-pink-100 rounded mt-3">Run</button>
+        <br />
+        Env: {JSON.stringify(testEnv)}
       </form>
       <div className="mt-6 bg-emerald-300 p-3">
         <h2>Lezer Concrete Syntax Tree</h2>

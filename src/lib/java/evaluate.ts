@@ -4,6 +4,7 @@ import {
   type JavaByteValue,
   type JavaCharValue,
   type JavaDoubleValue,
+  type JavaEnvironment,
   type JavaFloatValue,
   type JavaIntegerValue,
   type JavaIntValue,
@@ -14,18 +15,25 @@ import {
   type TypedNode,
 } from '../state/types'
 
-export function evaluate<T extends JavaValue>(node: TypedNode<T>): T {
-  return evaluate_internal(node) as T
+export function evaluate<T extends JavaValue>(
+  node: TypedNode<T>,
+  env: JavaEnvironment,
+): T {
+  return evaluate_internal(node, env) as T
 }
 
-function evaluate_internal(node: TypedNode<JavaValue>): JavaValue {
+function evaluate_internal(
+  node: TypedNode<JavaValue>,
+  env: JavaEnvironment,
+): JavaValue {
   switch (node.kind) {
-    case 'literal':
+    case 'literal': {
       return node.value
-    case 'unary':
+    }
+    case 'unary': {
       switch (node.op) {
         case '+': {
-          const inner = evaluate<JavaNumericPrimitiveValue>(node.operand)
+          const inner = evaluate<JavaNumericPrimitiveValue>(node.operand, env)
           if (isSmallInt(inner)) {
             return toInt(inner)
           } else {
@@ -33,7 +41,7 @@ function evaluate_internal(node: TypedNode<JavaValue>): JavaValue {
           }
         }
         case '-': {
-          const inner = evaluate<JavaNumericPrimitiveValue>(node.operand)
+          const inner = evaluate<JavaNumericPrimitiveValue>(node.operand, env)
           if (isSmallInt(inner)) {
             return toInt({ type: 'int', value: -inner.value })
           }
@@ -46,34 +54,38 @@ function evaluate_internal(node: TypedNode<JavaValue>): JavaValue {
           return { type: inner.type, value: -inner.value }
         }
         case '!': {
-          const inner = evaluate(node.operand)
+          const inner = evaluate(node.operand, env)
           return { type: 'boolean', value: !inner.value }
         }
         case '~': {
-          const inner = evaluate<JavaIntegerValue>(node.operand)
+          const inner = evaluate<JavaIntegerValue>(node.operand, env)
           return convertTo(inner.type == 'long' ? 'long' : 'int', {
             type: 'long',
             value: (~BigInt(inner.value)).toString(),
           })
         }
       }
-    case 'binary':
+    }
+    case 'binary': {
       switch (node.op) {
         case '&&': {
-          const innerLeft = evaluate(node.left)
-          return !innerLeft.value ? innerLeft : evaluate(node.right)
+          const innerLeft = evaluate(node.left, env)
+          return !innerLeft.value ? innerLeft : evaluate(node.right, env)
         }
         case '||': {
-          const innerLeft = evaluate(node.left)
-          return innerLeft.value ? innerLeft : evaluate(node.right)
+          const innerLeft = evaluate(node.left, env)
+          return innerLeft.value ? innerLeft : evaluate(node.right, env)
         }
         case '+':
         case '-':
         case '*':
         case '/':
         case '%': {
-          const innerLeft = evaluate<JavaNumericPrimitiveValue>(node.left)
-          const innerRight = evaluate<JavaNumericPrimitiveValue>(node.right)
+          const innerLeft = evaluate<JavaNumericPrimitiveValue>(node.left, env)
+          const innerRight = evaluate<JavaNumericPrimitiveValue>(
+            node.right,
+            env,
+          )
 
           const [left, right] = binaryNumericPromotion(innerLeft, innerRight)
           const isInteger =
@@ -122,34 +134,41 @@ function evaluate_internal(node: TypedNode<JavaValue>): JavaValue {
           return {
             type: 'string',
             value:
-              javaValueToString(evaluate<JavaValue>(node.left)) +
-              javaValueToString(evaluate<JavaValue>(node.right)),
+              javaValueToString(evaluate<JavaValue>(node.left, env)) +
+              javaValueToString(evaluate<JavaValue>(node.right, env)),
           }
         case '==b':
           return {
             type: 'boolean',
-            value: evaluate(node.left).value === evaluate(node.right).value,
+            value:
+              evaluate(node.left, env).value ===
+              evaluate(node.right, env).value,
           }
         case '==n': {
           const [left, right] = binaryNumericPromotion(
-            evaluate(node.left),
-            evaluate(node.right),
+            evaluate(node.left, env),
+            evaluate(node.right, env),
           )
           return { type: 'boolean', value: left.value === right.value }
         }
         case '==s': {
-          const left = evaluate(node.left)
-          const right = evaluate(node.right)
+          const left = evaluate(node.left, env)
+          const right = evaluate(node.right, env)
           return { type: 'boolean', value: left.value === right.value }
         }
       }
-    case 'cast':
+    }
+    case 'cast': {
       if (node.type == 'boolean') {
-        return evaluate(node.operand)
+        return evaluate(node.operand, env)
       } else {
-        const inner = evaluate(node.operand)
+        const inner = evaluate(node.operand, env)
         return convertTo(node.type, inner)
       }
+    }
+    case 'identifier': {
+      return env.local[node.name]
+    }
   }
 }
 
@@ -291,186 +310,3 @@ function javaValueToString(val: JavaValue): string {
       return 'null'
   }
 }
-
-// // -------------------- OLD? -------------------
-
-// export function evaluateLegacy(node: AstNode): JavaValue {
-//   if (node.kind == 'literal') {
-//     return node.value
-//   }
-
-//   if (node.kind == 'unary') {
-//     const inner = evaluateLegacy(node.operand)
-//     const smallInt = isSmallInt(inner)
-
-//     if (node.op == '+') {
-//       // promotion
-//       if (smallInt) {
-//         return toInt(inner)
-//       }
-//       if (
-//         inner.type == 'long' ||
-//         inner.type == 'float' ||
-//         inner.type == 'double'
-//       ) {
-//         // pass through
-//         return inner
-//       }
-//       throw new Error('type error for unary plus')
-//     }
-//     if (node.op == '-') {
-//       if (smallInt) {
-//         return toInt({ type: 'int', value: -inner.value })
-//       }
-//       if (inner.type == 'long') {
-//         return toLong({
-//           type: 'long',
-//           value: (-BigInt(inner.value)).toString(),
-//         })
-//       }
-//       if (inner.type == 'float' || inner.type == 'double') {
-//         return { type: inner.type, value: -inner.value }
-//       }
-//       throw new Error('type error for unary minus')
-//     }
-//     if (node.op == '!') {
-//       if (inner.type == 'boolean') {
-//         return { type: 'boolean', value: !inner.value }
-//       }
-//     }
-//     if (node.op == '~') {
-//       if (isSmallInt(inner) || inner.type == 'long') {
-//         return convertTo(inner.type == 'long' ? 'long' : 'int', {
-//           type: 'long',
-//           value: (~BigInt(inner.value)).toString(),
-//         })
-//       }
-//     }
-//     throw new Error('invalid operator')
-//   }
-
-//   if (node.kind == 'cast') {
-//     const inner = evaluateLegacy(node.operand)
-
-//     // this is the only valid boolean cast
-//     if (inner.type == 'boolean' && node.type == 'boolean') {
-//       return inner
-//     }
-
-//     if (isNumeric(inner)) {
-//       if (node.type != 'boolean') {
-//         return convertTo(node.type, inner)
-//       }
-//     }
-
-//     throw new Error('invalid cast')
-//   }
-
-//   if (node.kind == 'binary') {
-//     if (node.op == '||' || node.op == '&&') {
-//       const innerLeft = evaluateLegacy(node.left)
-//       if (innerLeft.type != 'boolean') {
-//         throw new Error('Boolean expected')
-//       }
-//       if (node.op == '||') {
-//         if (innerLeft.value) {
-//           return innerLeft
-//         } else {
-//           const innerRight = evaluateLegacy(node.right)
-//           if (innerRight.type != 'boolean') {
-//             throw new Error('Boolean expected')
-//           }
-//           return innerRight
-//         }
-//       }
-//       if (node.op == '&&') {
-//         if (!innerLeft.value) {
-//           return innerLeft
-//         } else {
-//           const innerRight = evaluateLegacy(node.right)
-//           if (innerRight.type != 'boolean') {
-//             throw new Error('Boolean expected')
-//           }
-//           return innerRight
-//         }
-//       }
-//     }
-
-//     const innerLeft = evaluateLegacy(node.left)
-//     const innerRight = evaluateLegacy(node.right)
-
-//     // handle +, -, *, /, % on numerics
-//     if (
-//       isNumeric(innerLeft) &&
-//       isNumeric(innerRight) &&
-//       '+-*/%'.includes(node.op)
-//     ) {
-//       const [left, right] = binaryNumericPromotion(innerLeft, innerRight)
-//       const isInteger =
-//         left.type == 'long' ||
-//         right.type == 'long' ||
-//         left.type == 'int' ||
-//         right.type == 'int'
-
-//       const ops: Record<string, (a: number, b: number) => number> = {
-//         '+': (a, b) => a + b,
-//         '-': (a, b) => a - b,
-//         '*': (a, b) => a * b,
-//         '/': (a, b) => a / b,
-//         '%': (a, b) => a % b,
-//       }
-
-//       const opsBig: Record<string, (a: bigint, b: bigint) => bigint> = {
-//         '+': (a, b) => a + b,
-//         '-': (a, b) => a - b,
-//         '*': (a, b) => a * b,
-//         '/': (a, b) => a / b,
-//         '%': (a, b) => a % b,
-//       }
-
-//       if (isInteger) {
-//         if (node.op == '/' && BigInt(right.value) == 0n) {
-//           throw new Error('Division by zero')
-//         }
-//         if (node.op == '%' && BigInt(right.value) == 0n) {
-//           throw new Error('Modulo by zero')
-//         }
-//         return convertTo(left.type, {
-//           type: 'long',
-//           value: opsBig[node.op](
-//             BigInt(left.value),
-//             BigInt(right.value),
-//           ).toString(),
-//         })
-//       }
-//       return convertTo(left.type, {
-//         type: 'double',
-//         value: ops[node.op](left.value, right.value),
-//       })
-//     }
-
-//     if (node.op == '==') {
-//       if (isNumeric(innerLeft) && isNumeric(innerRight)) {
-//         const [left, right] = binaryNumericPromotion(innerLeft, innerRight)
-//         return { type: 'boolean', value: left.value === right.value }
-//       }
-//       if (innerLeft.type == 'boolean' && innerRight.type == 'boolean') {
-//         return { type: 'boolean', value: innerLeft.value === innerRight.value }
-//       }
-//     }
-
-//     if (
-//       node.op == '+' &&
-//       (innerLeft.type == 'string' || innerRight.type == 'string')
-//     ) {
-//       return {
-//         type: 'string',
-//         value: javaValueToString(innerLeft) + javaValueToString(innerRight),
-//       }
-//     }
-
-//     throw new Error('invalid binary operator')
-//   }
-
-//   throw new Error(`Evaluation of node failed`)
-// }

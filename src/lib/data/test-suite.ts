@@ -2308,4 +2308,9 @@ export const testSuite: TestSuiteEntry[] = [
     code: `((((((((((((((((((((((((((((((((((((((((1))))))))))))))))))))))))))))))))))))))))`,
     output: { type: 'int', value: 1 },
   },
+  {
+    code: `zahl`,
+    output: { type: 'int', value: 42 },
+    env: { local: { zahl: { type: 'int', value: 42 } }, heap: {} },
+  },
 ]

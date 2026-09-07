@@ -4,6 +4,7 @@ import type {
   JavaByteValue,
   JavaCharValue,
   JavaDoubleValue,
+  JavaEnvironment,
   JavaFloatValue,
   JavaIntValue,
   JavaLongValue,
@@ -35,16 +36,23 @@ import type {
   TypedUnaryPlusMinusNodeS,
 } from '../state/types'
 
-export function typecheck(node: AstNode): TypedNode<JavaValue> {
-  return typecheck_internal(node)[1]
+export function typecheck(
+  node: AstNode,
+  env: JavaEnvironment,
+): TypedNode<JavaValue> {
+  return typecheck_internal(node, env)[1]
 }
 
-function typecheck_internal(node: AstNode): TypecheckResult {
+function typecheck_internal(
+  node: AstNode,
+  env: JavaEnvironment,
+): TypecheckResult {
   switch (node.kind) {
-    case 'literal':
+    case 'literal': {
       return constructLiteralNodeResult(node)
+    }
     case 'unary': {
-      const [type, inner] = typecheck_internal(node.operand)
+      const [type, inner] = typecheck_internal(node.operand, env)
 
       if (node.op == '+' || node.op == '-') {
         if (
@@ -120,8 +128,8 @@ function typecheck_internal(node: AstNode): TypecheckResult {
       }
       throw new Error('invalid input type for unary operator')
     }
-    case 'cast':
-      const [type, inner] = typecheck_internal(node.operand)
+    case 'cast': {
+      const [type, inner] = typecheck_internal(node.operand, env)
       if (node.type == 'boolean') {
         if (type == 'boolean') {
           const tn: TypedBooleanCastNode = {
@@ -193,9 +201,10 @@ function typecheck_internal(node: AstNode): TypecheckResult {
         return ['double', tn]
       }
       throw new Error('invalid input type for cast')
-    case 'binary':
-      const [typeL, innerL] = typecheck_internal(node.left)
-      const [typeR, innerR] = typecheck_internal(node.right)
+    }
+    case 'binary': {
+      const [typeL, innerL] = typecheck_internal(node.left, env)
+      const [typeR, innerR] = typecheck_internal(node.right, env)
       if (
         (typeL == 'byte' ||
           typeL == 'char' ||
@@ -352,6 +361,10 @@ function typecheck_internal(node: AstNode): TypecheckResult {
       // <--- insert open stuff here
 
       throw new Error('invalid binary operation')
+    }
+    case 'identifier': {
+      return [env.local[node.name].type, node]
+    }
   }
 }
 

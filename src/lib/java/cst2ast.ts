@@ -104,6 +104,8 @@ export function cst2ast(node: CstNode): AstNode {
       left: cst2ast(left),
       right: cst2ast(right),
     }
+  } else if (node.name == 'Identifier') {
+    return { kind: 'identifier', name: node.text }
   }
   throw conversionError(node, 'no converter registered for this node')
 }

@@ -1,5 +1,9 @@
 import { testSuite } from '../../lib/data/test-suite'
-import type { JavaValue, TestSuiteEntry } from '../../lib/state/types'
+import type {
+  JavaEnvironment,
+  SuiteResult,
+  TestSuiteEntry,
+} from '../../lib/state/types'
 import { parser } from '../../lib/java/lezer/parser'
 import { Text } from '@codemirror/state'
 import { cursorToCstNode } from '../../lib/java/helper/cst'
@@ -8,26 +12,23 @@ import clsx from 'clsx'
 import { evaluate } from '../../lib/java/evaluate'
 import { typecheck } from '../../lib/java/typecheck'
 
-interface SuiteResult {
-  error?: string
-  value?: JavaValue
-}
-
-function runCase(code: string) {
+function runCase(code: string, env: JavaEnvironment) {
   try {
     const tree = parser.parse(code)
     const cst = cursorToCstNode(tree.cursor(), Text.of([code]))
     checkForParseErrors(cst)
     const ast = cst2ast(cst)
-    const typed = typecheck(ast)
-    const value = evaluate(typed)
+    const typed = typecheck(ast, env)
+    const value = evaluate(typed, env)
     return { value }
   } catch (e) {
     return { error: (e as any).toString() }
   }
 }
 
-const suiteResults = testSuite.map((el) => runCase(el.code))
+const suiteResults = testSuite.map((el) =>
+  runCase(el.code, el.env ?? { local: {}, heap: {} }),
+)
 
 function isPass(entry: TestSuiteEntry, result: SuiteResult) {
   if (result.error) return entry.isError == true
@@ -41,7 +42,7 @@ function isPass(entry: TestSuiteEntry, result: SuiteResult) {
 export function Suite() {
   const passed = suiteResults.filter((r, i) => isPass(testSuite[i], r)).length
   return (
-    <div className="mx-6 mb-32 mt-6">
+    <div className="mx-6 mb-32 mt-6 pb-12">
       <h1 className="text-lg mb-8">Test-Suite</h1>
       <p className="mb-6">
         Insgesamt {testSuite.length}:{' '}
@@ -69,11 +70,14 @@ function Entry({
   const hasResult = error || value
 
   return (
-    <div className="flex justify-between border-2 border-pink-300">
+    <div className="flex justify-between border-t-2 border-pink-300">
       <div>
         <pre className="rounded ml-3 my-3 border-2 border-pink-600 px-4 py-1">
           {entry.code}
         </pre>
+        {entry.env && (
+          <div className="text-sm px-4 pb-1">{JSON.stringify(entry.env)}</div>
+        )}
       </div>
       {!hasResult && <div className="p-1">...</div>}
       {error && entry.isError && (
@@ -88,11 +92,11 @@ function Entry({
       )}
       {value &&
         (() => {
-          const outputStr = JSON.stringify(value, null, 2)
-          const expectedStr = JSON.stringify(entry.output, null, 2)
+          const outputStr = JSON.stringify(value)
+          const expectedStr = JSON.stringify(entry.output)
           const isTheSame = outputStr === expectedStr
           return (
-            <div className="flex gap-6">
+            <div className="">
               {!isTheSame && entry.isError && (
                 <div className="text-red-600 font-bold m-4">
                   Fehler erwartet
@@ -104,13 +108,11 @@ function Entry({
                   'm-1',
                 )}
               >
-                <p>Output:</p>
-                <pre>{outputStr}</pre>
+                <pre>Output: {outputStr}</pre>
               </div>
               {!isTheSame && !entry.isError && (
                 <div className="m-1">
-                  <p className="">Expected:</p>
-                  <pre>{expectedStr}</pre>
+                  <pre>Expected: {expectedStr}</pre>
                 </div>
               )}
             </div>
