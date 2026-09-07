@@ -69,7 +69,7 @@ export function Suite() {
         </span>
       </p>
       {testSuite.map((el, i) => (
-        <Entry key={el.code} entry={el} result={suiteResults[i]} />
+        <Entry key={el.code} entry={el} result={suiteResults[i]} n={i} />
       ))}
     </div>
   )
@@ -78,9 +78,11 @@ export function Suite() {
 function Entry({
   result,
   entry,
+  n,
 }: {
   result: SuiteResult
   entry: TestSuiteEntry
+  n: number
 }) {
   const { error, value } = result
 
@@ -90,10 +92,13 @@ function Entry({
     <div className="flex justify-between border-t-2 border-pink-300">
       <div>
         <pre className="rounded ml-3 my-3 border-2 border-pink-600 px-4 py-1">
+          <span className="text-gray-400">[{n}] </span>
           {entry.code}
-        </pre>
+        </pre>{' '}
         {entry.env && (
-          <div className="text-sm px-4 pb-1">{JSON.stringify(entry.env)}</div>
+          <div className="text-sm px-4 pb-1 text-gray-500 mb-2">
+            {JSON.stringify(entry.env)}
+          </div>
         )}
       </div>
       {!hasResult && <div className="p-1">...</div>}

@@ -29,9 +29,9 @@ import type {
   TypedNumericCastNode,
   TypedNumericEqualsNode,
   TypedOrAndNode,
+  TypedReferenceEqualsNode,
   TypedStringConcatNodeL,
   TypedStringConcatNodeR,
-  TypedStringEqualsNode,
   TypedUnaryPlusMinusNodeB,
   TypedUnaryPlusMinusNodeS,
 } from '../state/types'
@@ -364,14 +364,12 @@ function typecheck_internal(
 
       if (
         node.op == '==' &&
-        typeof typeL == 'object' &&
-        typeL.reference == 'java.lang.String' &&
-        typeof typeR == 'object' &&
-        typeR.reference == 'java.lang.String'
+        (typeof typeL == 'object' || typeL == 'null') &&
+        (typeof typeR == 'object' || typeR == 'null')
       ) {
-        const tn: TypedStringEqualsNode = {
+        const tn: TypedReferenceEqualsNode = {
           kind: 'binary',
-          op: '==s',
+          op: '==r',
           left: innerL,
           right: innerR,
         }

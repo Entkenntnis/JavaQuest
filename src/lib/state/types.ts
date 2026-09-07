@@ -243,7 +243,7 @@ export type TypedNode<T extends JavaValue> =
           | TypedOrAndNode
           | TypedNumericEqualsNode
           | TypedBooleanEqualsNode
-          | TypedStringEqualsNode
+          | TypedReferenceEqualsNode
       : never)
   | (T extends JavaLongValue
       ? TypedNumericArithNodeBLL | TypedNumericArithNodeBLR
@@ -398,11 +398,11 @@ export interface TypedBooleanEqualsNode {
   right: TypedNode<JavaBooleanValue>
 }
 
-export interface TypedStringEqualsNode {
+export interface TypedReferenceEqualsNode {
   kind: 'binary'
-  op: '==s'
-  left: TypedNode<JavaReferenceValue>
-  right: TypedNode<JavaReferenceValue>
+  op: '==r'
+  left: TypedNode<JavaReferenceValue | JavaNullValue>
+  right: TypedNode<JavaReferenceValue | JavaNullValue>
 }
 
 export interface TypedIdentifierNode {

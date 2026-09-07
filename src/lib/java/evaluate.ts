@@ -15,6 +15,40 @@ import {
   type TypedNode,
 } from '../state/types'
 
+export function foldConstants(
+  node: TypedNode<JavaValue>,
+  env: JavaEnvironment,
+): [isContant: boolean, result: TypedNode<JavaValue>] {
+  switch (node.kind) {
+    case 'literal': {
+      return [true, node]
+    }
+    case 'string-literal': {
+      return [true, node]
+    }
+    case 'identifier': {
+      return [false, node]
+    }
+    case 'cast': {
+      const [isConstant, result] = foldConstants(node.operand, env)
+      let operand = node.operand
+      if (isConstant) {
+        // ?
+        operand = { kind: 'literal', value: evaluate(node) }
+      }
+      return [false, { ...node, operand }]
+    }
+    case 'unary': {
+      // TODO
+      return [false, node]
+    }
+    case 'binary': {
+      // TODO
+      return [false, node]
+    }
+  }
+}
+
 export function evaluate<T extends JavaValue>(
   node: TypedNode<T>,
   env: JavaEnvironment,
@@ -176,10 +210,19 @@ function evaluate_internal(
           )
           return { type: 'boolean', value: left.value === right.value }
         }
-        case '==s': {
-          const left = env.heap[evaluate(node.left, env).ref]
-          const right = env.heap[evaluate(node.right, env).ref]
-          return { type: 'boolean', value: left.value === right.value }
+        case '==r': {
+          const left = evaluate(node.left, env)
+          const right = evaluate(node.right, env)
+          if (left.type == 'null' && right.type == 'null') {
+            return { type: 'boolean', value: true }
+          }
+          if (left.type == 'null' || right.type == 'null') {
+            return { type: 'boolean', value: false }
+          }
+          return {
+            type: 'boolean',
+            value: left.ref === right.ref,
+          }
         }
       }
     }
