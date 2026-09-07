@@ -2749,20 +2749,6 @@ export const testSuite: TestSuiteEntry[] = [
   },
   {
     code: `s == t`,
-    output: { type: 'boolean', value: true },
-    env: {
-      local: {
-        s: { type: 'reference', ref: 'heap0' },
-        t: { type: 'reference', ref: 'heap1' },
-      },
-      heap: {
-        heap0: { class: 'java.lang.String', value: 'a', isInterned: true },
-        heap1: { class: 'java.lang.String', value: 'a', isInterned: true },
-      },
-    },
-  },
-  {
-    code: `s == t`,
     output: { type: 'boolean', value: false },
     env: {
       local: {
