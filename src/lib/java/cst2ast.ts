@@ -66,7 +66,7 @@ export function cst2ast(node: CstNode): AstNode {
   } else if (node.name == 'null') {
     return { kind: 'literal', value: { type: 'null', value: null } }
   } else if (node.name == 'CastExpression') {
-    const [typeNode, operandNode] = node.children
+    const [, typeNode, , operandNode] = node.children
     const type = typeNode.text
     if (
       type != 'boolean' &&
@@ -82,7 +82,7 @@ export function cst2ast(node: CstNode): AstNode {
     }
     return { kind: 'cast', type, operand: cst2ast(operandNode) }
   } else if (node.name == 'ParenthesizedExpression') {
-    return cst2ast(node.children[0])
+    return cst2ast(node.children[1])
   } else if (node.name == 'BinaryExpression') {
     const [left, op, right] = node.children
     const operator = op.text

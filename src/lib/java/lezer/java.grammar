@@ -73,12 +73,12 @@ baseExpression {
   literal |
   // ClassLiteral |
   // kw<"this"> |
-  // Identifier ~identifier |
-  ParenthesizedExpression
+  Identifier ~identifier |
+  ParenthesizedExpression |
   // ObjectCreationExpression |
-  // FieldAccess |
+  FieldAccess |
   // ArrayAccess |
-  // MethodInvocation |
+  MethodInvocation
   // MethodReference |
   // ArrayCreationExpression
 }
@@ -87,11 +87,34 @@ ParenthesizedExpression {
   "(" expression ")"
 }
 
+FieldAccess {
+  (baseExpression | kw<"super">) /*("." kw<"super">)?*/ "." (Identifier | kw<"this">)
+}
+
+MethodName { Identifier }
+
+MethodInvocation {
+  (MethodName |
+   (baseExpression | kw<"super">) "." /*(kw<"super"> ".")?*/ /*TypeArguments?*/ MethodName)
+  ArgumentList
+}
+
+ArgumentList {
+  "(" commaSep<expression> ")"
+}
+
 type {
   @specialize[@name=PrimitiveType]<identifier, "byte" | "short" | "int" | "long" | "char" | "float" | "double" | "boolean">
 }
 
+Identifier {
+  identifier ~identifier |
+  [@dynamicPrecedence=-1] { capitalIdentifier ~identifier }
+}
+
 kw<term> { @specialize[@name={term}]<identifier, term> }
+
+commaSep<expr> { (expr ("," expr)*)? }
 
 @skip { BlockComment | whitespace }
 
@@ -137,6 +160,8 @@ kw<term> { @specialize[@name={term}]<identifier, term> }
 
   @precedence { whitespace, identifier }
 
+  capitalIdentifier { $[A-Z] identifierChar* }
+
   op[@name={name} "Op"]<name, body> { body }
 
   times[@name=ArithOp] { "*" | "/" | "%" }
@@ -148,4 +173,6 @@ kw<term> { @specialize[@name={term}]<identifier, term> }
   blockCommentAfterStar { "/" | "*" blockCommentAfterStar | ![/*] blockCommentRest }
 
   @precedence { BlockComment, times }
+
+  "{" "}" "(" ")" "[" "]" "." "," ";" ":"
 }
