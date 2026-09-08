@@ -270,6 +270,39 @@ function evaluate_internal(
             value: left.ref === right.ref,
           }
         }
+        case '<<':
+        case '>>':
+        case '>>>': {
+          const [left, right] = binaryNumericIntegerPromotion(
+            evaluate(node.left, env),
+            evaluate(node.right, env),
+          )
+          const shift = BigInt(right.value) & 0x3fn
+          if (left.type == 'int') {
+            const ops: Record<string, (a: number, b: number) => number> = {
+              '<<': (a, b) => (a | 0) << (b | 0),
+              '>>': (a, b) => (a | 0) >> (b | 0),
+              '>>>': (a, b) => (a | 0) >>> (b | 0),
+            }
+            return {
+              type: 'int',
+              value: ops[node.op](left.value, Number(shift)),
+            }
+          }
+          // working with long
+          const value = BigInt(left.value)
+          const result =
+            node.op == '<<'
+              ? BigInt.asIntN(64, value << shift)
+              : node.op == '>>'
+                ? value >> shift
+                : BigInt.asUintN(64, value) >> shift
+
+          return {
+            type: 'long',
+            value: result.toString(),
+          }
+        }
       }
     }
     case 'cast': {
@@ -347,9 +380,9 @@ function toLong(val: JavaNumericPrimitiveValue): JavaLongValue {
     const value = val.value
     const target = Number.isNaN(value)
       ? 0n
-      // 2^63 is exactly representable as a double (unlike 2^63 - 1), so use it
-      // for the upper clamp: doubles >= 2^63 saturate to Long.MAX (JLS 5.1.3).
-      : value >= 2 ** 63
+      : // 2^63 is exactly representable as a double (unlike 2^63 - 1), so use it
+        // for the upper clamp: doubles >= 2^63 saturate to Long.MAX (JLS 5.1.3).
+        value >= 2 ** 63
         ? 9223372036854775807n
         : value <= -(2 ** 63)
           ? -9223372036854775808n
@@ -407,6 +440,16 @@ function binaryNumericPromotion(
   if (left.type == 'float' || right.type == 'float') {
     return [toFloat(left), toFloat(right)]
   }
+  if (left.type == 'long' || right.type == 'long') {
+    return [toLong(left), toLong(right)]
+  }
+  return [toInt(left), toInt(right)]
+}
+
+function binaryNumericIntegerPromotion(
+  left: JavaIntegerValue,
+  right: JavaIntegerValue,
+): [JavaLongValue, JavaLongValue] | [JavaIntValue, JavaIntValue] {
   if (left.type == 'long' || right.type == 'long') {
     return [toLong(left), toLong(right)]
   }

@@ -93,7 +93,10 @@ export function cst2ast(node: CstNode): AstNode {
       operator != '%' &&
       operator != '||' &&
       operator != '&&' &&
-      operator != '=='
+      operator != '==' &&
+      operator != '<<' &&
+      operator != '>>' &&
+      operator != '>>>'
     ) {
       throw conversionError(node, 'unsupported operator')
     }

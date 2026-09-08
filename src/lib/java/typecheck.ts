@@ -30,6 +30,7 @@ import type {
   TypedNumericEqualsNode,
   TypedOrAndNode,
   TypedReferenceEqualsNode,
+  TypedShiftNode,
   TypedStringConcatNodeL,
   TypedStringConcatNodeR,
   TypedUnaryPlusMinusNodeB,
@@ -374,6 +375,39 @@ function typecheck_internal(
           right: innerR,
         }
         return ['boolean', tn]
+      }
+
+      if (
+        (typeL == 'byte' ||
+          typeL == 'char' ||
+          typeL == 'short' ||
+          typeL == 'int' ||
+          typeL == 'long') &&
+        (typeR == 'byte' ||
+          typeR == 'char' ||
+          typeR == 'short' ||
+          typeR == 'int' ||
+          typeR == 'long')
+      ) {
+        // integral ops
+        if (node.op == '<<' || node.op == '>>' || node.op == '>>>') {
+          if (typeL == 'long') {
+            const tn: TypedShiftNode = {
+              kind: 'binary',
+              op: node.op,
+              left: innerL,
+              right: innerR,
+            }
+            return ['long', tn]
+          }
+          const tn: TypedShiftNode = {
+            kind: 'binary',
+            op: node.op,
+            left: innerL,
+            right: innerR,
+          }
+          return ['int', tn]
+        }
       }
 
       // <--- insert open stuff here

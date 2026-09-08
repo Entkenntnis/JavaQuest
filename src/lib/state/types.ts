@@ -140,6 +140,8 @@ export type JavaSmallIntegerValue =
   | JavaShortValue
   | JavaIntValue
 
+export type JavaBigIntegerValue = JavaIntValue | JavaLongValue
+
 export type JavaLongFloatDoubleValue =
   | JavaLongValue
   | JavaFloatValue
@@ -178,7 +180,7 @@ export interface UnaryExpressionAstNode {
 
 export interface BinaryExpressionAstNode {
   kind: 'binary'
-  op: '+' | '-' | '*' | '/' | '%' | '||' | '&&' | '=='
+  op: '+' | '-' | '*' | '/' | '%' | '||' | '&&' | '==' | '<<' | '>>' | '>>>'
   left: AstNode
   right: AstNode
 }
@@ -255,6 +257,7 @@ export type TypedNode<T extends JavaValue> =
   | (T extends JavaDoubleValue
       ? TypedNumericArithNodeBDL | TypedNumericArithNodeBDR
       : never)
+  | (T extends JavaBigIntegerValue ? TypedShiftNode : never)
 
 // ---- LITERAL -----
 export interface TypedLiteralNode<T extends JavaAllowedLiteralValue> {
@@ -362,6 +365,13 @@ export interface TypedNumericArithNodeBDR {
   op: '+' | '-' | '*' | '/' | '%'
   left: TypedNode<JavaNumericPrimitiveValue>
   right: TypedNode<JavaDoubleValue>
+}
+
+export interface TypedShiftNode {
+  kind: 'binary'
+  op: '<<' | '>>' | '>>>'
+  left: TypedNode<JavaIntegerValue>
+  right: TypedNode<JavaIntegerValue>
 }
 
 export interface TypedStringConcatNodeL {
