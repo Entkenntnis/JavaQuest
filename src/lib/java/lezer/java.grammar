@@ -14,7 +14,7 @@
   bitOr @left
   and @left
   or @left
-  // ternary @right
+  ternary @right
   // valuePair
   // assign @right
   // array @right
@@ -41,7 +41,7 @@ expression {
   BinaryExpression |
   // InstanceofExpression |
   // LambdaExpression |
-  // TernaryExpression |
+  TernaryExpression |
   // UpdateExpression |
   baseExpression |
   UnaryExpression |
@@ -63,6 +63,10 @@ BinaryExpression {
   expression !plus op<Arith, "+" | "-"> expression |
   expression !times times expression |
   expression !shift (op<Bit, "<<" | ">>" ">"?>) expression
+}
+
+TernaryExpression {
+  expression !ternary op<Logic, "?"> expression ":" expression
 }
 
 UnaryExpression {
