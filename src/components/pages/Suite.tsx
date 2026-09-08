@@ -9,7 +9,7 @@ import { Text } from '@codemirror/state'
 import { cursorToCstNode } from '../../lib/java/helper/cst'
 import { checkForParseErrors, cst2ast } from '../../lib/java/cst2ast'
 import clsx from 'clsx'
-import { evaluate } from '../../lib/java/evaluate'
+import { evaluate, foldConstants } from '../../lib/java/evaluate'
 import { typecheck } from '../../lib/java/typecheck'
 
 function runCase(code: string, env: JavaEnvironment): SuiteResult {
@@ -19,7 +19,7 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
     checkForParseErrors(cst)
     const ast = cst2ast(cst)
     const typed = typecheck(ast, env)
-    const value = evaluate(typed, env)
+    const value = evaluate(foldConstants(typed), env)
     if (
       value.type == 'reference' &&
       env.heap[value.ref].class == 'java.lang.String'

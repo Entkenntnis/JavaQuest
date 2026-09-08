@@ -4,7 +4,7 @@ import { parser } from '../../lib/java/lezer/parser'
 import { useCore } from '../../lib/state/core'
 import { checkForParseErrors, cst2ast } from '../../lib/java/cst2ast'
 import { typecheck } from '../../lib/java/typecheck'
-import { evaluate } from '../../lib/java/evaluate'
+import { evaluate, foldConstants } from '../../lib/java/evaluate'
 import type { JavaEnvironment } from '../../lib/state/types'
 
 const testEnv: JavaEnvironment = {
@@ -32,7 +32,7 @@ export function Test() {
         ws.ui.testAst = ast
       })
       const typed = typecheck(ast, env)
-      const value = evaluate(typed, env)
+      const value = evaluate(foldConstants(typed), env)
       core.mutateWs((ws) => {
         ws.ui.testOutput = value
         ws.ui.testOutputEnv = JSON.stringify(env)

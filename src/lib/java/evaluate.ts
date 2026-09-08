@@ -17,35 +17,84 @@ import {
 
 export function foldConstants(
   node: TypedNode<JavaValue>,
-  env: JavaEnvironment,
-): [isContant: boolean, result: TypedNode<JavaValue>] {
+): TypedNode<JavaValue> {
+  return fold(node, { local: {}, heap: {} })
+}
+
+function fold(
+  node: TypedNode<JavaValue>,
+  scratch: JavaEnvironment,
+): TypedNode<JavaValue> {
   switch (node.kind) {
-    case 'literal': {
-      return [true, node]
-    }
-    case 'string-literal': {
-      return [true, node]
-    }
-    case 'identifier': {
-      return [false, node]
-    }
-    case 'cast': {
-      const [isConstant, result] = foldConstants(node.operand, env)
-      let operand = node.operand
-      if (isConstant) {
-        // ?
-        operand = { kind: 'literal', value: evaluate(node) }
-      }
-      return [false, { ...node, operand }]
-    }
+    case 'literal':
+    case 'string-literal':
+      // I suspect that null is not a constant and would need to be excluded
+      // but I'm not sure, check later against JVM reference
+      return node
+    case 'identifier':
+      // never constant
+      return node
+    case 'cast':
     case 'unary': {
-      // TODO
-      return [false, node]
+      return collapse(
+        {
+          ...node,
+          operand: fold(node.operand, scratch),
+        } as TypedNode<JavaValue>,
+        scratch,
+      )
     }
-    case 'binary': {
-      // TODO
-      return [false, node]
-    }
+    case 'binary':
+      return collapse(
+        {
+          ...node,
+          left: fold(node.left, scratch),
+          right: fold(node.right, scratch),
+        } as TypedNode<JavaValue>,
+        scratch,
+      )
+  }
+}
+
+function collapse(
+  rebuilt: TypedNode<JavaValue>,
+  scratch: JavaEnvironment,
+): TypedNode<JavaValue> {
+  if (!chidlrenAreLeaves(rebuilt)) return rebuilt
+
+  let value: JavaValue
+  try {
+    value = evaluate(rebuilt, scratch)
+  } catch {
+    return rebuilt
+  }
+
+  if (value.type == 'reference') {
+    return { kind: 'string-literal', value: scratch.heap[value.ref].value }
+  }
+
+  if (value.type == 'char' || value.type == 'byte' || value.type == 'short') {
+    return rebuilt
+  }
+
+  return { kind: 'literal', value } as any
+}
+
+function isLeaf(node: TypedNode<JavaValue>) {
+  return node.kind == 'literal' || node.kind == 'string-literal'
+}
+
+function chidlrenAreLeaves(node: TypedNode<JavaValue>): boolean {
+  switch (node.kind) {
+    case 'literal':
+    case 'string-literal':
+    case 'identifier':
+      return isLeaf(node)
+    case 'cast':
+    case 'unary':
+      return isLeaf(node.operand)
+    case 'binary':
+      return isLeaf(node.left) && isLeaf(node.right)
   }
 }
 
