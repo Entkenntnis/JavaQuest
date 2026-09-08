@@ -147,6 +147,8 @@ export type JavaLongFloatDoubleValue =
   | JavaFloatValue
   | JavaDoubleValue
 
+export type JavaPromotedNumberValue = JavaLongFloatDoubleValue | JavaIntValue
+
 export type JavaValue =
   | JavaBooleanValue
   | JavaNumericPrimitiveValue
@@ -196,6 +198,10 @@ export interface BinaryExpressionAstNode {
     | '&'
     | '^'
     | '!='
+    | '>'
+    | '<'
+    | '>='
+    | '<='
   left: AstNode
   right: AstNode
 }
@@ -274,6 +280,7 @@ export type TypedNode<T extends JavaValue> =
       ? TypedNumericArithNodeBDL | TypedNumericArithNodeBDR
       : never)
   | (T extends JavaBigIntegerValue ? TypedBitwiseNode : never)
+  | (T extends JavaPromotedNumberValue ? TypedRelationalCompareNode : never)
 
 // ---- LITERAL -----
 export interface TypedLiteralNode<T extends JavaAllowedLiteralValue> {
@@ -440,6 +447,13 @@ export interface TypedReferenceEqualsNode {
   negate: boolean
   left: TypedNode<JavaReferenceValue | JavaNullValue>
   right: TypedNode<JavaReferenceValue | JavaNullValue>
+}
+
+export interface TypedRelationalCompareNode {
+  kind: 'binary'
+  op: '<' | '>' | '>=' | '<='
+  left: TypedNode<JavaNumericPrimitiveValue>
+  right: TypedNode<JavaNumericPrimitiveValue>
 }
 
 export interface TypedIdentifierNode {

@@ -189,12 +189,11 @@ function evaluate_internal(
             env,
           )
 
-          const [left, right] = binaryNumericPromotion(innerLeft, innerRight)
-          const isInteger =
-            left.type == 'long' ||
-            right.type == 'long' ||
-            left.type == 'int' ||
-            right.type == 'int'
+          const [promoType, left, right] = binaryNumericPromotion(
+            innerLeft,
+            innerRight,
+          )
+          const isInteger = promoType == 'long' || promoType == 'int'
 
           const ops: Record<string, (a: number, b: number) => number> = {
             '+': (a, b) => a + b,
@@ -252,7 +251,7 @@ function evaluate_internal(
           }
         }
         case '==n': {
-          const [left, right] = binaryNumericPromotion(
+          const [, left, right] = binaryNumericPromotion(
             evaluate(node.left, env),
             evaluate(node.right, env),
           )
@@ -348,6 +347,41 @@ function evaluate_internal(
             result = true
           }
           return { type: 'boolean', value: result }
+        }
+        case '<':
+        case '>':
+        case '<=':
+        case '>=': {
+          const [promoType, left, right] = binaryNumericPromotion(
+            evaluate(node.left, env),
+            evaluate(node.right, env),
+          )
+          if (
+            promoType == 'double' ||
+            promoType == 'float' ||
+            promoType == 'int'
+          ) {
+            const ops: Record<string, (a: number, b: number) => boolean> = {
+              '<': (a, b) => a < b,
+              '>': (a, b) => a > b,
+              '<=': (a, b) => a <= b,
+              '>=': (a, b) => a >= b,
+            }
+            return {
+              type: 'boolean',
+              value: ops[node.op](left.value, right.value),
+            }
+          }
+          const ops: Record<string, (a: bigint, b: bigint) => boolean> = {
+            '<': (a, b) => a < b,
+            '>': (a, b) => a > b,
+            '<=': (a, b) => a <= b,
+            '>=': (a, b) => a >= b,
+          }
+          return {
+            type: 'boolean',
+            value: ops[node.op](BigInt(left.value), BigInt(right.value)),
+          }
         }
       }
     }
@@ -476,20 +510,20 @@ function binaryNumericPromotion(
   left: JavaNumericPrimitiveValue,
   right: JavaNumericPrimitiveValue,
 ):
-  | [JavaDoubleValue, JavaDoubleValue]
-  | [JavaFloatValue, JavaFloatValue]
-  | [JavaLongValue, JavaLongValue]
-  | [JavaIntValue, JavaIntValue] {
+  | ['double', JavaDoubleValue, JavaDoubleValue]
+  | ['float', JavaFloatValue, JavaFloatValue]
+  | ['long', JavaLongValue, JavaLongValue]
+  | ['int', JavaIntValue, JavaIntValue] {
   if (left.type == 'double' || right.type == 'double') {
-    return [toDouble(left), toDouble(right)]
+    return ['double', toDouble(left), toDouble(right)]
   }
   if (left.type == 'float' || right.type == 'float') {
-    return [toFloat(left), toFloat(right)]
+    return ['float', toFloat(left), toFloat(right)]
   }
   if (left.type == 'long' || right.type == 'long') {
-    return [toLong(left), toLong(right)]
+    return ['long', toLong(left), toLong(right)]
   }
-  return [toInt(left), toInt(right)]
+  return ['int', toInt(left), toInt(right)]
 }
 
 function javaValueToString(val: JavaValue, env: JavaEnvironment): string {

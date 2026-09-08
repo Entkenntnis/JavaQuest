@@ -36,6 +36,7 @@ import type {
   TypedUnaryPlusMinusNodeB,
   TypedUnaryPlusMinusNodeS,
   TypedBooleanLogicalNode,
+  TypedRelationalCompareNode,
 } from '../state/types'
 
 export function typecheck(
@@ -310,6 +311,48 @@ function typecheck_internal(
             right: innerR,
           }
           return ['boolean', tn]
+        }
+
+        if (
+          node.op == '<' ||
+          node.op == '>' ||
+          node.op == '<=' ||
+          node.op == '>='
+        ) {
+          if (typeL == 'double' || typeR == 'double') {
+            const tn: TypedRelationalCompareNode = {
+              kind: 'binary',
+              op: node.op,
+              left: innerL,
+              right: innerR,
+            }
+            return ['double', tn]
+          }
+          if (typeL == 'float' || typeR == 'float') {
+            const tn: TypedRelationalCompareNode = {
+              kind: 'binary',
+              op: node.op,
+              left: innerL,
+              right: innerR,
+            }
+            return ['float', tn]
+          }
+          if (typeL == 'long' || typeR == 'long') {
+            const tn: TypedRelationalCompareNode = {
+              kind: 'binary',
+              op: node.op,
+              left: innerL,
+              right: innerR,
+            }
+            return ['long', tn]
+          }
+          const tn: TypedRelationalCompareNode = {
+            kind: 'binary',
+            op: node.op,
+            left: innerL,
+            right: innerR,
+          }
+          return ['int', tn]
         }
       }
 
