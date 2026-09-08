@@ -2880,6 +2880,224 @@ export const testSuite: TestSuiteEntry[] = [
     code: `(1 / 0) + ""`,
     isError: true,
   },
+  // ------------------------- constant folding: int & long string identities -------------------------
+  {
+    code: `("" + 100) == "100"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(100 + "") == "100"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (-5)) == "-5"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (100 / 3)) == "33"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (100 % 3)) == "1"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (2147483647 + 1)) == "-2147483648"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (-9223372036854775808L)) == "-9223372036854775808"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(9223372036854775807L + "") == "9223372036854775807"`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- constant folding: double & float string identities -------------------------
+  {
+    code: `("" + 100.0) == "100.0"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + 0.5) == "0.5"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + 1e15) == "1.0E15"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + 2f) == "2.0"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + 0.1f) == "0.1"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (1f / 3f)) == "0.33333334"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (1e308 * 10)) == "Infinity"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (0.0f / 0.0f)) == "NaN"`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- constant folding: char & boolean string identities -------------------------
+  {
+    code: `("" + 'Ω') == "Ω"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `'x' + "" + 'y' == "xy"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(!true + "") == "false"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `((1 == 1) + "") == "true"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + true + false) == "truefalse"`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- constant folding: nesting, associativity & parentheses -------------------------
+  {
+    code: `(((1 + 2) * 3) + "") == "9"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(("a" + "b") + ("c" + "d")) == "abcd"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(("" + 1) + ("a" + 2)) == "1a2"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `((1 + "") + 2) == "12"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(1L + "" + 2L) == "12"`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- constant folding: null does not participate -------------------------
+  // JLS 15.29: a constant expression contains no null literal, so concatenations with
+  // null are runtime operations yielding fresh objects. RED until folding excludes null.
+  {
+    code: `("" + null) == "null"`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(null + "") == "null"`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `("a" + null) == "anull"`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(null + "a") == "nulla"`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(null + "") == (null + "")`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `("x" + null) == ("x" + null)`,
+    output: { type: 'boolean', value: false },
+  },
+  // ------------------------- constant folding: char/byte/short casts -------------------------
+  {
+    code: `(byte)300`,
+    output: { type: 'byte', value: 44 },
+  },
+  {
+    code: `(short)65537`,
+    output: { type: 'short', value: 1 },
+  },
+  {
+    code: `(char)66`,
+    output: { type: 'char', value: 66 },
+  },
+  // RED until the fold gate treats cast-of-constant as constant for string folding.
+  {
+    code: `("" + (char)65) == "A"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (byte)200) == "-56"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (short)65537) == "1"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `((char)65 + "") == "A"`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- constant folding: dynamic operands stop folding -------------------------
+  {
+    code: `a + "" == "5"`,
+    output: { type: 'boolean', value: false },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  {
+    code: `"" + a == "5"`,
+    output: { type: 'boolean', value: false },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  {
+    code: `a + "x" == "5x"`,
+    output: { type: 'boolean', value: false },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  {
+    code: `xl + "" == "123"`,
+    output: { type: 'boolean', value: false },
+    env: { local: { xl: { type: 'long', value: '123' } }, heap: {} },
+  },
+  {
+    code: `ch + "" == "a"`,
+    output: { type: 'boolean', value: false },
+    env: { local: { ch: { type: 'char', value: 97 } }, heap: {} },
+  },
+  {
+    code: `"" + ch == "a"`,
+    output: { type: 'boolean', value: false },
+    env: { local: { ch: { type: 'char', value: 97 } }, heap: {} },
+  },
+  {
+    code: `(a + "") == (a + "")`,
+    output: { type: 'boolean', value: false },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  // ------------------------- constant folding: division / modulo by zero stays runtime -------------------------
+  {
+    code: `"" + ((-1) / 0)`,
+    isError: true,
+  },
+  {
+    code: `"" + (0 / 0)`,
+    isError: true,
+  },
+  {
+    code: `(1L / 0L) + ""`,
+    isError: true,
+  },
+  {
+    code: `-(1 / 0)`,
+    isError: true,
+  },
   // ------------------------- identifiers: logical operators & equality -------------------------
   {
     code: `!flag`,
