@@ -1,16 +1,16 @@
 @precedence {
+  unaryPlus @left
   cast
   update @left
-  unaryPlus @left
   negate @left
-  instanceof
   times @left
   plus @left
   shift @left
-  compare @left
+  relational @left
+  equality @left
   bitAnd @left
-  bitOr @left
   bitXor @left
+  bitOr @left
   and @left
   or @left
   ternary @right
@@ -67,7 +67,8 @@ AssignmentExpression {
 }
 
 BinaryExpression {
-  expression !compare (op<Compare, "==" | ">=" | "<=" | "!="> | CompareOp { "<" | ">" }) expression |
+  expression !equality op<Compare, "==" | "!="> expression |
+  expression !relational (op<Compare, ">=" | "<="> | CompareOp { "<" | ">" }) expression |
   expression !and op<Logic, "&&"> expression |
   expression !or op<Logic, "||"> expression |
   expression !bitAnd BitOp { "&" } expression |
@@ -79,7 +80,7 @@ BinaryExpression {
 }
 
 InstanceofExpression {
-  expression !instanceof kw<"instanceof"> type
+  expression !relational kw<"instanceof"> type
 }
 
 LambdaExpression {

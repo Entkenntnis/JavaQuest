@@ -1,9 +1,8 @@
 @precedence {
+  unaryPlus @left
   cast
   // update @left
-  unaryPlus @left
   negate @left
-  // instanceof
   times @left
   plus @left
   shift @left
@@ -39,7 +38,7 @@ literal {
 expression {
   // AssignmentExpression |
   BinaryExpression |
-  // InstanceofExpression |
+  InstanceofExpression |
   // LambdaExpression |
   TernaryExpression |
   // UpdateExpression |
@@ -53,8 +52,8 @@ CastExpression {
 }
 
 BinaryExpression {
-  expression !relational op<Compare, ">" | ">=" | "<=" | "<"> expression |
-  expression !equality op<Equality, "==" | "!="> expression |
+  expression !equality op<Compare, "==" | "!="> expression |
+  expression !relational (op<Compare, ">=" | "<="> | CompareOp { "<" | ">" }) expression |
   expression !and op<Logic, "&&"> expression |
   expression !or op<Logic, "||"> expression |
   expression !bitAnd BitOp { "&" } expression |
@@ -63,6 +62,10 @@ BinaryExpression {
   expression !plus op<Arith, "+" | "-"> expression |
   expression !times times expression |
   expression !shift (op<Bit, "<<" | ">>" ">"?>) expression
+}
+
+InstanceofExpression {
+  expression !relational kw<"instanceof"> type
 }
 
 TernaryExpression {
