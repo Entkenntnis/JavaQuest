@@ -116,6 +116,13 @@ export function cst2ast(node: CstNode): AstNode {
     }
   } else if (node.name == 'Identifier') {
     return { kind: 'identifier', name: node.text }
+  } else if (node.name == 'TernaryExpression') {
+    return {
+      kind: 'ternary',
+      condition: cst2ast(node.children[0]),
+      left: cst2ast(node.children[2]),
+      right: cst2ast(node.children[4]),
+    }
   }
   throw conversionError(node, 'no converter registered for this node')
 }

@@ -60,41 +60,49 @@ export interface SuiteResult {
 export interface JavaBooleanValue {
   type: 'boolean'
   value: boolean
+  boxed?: boolean
 }
 
 export interface JavaByteValue {
   type: 'byte'
   value: number // (-128..127)
+  boxed?: boolean
 }
 
 export interface JavaShortValue {
   type: 'short'
   value: number // (-32768..32767)
+  boxed?: boolean
 }
 
 export interface JavaCharValue {
   type: 'char'
   value: number // Unicode 16-bit code point (0..65535)
+  boxed?: boolean
 }
 
 export interface JavaIntValue {
   type: 'int'
   value: number
+  boxed?: boolean
 }
 
 export interface JavaFloatValue {
   type: 'float'
   value: number
+  boxed?: boolean
 }
 
 export interface JavaDoubleValue {
   type: 'double'
   value: number
+  boxed?: boolean
 }
 
 export interface JavaLongValue {
   type: 'long'
   value: string // from bigint
+  boxed?: boolean
 }
 
 export interface JavaReferenceValue {
@@ -224,6 +232,13 @@ export interface IdentifierAstNode {
   name: string
 }
 
+export interface ConditionalOperatorAstNode {
+  kind: 'ternary'
+  condition: AstNode
+  left: AstNode
+  right: AstNode
+}
+
 export type AstNode =
   | LiteralAstNode
   | LiteralStringAstNode
@@ -231,6 +246,7 @@ export type AstNode =
   | CastExpressionAstNode
   | BinaryExpressionAstNode
   | IdentifierAstNode
+  | ConditionalOperatorAstNode
 
 // ----------------------------
 
@@ -247,6 +263,7 @@ export type AstNode =
 // Das ist die Schaltzentrale, abhängig von T sind unterschiedliche Sub-Nodes verfügbar
 export type TypedNode<T extends JavaValue> =
   | TypedIdentifierNode
+  | TypedConditionalOperatorNode
   | (T extends JavaAllowedLiteralValue ? TypedLiteralNode<T> : never)
   | (T extends JavaNumericPrimitiveValue ? TypedNumericCastNode<T> : never)
   | (T extends JavaLongFloatDoubleValue ? TypedUnaryPlusMinusNodeB<T> : never)
@@ -458,15 +475,24 @@ export interface TypedIdentifierNode {
   name: string
 }
 
+export interface TypedConditionalOperatorNode {
+  kind: 'ternary'
+  condition: TypedNode<JavaBooleanValue>
+  left: TypedNode<JavaValue>
+  right: TypedNode<JavaValue>
+  boxResult?: true
+  castTo?: 'short'
+}
+
 export type TypecheckResult =
-  | [type: 'boolean', node: TypedNode<JavaBooleanValue>]
-  | [type: 'byte', node: TypedNode<JavaByteValue>]
-  | [type: 'short', node: TypedNode<JavaShortValue>]
-  | [type: 'char', node: TypedNode<JavaCharValue>]
-  | [type: 'int', node: TypedNode<JavaIntValue>]
-  | [type: 'long', node: TypedNode<JavaLongValue>]
-  | [type: 'float', node: TypedNode<JavaFloatValue>]
-  | [type: 'double', node: TypedNode<JavaDoubleValue>]
+  | [type: 'boolean', node: TypedNode<JavaBooleanValue>, { boxed?: true }?]
+  | [type: 'byte', node: TypedNode<JavaByteValue>, { boxed?: true }?]
+  | [type: 'short', node: TypedNode<JavaShortValue>, { boxed?: true }?]
+  | [type: 'char', node: TypedNode<JavaCharValue>, { boxed?: true }?]
+  | [type: 'int', node: TypedNode<JavaIntValue>, { boxed?: true }?]
+  | [type: 'long', node: TypedNode<JavaLongValue>, { boxed?: true }?]
+  | [type: 'float', node: TypedNode<JavaFloatValue>, { boxed?: true }?]
+  | [type: 'double', node: TypedNode<JavaDoubleValue>, { boxed?: true }?]
   | [type: 'reference', node: TypedNode<JavaReferenceValue>, { name: string }]
   | [type: 'null', node: TypedNode<JavaNullValue>]
 
@@ -483,4 +509,8 @@ export interface JavaStringHeapObject {
   class: 'java.lang.String'
   value: string
   isInterned?: boolean
+}
+
+export interface JavaObject {
+  class: 'java.lang.Object'
 }

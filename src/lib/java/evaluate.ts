@@ -52,6 +52,16 @@ function fold(
         } as TypedNode<JavaValue>,
         scratch,
       )
+    case 'ternary':
+      return collapse(
+        {
+          ...node,
+          condition: fold(node.condition, scratch),
+          left: fold(node.left, scratch),
+          right: fold(node.right, scratch),
+        } as TypedNode<JavaValue>,
+        scratch,
+      )
   }
 }
 
@@ -93,6 +103,12 @@ function isConstantSubtree(node: TypedNode<JavaValue>): boolean {
       return isConstant(node.operand)
     case 'binary':
       return isConstant(node.left) && isConstant(node.right)
+    case 'ternary':
+      return (
+        isConstant(node.condition) &&
+        isConstant(node.left) &&
+        isConstant(node.right)
+      )
   }
 }
 
@@ -292,10 +308,7 @@ function evaluate_internal(
               ? a << shift
               : node.op == '>>'
                 ? a >> shift
-                : // zero-extension before the shift, then reinterpret the width's
-                  // bits as signed (important when the distance is a multiple of
-                  // the width, e.g. -1 >>> 0 == -1).
-                  BigInt.asIntN(
+                : BigInt.asIntN(
                     isLong ? 64 : 32,
                     BigInt.asUintN(isLong ? 64 : 32, a) >> shift,
                   )
@@ -396,6 +409,17 @@ function evaluate_internal(
     case 'identifier': {
       return env.local[node.name]
     }
+    case 'ternary': {
+      const cond = evaluate(node.condition, env)
+      let raw = evaluate(cond.value ? node.left : node.right, env)
+      if (node.castTo) {
+        raw = convertTo(node.castTo, raw as any)
+      }
+      if (isPrimitive(raw) && node.boxResult) {
+        return { ...raw, boxed: true }
+      }
+      return raw
+    }
   }
 }
 
@@ -415,6 +439,21 @@ function isSmallInt(
     val.type == 'short' ||
     val.type == 'char' ||
     val.type == 'int'
+  )
+}
+
+function isPrimitive(
+  val: JavaValue,
+): val is JavaNumericPrimitiveValue | JavaBooleanValue {
+  return (
+    val.type == 'byte' ||
+    val.type == 'short' ||
+    val.type == 'char' ||
+    val.type == 'int' ||
+    val.type == 'long' ||
+    val.type == 'float' ||
+    val.type == 'double' ||
+    val.type == 'boolean'
   )
 }
 

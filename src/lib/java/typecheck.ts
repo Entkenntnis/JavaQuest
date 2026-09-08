@@ -37,6 +37,7 @@ import type {
   TypedUnaryPlusMinusNodeS,
   TypedBooleanLogicalNode,
   TypedRelationalCompareNode,
+  TypedConditionalOperatorNode,
 } from '../state/types'
 
 export function typecheck(
@@ -482,6 +483,55 @@ function typecheck_internal(
         return ['reference', node, { name: env.heap[value.ref].class }]
       }
       return [value.type, node]
+    }
+    case 'ternary': {
+      const [condT, condV] = typecheck_internal(node.condition, env)
+      if (condT != 'boolean') {
+        throw 'Expecting boolean for first operand of conditional operator'
+      }
+
+      const [typeL, innerL, dataL] = typecheck_internal(node.left, env)
+      const [typeR, innerR, dataR] = typecheck_internal(node.right, env)
+
+      const tn: TypedConditionalOperatorNode = {
+        kind: 'ternary',
+        condition: condV,
+        left: innerL,
+        right: innerR,
+      }
+      // 1. same type, also data payload data (boxed, reference name)
+      if (typeL == typeR && JSON.stringify(dataL) == JSON.stringify(dataR)) {
+        switch (typeL) {
+          case 'reference':
+            return [typeL, tn, dataL]
+          case 'null':
+            return [typeL, tn]
+          default:
+            if (dataL) {
+              return [typeL, tn, dataL]
+            } else {
+              return [typeL, tn]
+            }
+        }
+      }
+
+      // 2. same type, ignoring boxed
+      if (typeL == typeR && typeL != 'null' && typeL != 'reference') {
+        return [typeL, tn]
+      }
+
+      // 3. byte / short special case
+      if (
+        (typeL == 'byte' && typeR == 'short') ||
+        (typeL == 'short' && typeR == 'byte')
+      ) {
+        tn.castTo = 'short'
+        return ['short', tn]
+      }
+
+      // 4. special int rule
+
+      throw 'TODO'
     }
   }
 }
