@@ -5322,6 +5322,204 @@ export const testSuite: TestSuiteEntry[] = [
       },
     },
   },
+  // ------------------------- conditional: boxed (reference) results & wrapper caches -------------------------
+  // A ternary whose arms are a numeric/boolean mix is a *reference* conditional: the chosen
+  // arm is boxed and == then compares object identity, not value. Two syntactic copies of
+  // the same expression therefore only compare equal when boxing reuses a cached wrapper
+  // (Integer/Short/Long -128..127, Character <= 127, whole Byte range, Boolean singletons),
+  // while Float/Double and out-of-range values box to distinct objects. This probes whether
+  // the conditional result is boxed at all. Contrast with an int == unboxing comparison.
+  {
+    code: `(true ? 100 : false) == (true ? 100 : false)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? 1000 : false) == (true ? 1000 : false)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(true ? 127 : false) == (true ? 127 : false)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? 128 : false) == (true ? 128 : false)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(true ? -128 : false) == (true ? -128 : false)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? -129 : false) == (true ? -129 : false)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(false ? false : 100) == (false ? false : 100)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(false ? false : 1000) == (false ? false : 1000)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(true ? true : 100) == (true ? true : 100)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(false ? 100 : true) == (false ? 100 : true)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? 100L : false) == (true ? 100L : false)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? 1000L : false) == (true ? 1000L : false)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(true ? (byte)127 : false) == (true ? (byte)127 : false)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? (short)100 : false) == (true ? (short)100 : false)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? (short)1000 : false) == (true ? (short)1000 : false)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(true ? 'a' : false) == (true ? 'a' : false)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? 'ÿ' : false) == (true ? 'ÿ' : false)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(true ? 1.5f : false) == (true ? 1.5f : false)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(true ? 1.5 : false) == (true ? 1.5 : false)`,
+    output: { type: 'boolean', value: false },
+  },
+  // The conditional's static type is lub(Integer, Boolean) -- a common supertype, not the
+  // Integer wrapper -- so it cannot be unboxed: comparing it with an int literal is a
+  // compile-time error (== is only reference equality here).
+  {
+    code: `(true ? 100 : false) == 100`,
+    isError: true,
+  },
+  {
+    code: `(true ? 1000 : false) == 1000`,
+    isError: true,
+  },
+  // Boxed locals: reading the same wrapper variable twice yields one object (== true),
+  // whereas a freshly boxed non-cached constant is a distinct object (== false). These
+  // need boxed values in the locals, which the harness supports via the `boxed` flag.
+  {
+    code: `(true ? n : false) == (true ? n : false)`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { n: { type: 'int', value: 1000, boxed: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `(true ? 1000 : false) == n`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: { n: { type: 'int', value: 1000, boxed: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `(true ? 100 : false) == m`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { m: { type: 'int', value: 100, boxed: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `(true ? ch : false) == ch`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { ch: { type: 'char', value: 1000, boxed: true } },
+      heap: {},
+    },
+  },
+  // ------------------------- conditional: cross-shape cache hits & unboxing paths -------------------------
+  // Boxed results reached through different arm shapes (null / boolean / String on the other
+  // side) still route through the same wrapper cache. When both operands are already boxed
+  // (Integer locals) the conditional is an Integer-typed reference conditional: == against an
+  // int literal and arithmetic unbox the result numerically. Boxing only for the *chosen* arm.
+  {
+    code: `(true ? 100 : null) == (true ? 100 : false)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? 1000 : null) == (true ? 1000 : false)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(true ? 100 : "x") == (true ? 100 : "x")`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? 1000 : "x") == (true ? 1000 : "x")`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(true ? 1 : null) - 1`,
+    output: { type: 'int', value: 0 },
+  },
+  // Unboxing a null arm raises NullPointerException at run time ...
+  {
+    code: `(false ? 1 : null) + 1`,
+    isError: true,
+  },
+  // ... while the lub of two different wrappers is not an unboxable type, so using it as a
+  // numeric operand is a compile-time error even though the numeric arm is selected.
+  {
+    code: `(true ? 1000 : false) + 1`,
+    isError: true,
+  },
+  // Integer-typed conditional over boxed locals: == and + unbox numerically.
+  {
+    code: `(b ? n : m) == 1000`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        b: { type: 'boolean', value: true },
+        n: { type: 'int', value: 1000, boxed: true },
+        m: { type: 'int', value: 5, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  // Long boxed at run time (runtime condition, so no constant-condition folding): the two
+  // copies of the expression box the selected literal separately and only compare equal when
+  // Long.valueOf() reuses the -128..127 cache. (Mixing a Long variable with a long literal
+  // instead yields a *numeric* long conditional -- Table 15.25-B -- so no boxing happens.)
+  {
+    code: `(b ? 100L : false) == (b ? 100L : false)`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { b: { type: 'boolean', value: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `(b ? 1000L : false) == (b ? 1000L : false)`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: { b: { type: 'boolean', value: true } },
+      heap: {},
+    },
+  },
   // ------------------------- conditional: compile-time type errors -------------------------
   {
     code: `1 ? 2 : 3`,

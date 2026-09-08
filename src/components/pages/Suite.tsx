@@ -130,37 +130,39 @@ function Entry({
           </div>
         )}
       </div>
-      {!hasResult && <div className="p-1">...</div>}
-      {error && entry.isError && (
-        <div className="p-1 text-green-800">
-          <pre>OK, mit Fehler {error}</pre>
-        </div>
-      )}
-      {((error && !entry.isError) || (!entry.isError && !value)) && (
-        <div className="p-1 text-red-600">
-          <pre>FAIL! Fehler: {error}</pre>
-        </div>
-      )}
-      {value && (
-        <div className="">
-          {!isTheSame && entry.isError && (
-            <div className="text-red-600 font-bold m-4">Fehler erwartet</div>
-          )}
-          <div
-            className={clsx(
-              isTheSame ? 'text-green-600' : 'text-red-600',
-              'm-1',
-            )}
-          >
-            <pre>Output: {outputStr}</pre>
+      <div className="flex-column">
+        {!hasResult && <div className="p-1">...</div>}
+        {error && entry.isError && (
+          <div className="p-1 text-green-800">
+            <pre>OK, mit Fehler {error}</pre>
           </div>
-          {!isTheSame && !entry.isError && (
-            <div className="m-1">
-              <pre>Expected: {expectedStr}</pre>
+        )}
+        {((error && !entry.isError) || (!entry.isError && !value)) && (
+          <div className="p-1 text-red-600">
+            <pre>FAIL! Fehler: {error}</pre>
+          </div>
+        )}
+        {value && (
+          <div className="">
+            {!isTheSame && entry.isError && (
+              <div className="text-red-600 font-bold m-4">Fehler erwartet</div>
+            )}
+            <div
+              className={clsx(
+                isTheSame ? 'text-green-600' : 'text-red-600',
+                'm-1',
+              )}
+            >
+              <pre>Output: {outputStr}</pre>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+        {!isTheSame && !entry.isError && (
+          <div className="m-1">
+            <pre>Expected: {expectedStr}</pre>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
