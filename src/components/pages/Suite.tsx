@@ -34,6 +34,9 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
         'comparison with reference not meaningful in test harness',
       )
     }
+    if (value.type == 'null') {
+      throw new Error('null output is not supported in the test harness')
+    }
     return { value }
   } catch (e) {
     return { error: (e as any).toString() }

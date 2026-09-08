@@ -116,9 +116,11 @@ public class Harness {
             + NEWLINE
             + decls
             + NEWLINE
-            + "    Harness.out("
+            + "    var __jqHarnessValue = "
             + code
-            + ");"
+            + ";"
+            + NEWLINE
+            + "    Harness.out(__jqHarnessValue);"
             + NEWLINE
             + "  }"
             + NEWLINE

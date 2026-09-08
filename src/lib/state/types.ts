@@ -52,7 +52,6 @@ export interface SuiteResult {
   value?:
     | JavaBooleanValue
     | JavaNumericPrimitiveValue
-    | JavaNullValue
     | TestHarnessDerefStringValue
 }
 
