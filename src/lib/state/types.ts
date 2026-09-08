@@ -467,7 +467,7 @@ export type TypecheckResult =
   | [type: 'long', node: TypedNode<JavaLongValue>]
   | [type: 'float', node: TypedNode<JavaFloatValue>]
   | [type: 'double', node: TypedNode<JavaDoubleValue>]
-  | [type: { reference: string }, node: TypedNode<JavaReferenceValue>]
+  | [type: 'reference', node: TypedNode<JavaReferenceValue>, { name: string }]
   | [type: 'null', node: TypedNode<JavaNullValue>]
 
 // ------- Environment Stuff -------

@@ -56,8 +56,9 @@ function typecheck_internal(
     }
     case 'string-literal': {
       return [
-        { reference: 'java.lang.String' },
+        'reference',
         { kind: 'string-literal', value: node.value },
+        { name: 'java.lang.String' },
       ]
     }
     case 'unary': {
@@ -150,7 +151,7 @@ function typecheck_internal(
         }
         throw new Error('boolean expected in cast')
       }
-      if (type == 'null' || type == 'boolean' || typeof type == 'object') {
+      if (type == 'null' || type == 'boolean' || type == 'reference') {
         throw new Error('cast expected for numeric value')
       }
       if (node.type == 'byte') {
@@ -212,8 +213,8 @@ function typecheck_internal(
       throw new Error('invalid input type for cast')
     }
     case 'binary': {
-      const [typeL, innerL] = typecheck_internal(node.left, env)
-      const [typeR, innerR] = typecheck_internal(node.right, env)
+      const [typeL, innerL, dataL] = typecheck_internal(node.left, env)
+      const [typeR, innerR, dataR] = typecheck_internal(node.right, env)
       if (
         (typeL == 'byte' ||
           typeL == 'char' ||
@@ -330,8 +331,8 @@ function typecheck_internal(
       }
 
       if (
-        typeof typeL == 'object' &&
-        typeL.reference == 'java.lang.String' &&
+        typeL == 'reference' &&
+        dataL.name == 'java.lang.String' &&
         node.op == '+'
       ) {
         const tn: TypedStringConcatNodeL = {
@@ -340,12 +341,12 @@ function typecheck_internal(
           left: innerL,
           right: innerR,
         }
-        return [{ reference: 'java.lang.String' }, tn]
+        return ['reference', tn, { name: 'java.lang.String' }]
       }
 
       if (
-        typeof typeR == 'object' &&
-        typeR.reference == 'java.lang.String' &&
+        typeR == 'reference' &&
+        dataR.name == 'java.lang.String' &&
         node.op == '+'
       ) {
         const tn: TypedStringConcatNodeR = {
@@ -354,7 +355,7 @@ function typecheck_internal(
           left: innerL,
           right: innerR,
         }
-        return [{ reference: 'java.lang.String' }, tn]
+        return ['reference', tn, { name: 'java.lang.String' }]
       }
 
       if (
@@ -413,8 +414,8 @@ function typecheck_internal(
 
       if (
         (node.op == '==' || node.op == '!=') &&
-        (typeof typeL == 'object' || typeL == 'null') &&
-        (typeof typeR == 'object' || typeR == 'null')
+        (typeL == 'reference' || typeL == 'null') &&
+        (typeR == 'reference' || typeR == 'null')
       ) {
         const tn: TypedReferenceEqualsNode = {
           kind: 'binary',
@@ -468,7 +469,9 @@ function typecheck_internal(
 
       // <--- insert open stuff here
 
-      throw new Error('invalid binary operation')
+      throw new Error(
+        `invalid binary operation ${node.op} between ${typeL} and ${typeR}`,
+      )
     }
     case 'identifier': {
       const value = env.local[node.name]
@@ -476,7 +479,7 @@ function typecheck_internal(
         throw new Error('unknown identifier')
       }
       if (value.type == 'reference') {
-        return [{ reference: env.heap[value.ref].class }, node]
+        return ['reference', node, { name: env.heap[value.ref].class }]
       }
       return [value.type, node]
     }
