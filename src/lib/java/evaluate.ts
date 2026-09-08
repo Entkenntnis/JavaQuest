@@ -347,9 +347,11 @@ function toLong(val: JavaNumericPrimitiveValue): JavaLongValue {
     const value = val.value
     const target = Number.isNaN(value)
       ? 0n
-      : value > 9223372036854775807
+      // 2^63 is exactly representable as a double (unlike 2^63 - 1), so use it
+      // for the upper clamp: doubles >= 2^63 saturate to Long.MAX (JLS 5.1.3).
+      : value >= 2 ** 63
         ? 9223372036854775807n
-        : value < -9223372036854775808
+        : value <= -(2 ** 63)
           ? -9223372036854775808n
           : BigInt(Math.trunc(value))
     return { type: 'long', value: target.toString() }

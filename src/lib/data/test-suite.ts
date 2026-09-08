@@ -3168,6 +3168,51 @@ export const testSuite: TestSuiteEntry[] = [
     code: `(long)-0.9`,
     output: { type: 'long', value: '0' },
   },
+  // ------------------------- regression guards: double -> long saturation at the 2^63 boundary -------------------------
+  // RED: a double exactly equal to 2^63 must saturate to Long.MAX (JLS 5.1.3), but the
+  // current toLong clamps only with `>` so 2^63 wraps to Long.MIN instead.
+  {
+    code: `(long)0x1p63`,
+    output: { type: 'long', value: '9223372036854775807' },
+  },
+  {
+    code: `(long)9.223372036854776E18`,
+    output: { type: 'long', value: '9223372036854775807' },
+  },
+  {
+    code: `(long)-0x1p63`,
+    output: { type: 'long', value: '-9223372036854775808' },
+  },
+  {
+    code: `(long)-9.223372036854776E18`,
+    output: { type: 'long', value: '-9223372036854775808' },
+  },
+  {
+    code: `(long)0x1p62`,
+    output: { type: 'long', value: '4611686018427387904' },
+  },
+  // ------------------------- regression guards: surrogate-range char values -------------------------
+  // A char is a UTF-16 code unit; surrogate values (0xD800-0xDFFF) are valid chars.
+  {
+    code: `(char)0xD800`,
+    output: { type: 'char', value: 55296 },
+  },
+  {
+    code: `(char)0xDFFF`,
+    output: { type: 'char', value: 57343 },
+  },
+  {
+    code: `(char)0xD7FF`,
+    output: { type: 'char', value: 55295 },
+  },
+  {
+    code: `(char)0xE000`,
+    output: { type: 'char', value: 57344 },
+  },
+  {
+    code: `(char)0x10000`,
+    output: { type: 'char', value: 0 },
+  },
   // ------------------------- regression guards: stepwise float rounding -------------------------
   {
     code: `(1e20f + 1.5f) - 1e20f`,
