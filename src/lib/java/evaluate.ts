@@ -273,35 +273,34 @@ function evaluate_internal(
         case '<<':
         case '>>':
         case '>>>': {
-          const [left, right] = binaryNumericIntegerPromotion(
-            evaluate(node.left, env),
-            evaluate(node.right, env),
-          )
-          const shift = BigInt(right.value) & 0x3fn
-          if (left.type == 'int') {
-            const ops: Record<string, (a: number, b: number) => number> = {
-              '<<': (a, b) => (a | 0) << (b | 0),
-              '>>': (a, b) => (a | 0) >> (b | 0),
-              '>>>': (a, b) => (a | 0) >>> (b | 0),
-            }
-            return {
-              type: 'int',
-              value: ops[node.op](left.value, Number(shift)),
-            }
-          }
-          // working with long
-          const value = BigInt(left.value)
-          const result =
+          // JLS 15.19: the operands are unary-numeric-promoted individually
+          // (not binary-numeric-promoted together) and the result type is the
+          // promoted type of the LEFT operand only: long when it is long, else
+          // int. The right operand merely supplies a shift distance.
+          const left = evaluate<JavaIntegerValue>(node.left, env)
+          const right = evaluate<JavaIntegerValue>(node.right, env)
+          const isLong = left.type == 'long'
+          const a = BigInt(left.value)
+          // Only the five (int) or six (long) lowest-order bits of the promoted
+          // right operand are used as the shift distance (JLS 15.19).
+          const shift = BigInt(right.value) & (isLong ? 0x3fn : 0x1fn)
+          const raw =
             node.op == '<<'
-              ? BigInt.asIntN(64, value << shift)
+              ? a << shift
               : node.op == '>>'
-                ? value >> shift
-                : BigInt.asUintN(64, value) >> shift
-
-          return {
-            type: 'long',
-            value: result.toString(),
+                ? a >> shift
+                : // zero-extension before the shift, then reinterpret the width's
+                  // bits as signed (important when the distance is a multiple of
+                  // the width, e.g. -1 >>> 0 == -1).
+                  BigInt.asIntN(
+                    isLong ? 64 : 32,
+                    BigInt.asUintN(isLong ? 64 : 32, a) >> shift,
+                  )
+          const value = isLong ? BigInt.asIntN(64, raw) : BigInt.asIntN(32, raw)
+          if (isLong) {
+            return { type: 'long', value: value.toString() }
           }
+          return { type: 'int', value: Number(value) }
         }
       }
     }
@@ -440,16 +439,6 @@ function binaryNumericPromotion(
   if (left.type == 'float' || right.type == 'float') {
     return [toFloat(left), toFloat(right)]
   }
-  if (left.type == 'long' || right.type == 'long') {
-    return [toLong(left), toLong(right)]
-  }
-  return [toInt(left), toInt(right)]
-}
-
-function binaryNumericIntegerPromotion(
-  left: JavaIntegerValue,
-  right: JavaIntegerValue,
-): [JavaLongValue, JavaLongValue] | [JavaIntValue, JavaIntValue] {
   if (left.type == 'long' || right.type == 'long') {
     return [toLong(left), toLong(right)]
   }
