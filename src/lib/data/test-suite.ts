@@ -1516,6 +1516,27 @@ export const testSuite: TestSuiteEntry[] = [
     output: { type: 'int', value: 0 },
   },
 
+  // ------------------------- binary arithmetic: modulo sign semantics -------------------------
+  {
+    code: `7L % -3L`,
+    output: { type: 'long', value: '1' },
+  },
+  {
+    code: `-7L % 3L`,
+    output: { type: 'long', value: '-1' },
+  },
+  {
+    code: `7.5 % 2.0`,
+    output: { type: 'double', value: 1.5 },
+  },
+  {
+    code: `1.5 % 1.0`,
+    output: { type: 'double', value: 0.5 },
+  },
+  {
+    code: `-1.5 % 1.0`,
+    output: { type: 'double', value: -0.5 },
+  },
   // ------------------------- binary arithmetic: longer expressions (int) -------------------------
   {
     code: `((3 + 7) * 5 - 100 / 4) % 11 + (8 - 2) * (9 - 6) / 3 - 1`,
@@ -1708,6 +1729,31 @@ export const testSuite: TestSuiteEntry[] = [
   {
     code: `true || (boolean)5`,
     isError: true,
+  },
+  // ------------------------- logical operators: short-circuit guards around / and % by zero -------------------------
+  {
+    code: `false && ((1 % 0) == 1)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `true || ((1 % 0) == 1)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `false && ((1L / 0L) == 1L)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `true || ((7 % 0) == 1)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `false && (("" + (1 % 0)) == "x")`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `true || (("" + (1 / 0)) == "x")`,
+    output: { type: 'boolean', value: true },
   },
   // ==================== EQUALITY (==) ====================
   // ------------------------- equality ==: booleans, strings & null -------------------------
@@ -2874,7 +2920,7 @@ export const testSuite: TestSuiteEntry[] = [
   },
   // ------------------------- constant folding: null does not participate -------------------------
   // JLS 15.29: a constant expression contains no null literal, so concatenations with
-  // null are runtime operations yielding fresh objects. RED until folding excludes null.
+  // null are runtime operations yielding fresh objects (folding must exclude null).
   {
     code: `("" + null) == "null"`,
     output: { type: 'boolean', value: false },
@@ -2912,7 +2958,7 @@ export const testSuite: TestSuiteEntry[] = [
     code: `(char)66`,
     output: { type: 'char', value: 66 },
   },
-  // RED until the fold gate treats cast-of-constant as constant for string folding.
+  // A cast of a constant is itself a constant, so these also fold to the pooled string.
   {
     code: `("" + (char)65) == "A"`,
     output: { type: 'boolean', value: true },
@@ -2980,6 +3026,65 @@ export const testSuite: TestSuiteEntry[] = [
   },
   {
     code: `-(1 / 0)`,
+    isError: true,
+  },
+  // ------------------------- constant folding: unary operator string identities -------------------------
+  {
+    code: `("" + ~0) == "-1"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + ~5) == "-6"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(~5 + "") == "-6"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + -(-5)) == "5"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + -(-(2 + 3))) == "5"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + -(~0)) == "1"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + !true) == "false"`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- constant folding: modulo string identities -------------------------
+  {
+    code: `("" + (100 % 7)) == "2"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (-100 % 7)) == "-2"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (100 % -7)) == "2"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (-100 % -7)) == "-2"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (1000 % 7)) == "6"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + -(100 % 7)) == "-2"`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- constant folding: modulo by zero in string context stays runtime -------------------------
+  {
+    code: `"" + ((-1) % 0)`,
     isError: true,
   },
   // ==================== REGRESSION, RUNTIME & TYPECHECK GUARDS ====================
