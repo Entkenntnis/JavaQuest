@@ -1,6 +1,7 @@
 import type { TestSuiteEntry } from '../state/types'
 
 export const testSuite: TestSuiteEntry[] = [
+  // ==================== LITERALS ====================
   // ------------------------- int: decimal -------------------------
   {
     code: `0`,
@@ -790,6 +791,78 @@ export const testSuite: TestSuiteEntry[] = [
     code: `42abc`,
     isError: true,
   },
+  // ==================== IDENTIFIERS - BASIC READS ====================
+  // ------------------------- identifiers: different names -------------------------
+  {
+    code: `alpha`,
+    output: { type: 'int', value: 7 },
+    env: { local: { alpha: { type: 'int', value: 7 } }, heap: {} },
+  },
+  {
+    code: `Abc`,
+    output: { type: 'int', value: 13 },
+    env: { local: { Abc: { type: 'int', value: 13 } }, heap: {} },
+  },
+  {
+    code: `camelCase`,
+    output: { type: 'int', value: 9 },
+    env: { local: { camelCase: { type: 'int', value: 9 } }, heap: {} },
+  },
+  {
+    code: `_under`,
+    output: { type: 'int', value: 11 },
+    env: { local: { _under: { type: 'int', value: 11 } }, heap: {} },
+  },
+  {
+    code: `$cash`,
+    output: { type: 'int', value: 12 },
+    env: { local: { $cash: { type: 'int', value: 12 } }, heap: {} },
+  },
+  {
+    code: `Ω`,
+    output: { type: 'int', value: 14 },
+    env: { local: { Ω: { type: 'int', value: 14 } }, heap: {} },
+  },
+  // ------------------------- identifiers: reading values of each type -------------------------
+  {
+    code: `a`,
+    output: { type: 'int', value: 5 },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  {
+    code: `xl`,
+    output: { type: 'long', value: '123' },
+    env: { local: { xl: { type: 'long', value: '123' } }, heap: {} },
+  },
+  {
+    code: `zz`,
+    output: { type: 'long', value: '10000000000' },
+    env: { local: { zz: { type: 'long', value: '10000000000' } }, heap: {} },
+  },
+  {
+    code: `d`,
+    output: { type: 'double', value: 3.5 },
+    env: { local: { d: { type: 'double', value: 3.5 } }, heap: {} },
+  },
+  {
+    code: `ch`,
+    output: { type: 'char', value: 65 },
+    env: { local: { ch: { type: 'char', value: 65 } }, heap: {} },
+  },
+  {
+    code: `by`,
+    output: { type: 'byte', value: 100 },
+    env: { local: { by: { type: 'byte', value: 100 } }, heap: {} },
+  },
+  {
+    code: `str`,
+    output: { type: '__str', value: 'JavaQuest' },
+    env: {
+      local: { str: { type: 'reference', ref: 'heap0' } },
+      heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
+    },
+  },
+  // ==================== UNARY OPERATORS & CASTS ====================
   // ------------------------- unary plus / minus -------------------------
   {
     code: `-1`,
@@ -977,6 +1050,72 @@ export const testSuite: TestSuiteEntry[] = [
     code: `+null`,
     isError: true,
   },
+  // ------------------------- unary logical complement '!' -------------------------
+  {
+    code: `!true`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `!false`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `!!true`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `!((boolean)false)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `!0`,
+    isError: true,
+  },
+  {
+    code: `!"hi"`,
+    isError: true,
+  },
+  {
+    code: `!null`,
+    isError: true,
+  },
+  // ------------------------- unary bitwise complement '~' -------------------------
+  {
+    code: `~0`,
+    output: { type: 'int', value: -1 },
+  },
+  {
+    code: `~5`,
+    output: { type: 'int', value: -6 },
+  },
+  {
+    code: `~~5`,
+    output: { type: 'int', value: 5 },
+  },
+  {
+    code: `~2147483647`,
+    output: { type: 'int', value: -2147483648 },
+  },
+  {
+    code: `~-2147483648`,
+    output: { type: 'int', value: 2147483647 },
+  },
+  {
+    code: `~'a'`,
+    output: { type: 'int', value: -98 },
+  },
+  {
+    code: `~(byte)200`,
+    output: { type: 'int', value: 55 },
+  },
+  {
+    code: `~-9223372036854775808L`,
+    output: { type: 'long', value: '9223372036854775807' },
+  },
+  {
+    code: `~true`,
+    isError: true,
+  },
   // ------------------------- casts: integer sources -------------------------
   {
     code: `(byte)200`,
@@ -1072,6 +1211,7 @@ export const testSuite: TestSuiteEntry[] = [
     code: `(int)"5"`,
     isError: true,
   },
+  // ==================== BINARY ARITHMETIC ====================
   // ------------------------- binary arithmetic: int -------------------------
   {
     code: `1 + 2`,
@@ -1316,46 +1456,6 @@ export const testSuite: TestSuiteEntry[] = [
     output: { type: 'long', value: '2147483648' },
   },
 
-  // ------------------------- binary arithmetic: division / modulo by zero (ArithmeticException) -------------------------
-  {
-    code: `1 / 0`,
-    isError: true,
-  },
-  {
-    code: `1 % 0`,
-    isError: true,
-  },
-  {
-    code: `0 / 0`,
-    isError: true,
-  },
-  {
-    code: `1L / 0L`,
-    isError: true,
-  },
-  {
-    code: `1L % 0L`,
-    isError: true,
-  },
-
-  // ------------------------- binary arithmetic: non-numeric operands (errors) -------------------------
-  {
-    code: `true + 1`,
-    isError: true,
-  },
-  {
-    code: `false * 2`,
-    isError: true,
-  },
-  {
-    code: `null - 1`,
-    isError: true,
-  },
-  {
-    code: `true / false`,
-    isError: true,
-  },
-
   // ------------------------- binary arithmetic: precedence, parens, associativity -------------------------
   {
     code: `1 + 2 * 3`,
@@ -1487,6 +1587,299 @@ export const testSuite: TestSuiteEntry[] = [
     code: `(1.5f - 0.5f) * (10.0f + 2.0f) / 3.0f + (0.1f + 0.2f) % 0.5f - (2.0f * 1.5f - 1.0f) * 2.0f`,
     output: { type: 'float', value: 0.3000001907348633 },
   },
+  // ------------------------- binary arithmetic: division / modulo by zero (ArithmeticException) -------------------------
+  {
+    code: `1 / 0`,
+    isError: true,
+  },
+  {
+    code: `1 % 0`,
+    isError: true,
+  },
+  {
+    code: `0 / 0`,
+    isError: true,
+  },
+  {
+    code: `1L / 0L`,
+    isError: true,
+  },
+  {
+    code: `1L % 0L`,
+    isError: true,
+  },
+
+  // ------------------------- binary arithmetic: non-numeric operands (errors) -------------------------
+  {
+    code: `true + 1`,
+    isError: true,
+  },
+  {
+    code: `false * 2`,
+    isError: true,
+  },
+  {
+    code: `null - 1`,
+    isError: true,
+  },
+  {
+    code: `true / false`,
+    isError: true,
+  },
+
+  // ==================== LOGICAL OPERATORS (&& / ||) ====================
+  // ------------------------- logical operators: && and || (short circuit) -------------------------
+  {
+    code: `true && true`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `true && false`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `false && true`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `false || true`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `false || false`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `true || false`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `true || true && false`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true || true) && false`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `1 && true`,
+    isError: true,
+  },
+  {
+    code: `true && (1/0 == 1)`,
+    isError: true,
+  },
+  {
+    code: `false && (1/0 == 1)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `true || (1/0 == 1)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `false || (1/0 == 1)`,
+    isError: true,
+  },
+  {
+    code: `true || 1`,
+    isError: true,
+  },
+  {
+    code: `false && 1`,
+    isError: true,
+  },
+  {
+    code: `false && null`,
+    isError: true,
+  },
+  {
+    code: `true || "x"`,
+    isError: true,
+  },
+  {
+    code: `false && 'a'`,
+    isError: true,
+  },
+  {
+    code: `true || 9223372036854775807L`,
+    isError: true,
+  },
+  {
+    code: `true || (boolean)5`,
+    isError: true,
+  },
+  // ==================== EQUALITY (==) ====================
+  // ------------------------- equality ==: booleans, strings & null -------------------------
+  {
+    code: `true == true`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `true == false`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `null == null`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `"a" == "a"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `"a" == "b"`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `"a" == null`,
+    output: { type: 'boolean', value: false },
+  },
+  // ------------------------- equality ==: int & radix literals -------------------------
+  {
+    code: `0xffffffff == -1`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `010 == 8`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `'a' == 97`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `'a' == 'b'`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `'Ω' == 937`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(char)-1 == 65535`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(byte)200 == -56`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(byte)128 == -128`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- equality ==: long widening -------------------------
+  {
+    code: `1L == 1`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `9223372036854775807L == 9223372036854775807L`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `0xFFFFFFFFL == 4294967295L`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- equality ==: float/double & precision traps -------------------------
+  {
+    code: `1.5 == 1.5f`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `0.1f == 0.1`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `16777217 == 16777216f`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `9007199254740993L == 9007199254740992.0`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- equality ==: arithmetic expressions -------------------------
+  {
+    code: `1 + 2 == 3`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(1 + 2) * 3 == 9`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `7 % 4 == 3`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `-7 % 3 == -1`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `'z' - 'a' == 25`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(byte)100 + (byte)100 == 200`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- equality ==: conversion & casting oddities -------------------------
+  {
+    code: `(long)1e20 == 9223372036854775807L`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(int)(0.0/0.0) == 0`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- equality ==: Infinity, NaN and -0.0 -------------------------
+  {
+    code: `(1.0/0.0) == (1.0/0.0)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(0.0/0.0) == (0.0/0.0)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `-0.0 == 0.0`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- equality ==: wild boolean algebra & short circuit -------------------------
+  {
+    code: `(1 == 1) == (2 == 2)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `!(1 == 2) == (2 == 2)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `false == true && (1/0 == 1)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `1 == 2 || 2 == 2`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- equality ==: errors -------------------------
+  {
+    code: `1/0 == 1`,
+    isError: true,
+  },
+  {
+    code: `true == 1`,
+    isError: true,
+  },
+  {
+    code: `1 == "x"`,
+    isError: true,
+  },
+  {
+    code: `null == 1`,
+    isError: true,
+  },
+  // ==================== STRING CONCATENATION & CONVERSION ====================
   // ------------------------- string concatenation: basics & ordering -------------------------
   {
     code: `"" + ""`,
@@ -1778,609 +2171,7 @@ export const testSuite: TestSuiteEntry[] = [
     code: `1 / "x"`,
     isError: true,
   },
-  // ------------------------- unary logical complement '!' -------------------------
-  {
-    code: `!true`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `!false`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `!!true`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `!((boolean)false)`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `!0`,
-    isError: true,
-  },
-  {
-    code: `!"hi"`,
-    isError: true,
-  },
-  {
-    code: `!null`,
-    isError: true,
-  },
-  // ------------------------- unary bitwise complement '~' -------------------------
-  {
-    code: `~0`,
-    output: { type: 'int', value: -1 },
-  },
-  {
-    code: `~5`,
-    output: { type: 'int', value: -6 },
-  },
-  {
-    code: `~~5`,
-    output: { type: 'int', value: 5 },
-  },
-  {
-    code: `~2147483647`,
-    output: { type: 'int', value: -2147483648 },
-  },
-  {
-    code: `~-2147483648`,
-    output: { type: 'int', value: 2147483647 },
-  },
-  {
-    code: `~'a'`,
-    output: { type: 'int', value: -98 },
-  },
-  {
-    code: `~(byte)200`,
-    output: { type: 'int', value: 55 },
-  },
-  {
-    code: `~-9223372036854775808L`,
-    output: { type: 'long', value: '9223372036854775807' },
-  },
-  {
-    code: `~true`,
-    isError: true,
-  },
-  // ------------------------- logical operators: && and || (short circuit) -------------------------
-  {
-    code: `true && true`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `true && false`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `false && true`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `false || true`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `false || false`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `true || false`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `true || true && false`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `(true || true) && false`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `1 && true`,
-    isError: true,
-  },
-  {
-    code: `true && (1/0 == 1)`,
-    isError: true,
-  },
-  {
-    code: `false && (1/0 == 1)`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `true || (1/0 == 1)`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `false || (1/0 == 1)`,
-    isError: true,
-  },
-  {
-    code: `true || 1`,
-    isError: true,
-  },
-  {
-    code: `false && 1`,
-    isError: true,
-  },
-  {
-    code: `false && null`,
-    isError: true,
-  },
-  {
-    code: `true || "x"`,
-    isError: true,
-  },
-  {
-    code: `false && 'a'`,
-    isError: true,
-  },
-  {
-    code: `true || 9223372036854775807L`,
-    isError: true,
-  },
-  {
-    code: `true || (boolean)5`,
-    isError: true,
-  },
-  // ------------------------- equality ==: booleans, strings & null -------------------------
-  {
-    code: `true == true`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `true == false`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `null == null`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `"a" == "a"`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `"a" == "b"`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `"a" == null`,
-    output: { type: 'boolean', value: false },
-  },
-  // ------------------------- equality ==: int & radix literals -------------------------
-  {
-    code: `0xffffffff == -1`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `010 == 8`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `'a' == 97`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `'a' == 'b'`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `'Ω' == 937`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `(char)-1 == 65535`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `(byte)200 == -56`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `(byte)128 == -128`,
-    output: { type: 'boolean', value: true },
-  },
-  // ------------------------- equality ==: long widening -------------------------
-  {
-    code: `1L == 1`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `9223372036854775807L == 9223372036854775807L`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `0xFFFFFFFFL == 4294967295L`,
-    output: { type: 'boolean', value: true },
-  },
-  // ------------------------- equality ==: float/double & precision traps -------------------------
-  {
-    code: `1.5 == 1.5f`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `0.1f == 0.1`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `16777217 == 16777216f`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `9007199254740993L == 9007199254740992.0`,
-    output: { type: 'boolean', value: true },
-  },
-  // ------------------------- equality ==: arithmetic expressions -------------------------
-  {
-    code: `1 + 2 == 3`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `(1 + 2) * 3 == 9`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `7 % 4 == 3`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `-7 % 3 == -1`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `'z' - 'a' == 25`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `(byte)100 + (byte)100 == 200`,
-    output: { type: 'boolean', value: true },
-  },
-  // ------------------------- equality ==: conversion & casting oddities -------------------------
-  {
-    code: `(long)1e20 == 9223372036854775807L`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `(int)(0.0/0.0) == 0`,
-    output: { type: 'boolean', value: true },
-  },
-  // ------------------------- equality ==: Infinity, NaN and -0.0 -------------------------
-  {
-    code: `(1.0/0.0) == (1.0/0.0)`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `(0.0/0.0) == (0.0/0.0)`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `-0.0 == 0.0`,
-    output: { type: 'boolean', value: true },
-  },
-  // ------------------------- equality ==: wild boolean algebra & short circuit -------------------------
-  {
-    code: `(1 == 1) == (2 == 2)`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `!(1 == 2) == (2 == 2)`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `false == true && (1/0 == 1)`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `1 == 2 || 2 == 2`,
-    output: { type: 'boolean', value: true },
-  },
-  // ------------------------- equality ==: errors -------------------------
-  {
-    code: `1/0 == 1`,
-    isError: true,
-  },
-  {
-    code: `true == 1`,
-    isError: true,
-  },
-  {
-    code: `1 == "x"`,
-    isError: true,
-  },
-  {
-    code: `null == 1`,
-    isError: true,
-  },
-  // ------------------------- regression guards: wrap & narrowing casts -------------------------
-  {
-    code: `(byte)255`,
-    output: { type: 'byte', value: -1 },
-  },
-  {
-    code: `(byte)256`,
-    output: { type: 'byte', value: 0 },
-  },
-  {
-    code: `(byte)257`,
-    output: { type: 'byte', value: 1 },
-  },
-  {
-    code: `(short)32768`,
-    output: { type: 'short', value: -32768 },
-  },
-  {
-    code: `(short)(char)0xffff`,
-    output: { type: 'short', value: -1 },
-  },
-  {
-    code: `(char)(short)(byte)-1`,
-    output: { type: 'char', value: 65535 },
-  },
-  // ------------------------- regression guards: Inf/NaN converted to integral types -------------------------
-  {
-    code: `(byte)(1.0/0.0)`,
-    output: { type: 'byte', value: -1 },
-  },
-  {
-    code: `(byte)(-1.0/0.0)`,
-    output: { type: 'byte', value: 0 },
-  },
-  {
-    code: `(long)(1.0/0.0)`,
-    output: { type: 'long', value: '9223372036854775807' },
-  },
-  {
-    code: `(int)(-1.0f/0.0f)`,
-    output: { type: 'int', value: -2147483648 },
-  },
-  {
-    code: `(char)(1.0/0.0)`,
-    output: { type: 'char', value: 65535 },
-  },
-  // ------------------------- regression guards: unary/binary numeric promotion result types -------------------------
-  {
-    code: `'a' + 'b'`,
-    output: { type: 'int', value: 195 },
-  },
-  {
-    code: `(byte)5 + (byte)5`,
-    output: { type: 'int', value: 10 },
-  },
-  {
-    code: `(byte)200 + 100`,
-    output: { type: 'int', value: 44 },
-  },
-  {
-    code: `(char)65535 + 1`,
-    output: { type: 'int', value: 65536 },
-  },
-  {
-    code: `(char)('a' - 32)`,
-    output: { type: 'char', value: 65 },
-  },
-  // ------------------------- regression guards: double -> int/long truncation toward zero -------------------------
-  {
-    code: `(int)1.9`,
-    output: { type: 'int', value: 1 },
-  },
-  {
-    code: `(int)-1.9`,
-    output: { type: 'int', value: -1 },
-  },
-  {
-    code: `(long)-0.9`,
-    output: { type: 'long', value: '0' },
-  },
-  // ------------------------- regression guards: stepwise float rounding -------------------------
-  {
-    code: `(1e20f + 1.5f) - 1e20f`,
-    output: { type: 'float', value: 0 },
-  },
-  {
-    code: `(1e20f - 1e20f) + 1.5f`,
-    output: { type: 'float', value: 1.5 },
-  },
-  {
-    code: `16777216f + 1f`,
-    output: { type: 'float', value: 16777216 },
-  },
-  {
-    code: `16777216f + 1f == 16777216f`,
-    output: { type: 'boolean', value: true },
-  },
-  // ------------------------- regression guards: -0.0, Infinity, NaN equality -------------------------
-  {
-    code: `(1 / -0.0) == (1 / 0.0)`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `-0.0f == 0.0f`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `(5.0 % 0.0) == (5.0 % 0.0)`,
-    output: { type: 'boolean', value: false },
-  },
-  // ------------------------- runtime guards: integer division/modulo by zero (reached at runtime) -------------------------
-  {
-    code: `10 / (5 - 5)`,
-    isError: true,
-  },
-  {
-    code: `10L / (5L - 5L)`,
-    isError: true,
-  },
-  {
-    code: `1 / (int)0.5`,
-    isError: true,
-  },
-  {
-    code: `100L % (1L - 1L)`,
-    isError: true,
-  },
-  // ------------------------- typecheck guards: compile-time type errors -------------------------
-  {
-    code: `1 + true`,
-    isError: true,
-  },
-  {
-    code: `'a' && true`,
-    isError: true,
-  },
-  {
-    code: `!1.5`,
-    isError: true,
-  },
-  {
-    code: `(boolean)null`,
-    isError: true,
-  },
-  {
-    code: `null + 1`,
-    isError: true,
-  },
-  {
-    code: `1 == "1"`,
-    isError: true,
-  },
-  // ------------------------- regression guards: equality + &&/|| precedence & short circuit -------------------------
-  {
-    code: `!(true == true) || (1 == 2) && (2 == 2)`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `(1 == 1 || 2 == 2) && !(1 == 2)`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `true && true == false`,
-    output: { type: 'boolean', value: false },
-  },
-  {
-    code: `(1 == 1) == (true == true)`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `5 / (0.0 / 0.0) == 5`,
-    output: { type: 'boolean', value: false },
-  },
-  // ------------------------- regression guards: int/long boundary arithmetic -------------------------
-  {
-    code: `-2147483648 / -10`,
-    output: { type: 'int', value: 214748364 },
-  },
-  {
-    code: `-2147483648 % 10`,
-    output: { type: 'int', value: -8 },
-  },
-  {
-    code: `-9223372036854775808L / 10L`,
-    output: { type: 'long', value: '-922337203685477580' },
-  },
-  // ------------------------- regression guards: string concatenation with odd operands -------------------------
-  {
-    code: `"x" + null`,
-    output: { type: '__str', value: 'xnull' },
-  },
-  {
-    code: `"a" + 1 + true`,
-    output: { type: '__str', value: 'a1true' },
-  },
-  {
-    code: `"" + ~0`,
-    output: { type: '__str', value: '-1' },
-  },
-  // ------------------------- regression guards: long & chained inputs -------------------------
-  {
-    code: `1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1`,
-    output: { type: 'int', value: 60 },
-  },
-  {
-    code: `!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!true`,
-    output: { type: 'boolean', value: true },
-  },
-  {
-    code: `((((((((((((((((((((((((((((((((((((((((1))))))))))))))))))))))))))))))))))))))))`,
-    output: { type: 'int', value: 1 },
-  },
-  {
-    code: `zahl`,
-    output: { type: 'int', value: 42 },
-    env: { local: { zahl: { type: 'int', value: 42 } }, heap: {} },
-  },
-  // ------------------------- identifiers: different names -------------------------
-  {
-    code: `alpha`,
-    output: { type: 'int', value: 7 },
-    env: { local: { alpha: { type: 'int', value: 7 } }, heap: {} },
-  },
-  {
-    code: `Abc`,
-    output: { type: 'int', value: 13 },
-    env: { local: { Abc: { type: 'int', value: 13 } }, heap: {} },
-  },
-  {
-    code: `camelCase`,
-    output: { type: 'int', value: 9 },
-    env: { local: { camelCase: { type: 'int', value: 9 } }, heap: {} },
-  },
-  {
-    code: `_under`,
-    output: { type: 'int', value: 11 },
-    env: { local: { _under: { type: 'int', value: 11 } }, heap: {} },
-  },
-  {
-    code: `$cash`,
-    output: { type: 'int', value: 12 },
-    env: { local: { $cash: { type: 'int', value: 12 } }, heap: {} },
-  },
-  {
-    code: `Ω`,
-    output: { type: 'int', value: 14 },
-    env: { local: { Ω: { type: 'int', value: 14 } }, heap: {} },
-  },
-  // ------------------------- identifiers: reading values of each type -------------------------
-  {
-    code: `a`,
-    output: { type: 'int', value: 5 },
-    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
-  },
-  {
-    code: `xl`,
-    output: { type: 'long', value: '123' },
-    env: { local: { xl: { type: 'long', value: '123' } }, heap: {} },
-  },
-  {
-    code: `zz`,
-    output: { type: 'long', value: '10000000000' },
-    env: { local: { zz: { type: 'long', value: '10000000000' } }, heap: {} },
-  },
-  {
-    code: `d`,
-    output: { type: 'double', value: 3.5 },
-    env: { local: { d: { type: 'double', value: 3.5 } }, heap: {} },
-  },
-  {
-    code: `ch`,
-    output: { type: 'char', value: 65 },
-    env: { local: { ch: { type: 'char', value: 65 } }, heap: {} },
-  },
-  {
-    code: `by`,
-    output: { type: 'byte', value: 100 },
-    env: { local: { by: { type: 'byte', value: 100 } }, heap: {} },
-  },
-  {
-    code: `str`,
-    output: { type: '__str', value: 'JavaQuest' },
-    env: {
-      local: { str: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
-    },
-  },
+  // ==================== IDENTIFIERS - EXPRESSIONS ====================
   // ------------------------- identifiers: int arithmetic -------------------------
   {
     code: `a + a`,
@@ -2571,6 +2362,99 @@ export const testSuite: TestSuiteEntry[] = [
       heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
     },
   },
+  // ------------------------- identifiers: logical operators & equality -------------------------
+  {
+    code: `!flag`,
+    output: { type: 'boolean', value: false },
+    env: { local: { flag: { type: 'boolean', value: true } }, heap: {} },
+  },
+  {
+    code: `flag && flag2`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        flag: { type: 'boolean', value: true },
+        flag2: { type: 'boolean', value: false },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `flag || flag2`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        flag: { type: 'boolean', value: true },
+        flag2: { type: 'boolean', value: false },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == xl`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'int', value: 5 },
+        xl: { type: 'long', value: '123' },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == 123L`,
+    output: { type: 'boolean', value: false },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  {
+    code: `xl == 123L`,
+    output: { type: 'boolean', value: true },
+    env: { local: { xl: { type: 'long', value: '123' } }, heap: {} },
+  },
+  // ------------------------- identifiers: casts -------------------------
+  {
+    code: `(byte)a`,
+    output: { type: 'byte', value: 5 },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  {
+    code: `(int)xl`,
+    output: { type: 'int', value: 123 },
+    env: { local: { xl: { type: 'long', value: '123' } }, heap: {} },
+  },
+  {
+    code: `(long)a`,
+    output: { type: 'long', value: '5' },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  {
+    code: `(double)a`,
+    output: { type: 'double', value: 5 },
+    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+  },
+  {
+    code: `(char)zz`,
+    output: { type: 'char', value: 58368 },
+    env: { local: { zz: { type: 'long', value: '10000000000' } }, heap: {} },
+  },
+  // ------------------------- identifiers: precedence & parentheses -------------------------
+  {
+    code: `(a + b) * 2`,
+    output: { type: 'int', value: 4 },
+    env: {
+      local: { a: { type: 'int', value: 5 }, b: { type: 'int', value: -3 } },
+      heap: {},
+    },
+  },
+  {
+    code: `a - b - a`,
+    output: { type: 'int', value: 3 },
+    env: {
+      local: { a: { type: 'int', value: 5 }, b: { type: 'int', value: -3 } },
+      heap: {},
+    },
+  },
+  // ==================== STRING OBJECT MODEL - INTERNING & CONSTANT FOLDING ====================
   // ------------------------- string interning: literals & constant folding share objects -------------------------
   // Java folds constant string concatenations at compile time and interns the folded
   // result, so syntactically different constant expressions can denote one String object.
@@ -3098,98 +2982,225 @@ export const testSuite: TestSuiteEntry[] = [
     code: `-(1 / 0)`,
     isError: true,
   },
-  // ------------------------- identifiers: logical operators & equality -------------------------
+  // ==================== REGRESSION, RUNTIME & TYPECHECK GUARDS ====================
+  // ------------------------- regression guards: wrap & narrowing casts -------------------------
   {
-    code: `!flag`,
-    output: { type: 'boolean', value: false },
-    env: { local: { flag: { type: 'boolean', value: true } }, heap: {} },
+    code: `(byte)255`,
+    output: { type: 'byte', value: -1 },
   },
   {
-    code: `flag && flag2`,
-    output: { type: 'boolean', value: false },
-    env: {
-      local: {
-        flag: { type: 'boolean', value: true },
-        flag2: { type: 'boolean', value: false },
-      },
-      heap: {},
-    },
+    code: `(byte)256`,
+    output: { type: 'byte', value: 0 },
   },
   {
-    code: `flag || flag2`,
+    code: `(byte)257`,
+    output: { type: 'byte', value: 1 },
+  },
+  {
+    code: `(short)32768`,
+    output: { type: 'short', value: -32768 },
+  },
+  {
+    code: `(short)(char)0xffff`,
+    output: { type: 'short', value: -1 },
+  },
+  {
+    code: `(char)(short)(byte)-1`,
+    output: { type: 'char', value: 65535 },
+  },
+  // ------------------------- regression guards: Inf/NaN converted to integral types -------------------------
+  {
+    code: `(byte)(1.0/0.0)`,
+    output: { type: 'byte', value: -1 },
+  },
+  {
+    code: `(byte)(-1.0/0.0)`,
+    output: { type: 'byte', value: 0 },
+  },
+  {
+    code: `(long)(1.0/0.0)`,
+    output: { type: 'long', value: '9223372036854775807' },
+  },
+  {
+    code: `(int)(-1.0f/0.0f)`,
+    output: { type: 'int', value: -2147483648 },
+  },
+  {
+    code: `(char)(1.0/0.0)`,
+    output: { type: 'char', value: 65535 },
+  },
+  // ------------------------- regression guards: unary/binary numeric promotion result types -------------------------
+  {
+    code: `'a' + 'b'`,
+    output: { type: 'int', value: 195 },
+  },
+  {
+    code: `(byte)5 + (byte)5`,
+    output: { type: 'int', value: 10 },
+  },
+  {
+    code: `(byte)200 + 100`,
+    output: { type: 'int', value: 44 },
+  },
+  {
+    code: `(char)65535 + 1`,
+    output: { type: 'int', value: 65536 },
+  },
+  {
+    code: `(char)('a' - 32)`,
+    output: { type: 'char', value: 65 },
+  },
+  // ------------------------- regression guards: double -> int/long truncation toward zero -------------------------
+  {
+    code: `(int)1.9`,
+    output: { type: 'int', value: 1 },
+  },
+  {
+    code: `(int)-1.9`,
+    output: { type: 'int', value: -1 },
+  },
+  {
+    code: `(long)-0.9`,
+    output: { type: 'long', value: '0' },
+  },
+  // ------------------------- regression guards: stepwise float rounding -------------------------
+  {
+    code: `(1e20f + 1.5f) - 1e20f`,
+    output: { type: 'float', value: 0 },
+  },
+  {
+    code: `(1e20f - 1e20f) + 1.5f`,
+    output: { type: 'float', value: 1.5 },
+  },
+  {
+    code: `16777216f + 1f`,
+    output: { type: 'float', value: 16777216 },
+  },
+  {
+    code: `16777216f + 1f == 16777216f`,
     output: { type: 'boolean', value: true },
-    env: {
-      local: {
-        flag: { type: 'boolean', value: true },
-        flag2: { type: 'boolean', value: false },
-      },
-      heap: {},
-    },
   },
+  // ------------------------- regression guards: -0.0, Infinity, NaN equality -------------------------
   {
-    code: `a == xl`,
+    code: `(1 / -0.0) == (1 / 0.0)`,
     output: { type: 'boolean', value: false },
-    env: {
-      local: {
-        a: { type: 'int', value: 5 },
-        xl: { type: 'long', value: '123' },
-      },
-      heap: {},
-    },
   },
   {
-    code: `a == 123L`,
-    output: { type: 'boolean', value: false },
-    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
-  },
-  {
-    code: `xl == 123L`,
+    code: `-0.0f == 0.0f`,
     output: { type: 'boolean', value: true },
-    env: { local: { xl: { type: 'long', value: '123' } }, heap: {} },
-  },
-  // ------------------------- identifiers: casts -------------------------
-  {
-    code: `(byte)a`,
-    output: { type: 'byte', value: 5 },
-    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
   },
   {
-    code: `(int)xl`,
-    output: { type: 'int', value: 123 },
-    env: { local: { xl: { type: 'long', value: '123' } }, heap: {} },
+    code: `(5.0 % 0.0) == (5.0 % 0.0)`,
+    output: { type: 'boolean', value: false },
+  },
+  // ------------------------- regression guards: equality + &&/|| precedence & short circuit -------------------------
+  {
+    code: `!(true == true) || (1 == 2) && (2 == 2)`,
+    output: { type: 'boolean', value: false },
   },
   {
-    code: `(long)a`,
-    output: { type: 'long', value: '5' },
-    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+    code: `(1 == 1 || 2 == 2) && !(1 == 2)`,
+    output: { type: 'boolean', value: true },
   },
   {
-    code: `(double)a`,
-    output: { type: 'double', value: 5 },
-    env: { local: { a: { type: 'int', value: 5 } }, heap: {} },
+    code: `true && true == false`,
+    output: { type: 'boolean', value: false },
   },
   {
-    code: `(char)zz`,
-    output: { type: 'char', value: 58368 },
-    env: { local: { zz: { type: 'long', value: '10000000000' } }, heap: {} },
-  },
-  // ------------------------- identifiers: precedence & parentheses -------------------------
-  {
-    code: `(a + b) * 2`,
-    output: { type: 'int', value: 4 },
-    env: {
-      local: { a: { type: 'int', value: 5 }, b: { type: 'int', value: -3 } },
-      heap: {},
-    },
+    code: `(1 == 1) == (true == true)`,
+    output: { type: 'boolean', value: true },
   },
   {
-    code: `a - b - a`,
-    output: { type: 'int', value: 3 },
-    env: {
-      local: { a: { type: 'int', value: 5 }, b: { type: 'int', value: -3 } },
-      heap: {},
-    },
+    code: `5 / (0.0 / 0.0) == 5`,
+    output: { type: 'boolean', value: false },
   },
+  // ------------------------- regression guards: int/long boundary arithmetic -------------------------
+  {
+    code: `-2147483648 / -10`,
+    output: { type: 'int', value: 214748364 },
+  },
+  {
+    code: `-2147483648 % 10`,
+    output: { type: 'int', value: -8 },
+  },
+  {
+    code: `-9223372036854775808L / 10L`,
+    output: { type: 'long', value: '-922337203685477580' },
+  },
+  // ------------------------- regression guards: string concatenation with odd operands -------------------------
+  {
+    code: `"x" + null`,
+    output: { type: '__str', value: 'xnull' },
+  },
+  {
+    code: `"a" + 1 + true`,
+    output: { type: '__str', value: 'a1true' },
+  },
+  {
+    code: `"" + ~0`,
+    output: { type: '__str', value: '-1' },
+  },
+  // ------------------------- regression guards: long & chained inputs -------------------------
+  {
+    code: `1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1`,
+    output: { type: 'int', value: 60 },
+  },
+  {
+    code: `!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!true`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `((((((((((((((((((((((((((((((((((((((((1))))))))))))))))))))))))))))))))))))))))`,
+    output: { type: 'int', value: 1 },
+  },
+  {
+    code: `zahl`,
+    output: { type: 'int', value: 42 },
+    env: { local: { zahl: { type: 'int', value: 42 } }, heap: {} },
+  },
+  // ------------------------- runtime guards: integer division/modulo by zero (reached at runtime) -------------------------
+  {
+    code: `10 / (5 - 5)`,
+    isError: true,
+  },
+  {
+    code: `10L / (5L - 5L)`,
+    isError: true,
+  },
+  {
+    code: `1 / (int)0.5`,
+    isError: true,
+  },
+  {
+    code: `100L % (1L - 1L)`,
+    isError: true,
+  },
+  // ------------------------- typecheck guards: compile-time type errors -------------------------
+  {
+    code: `1 + true`,
+    isError: true,
+  },
+  {
+    code: `'a' && true`,
+    isError: true,
+  },
+  {
+    code: `!1.5`,
+    isError: true,
+  },
+  {
+    code: `(boolean)null`,
+    isError: true,
+  },
+  {
+    code: `null + 1`,
+    isError: true,
+  },
+  {
+    code: `1 == "1"`,
+    isError: true,
+  },
+  // ==================== UNBOUND & ERROR CASES ====================
   // ------------------------- identifiers: unbound & keyword error cases -------------------------
   {
     code: `definitelyNotThere`,

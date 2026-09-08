@@ -12,6 +12,7 @@ interface Ui {
   testAst?: AstNode
   testOutput?: JavaValue
   testOutputEnv?: string
+  testOnlyFail: boolean
 }
 
 interface Quest {

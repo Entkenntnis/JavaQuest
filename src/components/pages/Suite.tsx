@@ -11,6 +11,7 @@ import { checkForParseErrors, cst2ast } from '../../lib/java/cst2ast'
 import clsx from 'clsx'
 import { evaluate, foldConstants } from '../../lib/java/evaluate'
 import { typecheck } from '../../lib/java/typecheck'
+import { useCore } from '../../lib/state/core'
 
 function runCase(code: string, env: JavaEnvironment): SuiteResult {
   try {
@@ -58,6 +59,7 @@ function isPass(entry: TestSuiteEntry, result: SuiteResult) {
 
 export function Suite() {
   const passed = suiteResults.filter((r, i) => isPass(testSuite[i], r)).length
+  const core = useCore()
   return (
     <div className="mx-6 mb-32 mt-6 pb-12">
       <h1 className="text-lg mb-8">Test-Suite</h1>
@@ -67,6 +69,17 @@ export function Suite() {
         <span className="text-red-600">
           {testSuite.length - passed} gescheitert
         </span>
+        <label className="ml-10">
+          <input
+            type="checkbox"
+            onChange={(e) => {
+              core.mutateWs((ws) => {
+                ws.ui.testOnlyFail = e.target.checked
+              })
+            }}
+          />{' '}
+          nur nicht bestanden
+        </label>
       </p>
       {testSuite.map((el, i) => (
         <Entry key={el.code} entry={el} result={suiteResults[i]} n={i} />
@@ -84,12 +97,25 @@ function Entry({
   entry: TestSuiteEntry
   n: number
 }) {
+  const core = useCore()
   const { error, value } = result
 
   const hasResult = error || value
 
+  const outputStr = JSON.stringify(value)
+  const expectedStr = JSON.stringify(entry.output)
+  const isTheSame = outputStr === expectedStr
+
+  const isFailure =
+    (error && !entry.isError) || (!entry.isError && !value) || !isTheSame
+
   return (
-    <div className="flex justify-between border-t-2 border-pink-300">
+    <div
+      className={clsx(
+        'flex justify-between border-t-2 border-pink-300',
+        core.ws.ui.testOnlyFail && !isFailure && 'hidden',
+      )}
+    >
       <div>
         <pre className="rounded ml-3 my-3 border-2 border-pink-600 px-4 py-1">
           <span className="text-gray-400">[{n}] </span>
@@ -112,34 +138,26 @@ function Entry({
           <pre>FAIL! Fehler: {error}</pre>
         </div>
       )}
-      {value &&
-        (() => {
-          const outputStr = JSON.stringify(value)
-          const expectedStr = JSON.stringify(entry.output)
-          const isTheSame = outputStr === expectedStr
-          return (
-            <div className="">
-              {!isTheSame && entry.isError && (
-                <div className="text-red-600 font-bold m-4">
-                  Fehler erwartet
-                </div>
-              )}
-              <div
-                className={clsx(
-                  isTheSame ? 'text-green-600' : 'text-red-600',
-                  'm-1',
-                )}
-              >
-                <pre>Output: {outputStr}</pre>
-              </div>
-              {!isTheSame && !entry.isError && (
-                <div className="m-1">
-                  <pre>Expected: {expectedStr}</pre>
-                </div>
-              )}
+      {value && (
+        <div className="">
+          {!isTheSame && entry.isError && (
+            <div className="text-red-600 font-bold m-4">Fehler erwartet</div>
+          )}
+          <div
+            className={clsx(
+              isTheSame ? 'text-green-600' : 'text-red-600',
+              'm-1',
+            )}
+          >
+            <pre>Output: {outputStr}</pre>
+          </div>
+          {!isTheSame && !entry.isError && (
+            <div className="m-1">
+              <pre>Expected: {expectedStr}</pre>
             </div>
-          )
-        })()}
+          )}
+        </div>
+      )}
     </div>
   )
 }

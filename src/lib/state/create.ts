@@ -6,6 +6,7 @@ export function createDefaultCoreState(): CoreState {
     ui: {
       testInput: '',
       testEnv: '',
+      testOnlyFail: false,
     },
     quest: {
       id: -1,
