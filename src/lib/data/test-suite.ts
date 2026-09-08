@@ -4229,7 +4229,8 @@ export const testSuite: TestSuiteEntry[] = [
   // is the least upper type of the two arms (binary numeric promotion for numeric arms,
   // reference/null rules for String arms) and the operator is right-associative with the
   // lowest precedence of any expression operator. Only the selected arm is evaluated.
-  // (Ternary is not implemented yet; expectations match real Java via the cross-check.)
+  // Expectations match real Java via the cross-check; the interpreter is implemented
+  // incrementally against this suite (several cases below are still work in progress).
   // ------------------------- conditional: basics -------------------------
   {
     code: `true ? 1 : 2`,
@@ -4805,6 +4806,522 @@ export const testSuite: TestSuiteEntry[] = [
       heap: {},
     },
   },
+  // ------------------------- conditional: runtime condition only evaluates the selected arm -------------------------
+  // With a runtime (variable) condition nothing is constant-folded away, so laziness has
+  // to come from the evaluator itself: a division by zero in the unselected arm must not
+  // fire, while one in the selected arm still raises an ArithmeticException.
+  {
+    code: `b ? 1 : 1/0`,
+    output: { type: 'int', value: 1 },
+    env: {
+      local: { b: { type: 'boolean', value: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? 1 : 1/0`,
+    isError: true,
+    env: {
+      local: { b: { type: 'boolean', value: false } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? 1/0 : 2`,
+    isError: true,
+    env: {
+      local: { b: { type: 'boolean', value: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? 1/0 : 2`,
+    output: { type: 'int', value: 2 },
+    env: {
+      local: { b: { type: 'boolean', value: false } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? 1L : 1L/0L`,
+    isError: true,
+    env: {
+      local: { b: { type: 'boolean', value: false } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? "a" : "x" + (1/0)`,
+    output: { type: '__str', value: 'a' },
+    env: {
+      local: { b: { type: 'boolean', value: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? "x" + (1/0) : "a"`,
+    isError: true,
+    env: {
+      local: { b: { type: 'boolean', value: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? "x" + (1/0) : "a"`,
+    output: { type: '__str', value: 'a' },
+    env: {
+      local: { b: { type: 'boolean', value: false } },
+      heap: {},
+    },
+  },
+  // ------------------------- conditional: constant int arm is narrowed to byte/short/char (JLS 15.25.2) -------------------------
+  // If one operand is byte/short/char and the other is a constant expression of type int
+  // whose value is representable in that primitive type, the conditional has that type;
+  // a non-representable constant forces binary numeric promotion instead (int result).
+  // With a runtime condition the value of either arm must be converted to the result type.
+  {
+    code: `b ? 'z' : 90`,
+    output: { type: 'char', value: 122 },
+    env: {
+      local: { b: { type: 'boolean', value: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? 'z' : 90`,
+    output: { type: 'char', value: 90 },
+    env: {
+      local: { b: { type: 'boolean', value: false } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? 90 : 'z'`,
+    output: { type: 'char', value: 90 },
+    env: {
+      local: { b: { type: 'boolean', value: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? 'a' : 65535`,
+    output: { type: 'char', value: 65535 },
+    env: {
+      local: { b: { type: 'boolean', value: false } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? 'a' : 65536`,
+    output: { type: 'int', value: 97 },
+    env: {
+      local: { b: { type: 'boolean', value: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? 'a' : 65536`,
+    output: { type: 'int', value: 65536 },
+    env: {
+      local: { b: { type: 'boolean', value: false } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? 'a' : -1`,
+    output: { type: 'int', value: -1 },
+    env: {
+      local: { b: { type: 'boolean', value: false } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? 'a' : 1 + 1`,
+    output: { type: 'char', value: 2 },
+    env: {
+      local: { b: { type: 'boolean', value: false } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? (byte)7 : 127`,
+    output: { type: 'byte', value: 127 },
+    env: {
+      local: { b: { type: 'boolean', value: false } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? (byte)7 : 128`,
+    output: { type: 'int', value: 7 },
+    env: {
+      local: { b: { type: 'boolean', value: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? (byte)7 : 128`,
+    output: { type: 'int', value: 128 },
+    env: {
+      local: { b: { type: 'boolean', value: false } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? (short)300 : 32767`,
+    output: { type: 'short', value: 32767 },
+    env: {
+      local: { b: { type: 'boolean', value: false } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? (short)1 : 32768`,
+    output: { type: 'int', value: 32768 },
+    env: {
+      local: { b: { type: 'boolean', value: false } },
+      heap: {},
+    },
+  },
+  // ------------------------- conditional: narrowing only applies to constant int expressions -------------------------
+  // A variable of type int in the same position does not narrow: general numeric
+  // promotion applies instead, so a char arm is widened to int (JLS 15.25.2).
+  {
+    code: `b ? 'a' : x`,
+    output: { type: 'int', value: 97 },
+    env: {
+      local: {
+        b: { type: 'boolean', value: true },
+        x: { type: 'int', value: 90 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? 'a' : x`,
+    output: { type: 'int', value: 90 },
+    env: {
+      local: {
+        b: { type: 'boolean', value: false },
+        x: { type: 'int', value: 90 },
+      },
+      heap: {},
+    },
+  },
+  // ------------------------- conditional: runtime variable binary numeric promotion (JLS 15.25.2) -------------------------
+  // Mixed-type variable arms promote via binary numeric promotion; the selected arm's
+  // value must be converted to the promoted result type.
+  {
+    code: `b ? x : l`,
+    output: { type: 'long', value: '5' },
+    env: {
+      local: {
+        b: { type: 'boolean', value: true },
+        x: { type: 'int', value: 5 },
+        l: { type: 'long', value: '10' },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? x : l`,
+    output: { type: 'long', value: '10' },
+    env: {
+      local: {
+        b: { type: 'boolean', value: false },
+        x: { type: 'int', value: 5 },
+        l: { type: 'long', value: '10' },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? by : x`,
+    output: { type: 'int', value: 7 },
+    env: {
+      local: {
+        b: { type: 'boolean', value: true },
+        by: { type: 'byte', value: 7 },
+        x: { type: 'int', value: 1000 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? by : x`,
+    output: { type: 'int', value: 1000 },
+    env: {
+      local: {
+        b: { type: 'boolean', value: false },
+        by: { type: 'byte', value: 7 },
+        x: { type: 'int', value: 1000 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? by : l`,
+    output: { type: 'long', value: '7' },
+    env: {
+      local: {
+        b: { type: 'boolean', value: true },
+        by: { type: 'byte', value: 7 },
+        l: { type: 'long', value: '10' },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? by : l`,
+    output: { type: 'long', value: '10' },
+    env: {
+      local: {
+        b: { type: 'boolean', value: false },
+        by: { type: 'byte', value: 7 },
+        l: { type: 'long', value: '10' },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? sh : c`,
+    output: { type: 'int', value: 7 },
+    env: {
+      local: {
+        b: { type: 'boolean', value: true },
+        sh: { type: 'short', value: 7 },
+        c: { type: 'char', value: 300 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? sh : c`,
+    output: { type: 'int', value: 300 },
+    env: {
+      local: {
+        b: { type: 'boolean', value: false },
+        sh: { type: 'short', value: 7 },
+        c: { type: 'char', value: 300 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? by : d`,
+    output: { type: 'double', value: 7 },
+    env: {
+      local: {
+        b: { type: 'boolean', value: true },
+        by: { type: 'byte', value: 7 },
+        d: { type: 'double', value: 2.5 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? by : d`,
+    output: { type: 'double', value: 2.5 },
+    env: {
+      local: {
+        b: { type: 'boolean', value: false },
+        by: { type: 'byte', value: 7 },
+        d: { type: 'double', value: 2.5 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? x : d`,
+    output: { type: 'double', value: 3 },
+    env: {
+      local: {
+        b: { type: 'boolean', value: true },
+        x: { type: 'int', value: 3 },
+        d: { type: 'double', value: 2.5 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? x : d`,
+    output: { type: 'double', value: 2.5 },
+    env: {
+      local: {
+        b: { type: 'boolean', value: false },
+        x: { type: 'int', value: 3 },
+        d: { type: 'double', value: 2.5 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? l : d`,
+    output: { type: 'double', value: 10 },
+    env: {
+      local: {
+        b: { type: 'boolean', value: true },
+        l: { type: 'long', value: '10' },
+        d: { type: 'double', value: 2.5 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? l : d`,
+    output: { type: 'double', value: 2.5 },
+    env: {
+      local: {
+        b: { type: 'boolean', value: false },
+        l: { type: 'long', value: '10' },
+        d: { type: 'double', value: 2.5 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? f : d`,
+    output: { type: 'double', value: 2.5 },
+    env: {
+      local: {
+        b: { type: 'boolean', value: true },
+        f: { type: 'float', value: 2.5 },
+        d: { type: 'double', value: 1.5 },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? f : d`,
+    output: { type: 'double', value: 1.5 },
+    env: {
+      local: {
+        b: { type: 'boolean', value: false },
+        f: { type: 'float', value: 2.5 },
+        d: { type: 'double', value: 1.5 },
+      },
+      heap: {},
+    },
+  },
+  // ------------------------- conditional: boolean arms from comparisons (JLS 15.25.1) -------------------------
+  {
+    code: `b ? 1 == 1 : 2 > 3`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { b: { type: 'boolean', value: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? 1 == 1 : 2 > 3`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: { b: { type: 'boolean', value: false } },
+      heap: {},
+    },
+  },
+  // ------------------------- conditional: nested ternary & associative promotion -------------------------
+  // Nested ternaries propagate their promoted type outward; a constant outer condition
+  // folds through the nested expression and converts the selected value to the result type.
+  {
+    code: `false ? 1 : true ? 2 : 3L`,
+    output: { type: 'long', value: '2' },
+  },
+  {
+    code: `b ? 'a' : b2 ? 1 : 2L`,
+    output: { type: 'long', value: '97' },
+    env: {
+      local: {
+        b: { type: 'boolean', value: true },
+        b2: { type: 'boolean', value: false },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b ? 'a' : b2 ? 1 : 2L`,
+    output: { type: 'long', value: '2' },
+    env: {
+      local: {
+        b: { type: 'boolean', value: false },
+        b2: { type: 'boolean', value: false },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `true ? 'a' : 1000000`,
+    output: { type: 'int', value: 97 },
+  },
+  // ------------------------- conditional: string interning & constant folding of the result -------------------------
+  // A ternary whose arms are compile-time constants is itself constant and folds to an
+  // interned String, so == against the same literal is true; an arm that needs a runtime
+  // concatenation yields a fresh, non-interned object, so == is false. (Companion to the
+  // interning tests further down.)
+  {
+    code: `(true ? "a" : "b") == "a"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? "a" : "b") == "b"`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(false ? "a" : "b") == "b"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? "a" + "b" : "c") == "ab"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(false ? "c" : "a" + "b") == "ab"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(1 < 2 ? "a" + "b" : "c" + "d") == "ab"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `("" + (true ? "a" : "b")) == "a"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `((true ? "a" : "b") + "") == "a"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? (false ? "a" : "b") : "c") == "b"`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(b ? "a" + "b" : "c") == "ab"`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { b: { type: 'boolean', value: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `(true ? s + "b" : "c") == "ab"`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: { s: { type: 'reference', ref: 'heap0' } },
+      heap: {
+        heap0: { class: 'java.lang.String', value: 'a', isInterned: true },
+      },
+    },
+  },
+  {
+    code: `(true ? s + "b" : "c") == (s + "b")`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: { s: { type: 'reference', ref: 'heap0' } },
+      heap: {
+        heap0: { class: 'java.lang.String', value: 'a', isInterned: true },
+      },
+    },
+  },
   // ------------------------- conditional: compile-time type errors -------------------------
   {
     code: `1 ? 2 : 3`,
@@ -4820,6 +5337,45 @@ export const testSuite: TestSuiteEntry[] = [
   },
   {
     code: `"x" ? 1 : 2`,
+    isError: true,
+  },
+  // Non-boolean runtime (variable) conditions and non-literal boolean candidates.
+  {
+    code: `x ? 1 : 2`,
+    isError: true,
+    env: {
+      local: { x: { type: 'int', value: 1 } },
+      heap: {},
+    },
+  },
+  {
+    code: `ch ? 1 : 2`,
+    isError: true,
+    env: {
+      local: { ch: { type: 'char', value: 65 } },
+      heap: {},
+    },
+  },
+  {
+    code: `d ? 1 : 2`,
+    isError: true,
+    env: {
+      local: { d: { type: 'double', value: 1.5 } },
+      heap: {},
+    },
+  },
+  {
+    code: `s ? 1 : 2`,
+    isError: true,
+    env: {
+      local: { s: { type: 'reference', ref: 'heap0' } },
+      heap: {
+        heap0: { class: 'java.lang.String', value: 'a', isInterned: true },
+      },
+    },
+  },
+  {
+    code: `(1 + 1) ? 2 : 3`,
     isError: true,
   },
   // ==================== STRING CONCATENATION & CONVERSION ====================
