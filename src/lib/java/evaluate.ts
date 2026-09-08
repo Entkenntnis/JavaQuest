@@ -243,32 +243,35 @@ function evaluate_internal(
           }
           return { type: 'reference', ref }
         }
-        case '==b':
+        case '==b': {
+          const raw =
+            evaluate(node.left, env).value === evaluate(node.right, env).value
           return {
             type: 'boolean',
-            value:
-              evaluate(node.left, env).value ===
-              evaluate(node.right, env).value,
+            value: node.negate ? !raw : raw,
           }
+        }
         case '==n': {
           const [left, right] = binaryNumericPromotion(
             evaluate(node.left, env),
             evaluate(node.right, env),
           )
-          return { type: 'boolean', value: left.value === right.value }
+          const raw = left.value === right.value
+          return { type: 'boolean', value: node.negate ? !raw : raw }
         }
         case '==r': {
           const left = evaluate(node.left, env)
           const right = evaluate(node.right, env)
           if (left.type == 'null' && right.type == 'null') {
-            return { type: 'boolean', value: true }
+            return { type: 'boolean', value: !node.negate }
           }
           if (left.type == 'null' || right.type == 'null') {
-            return { type: 'boolean', value: false }
+            return { type: 'boolean', value: node.negate }
           }
+          const raw = left.ref === right.ref
           return {
             type: 'boolean',
-            value: left.ref === right.ref,
+            value: node.negate ? !raw : raw,
           }
         }
         case '<<':

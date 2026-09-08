@@ -301,10 +301,11 @@ function typecheck_internal(
         }
 
         // <-- insert numeric stuff here
-        if (node.op == '==') {
+        if (node.op == '==' || node.op == '!=') {
           const tn: TypedNumericEqualsNode = {
             kind: 'binary',
             op: '==n',
+            negate: node.op == '!=',
             left: innerL,
             right: innerR,
           }
@@ -355,10 +356,11 @@ function typecheck_internal(
       }
 
       if (typeL == 'boolean' && typeR == 'boolean') {
-        if (node.op == '==') {
+        if (node.op == '==' || node.op == '!=') {
           const tn: TypedBooleanEqualsNode = {
             kind: 'binary',
             op: '==b',
+            negate: node.op == '!=',
             left: innerL,
             right: innerR,
           }
@@ -394,13 +396,14 @@ function typecheck_internal(
       }
 
       if (
-        node.op == '==' &&
+        (node.op == '==' || node.op == '!=') &&
         (typeof typeL == 'object' || typeL == 'null') &&
         (typeof typeR == 'object' || typeR == 'null')
       ) {
         const tn: TypedReferenceEqualsNode = {
           kind: 'binary',
           op: '==r',
+          negate: node.op == '!=',
           left: innerL,
           right: innerR,
         }

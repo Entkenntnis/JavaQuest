@@ -195,6 +195,7 @@ export interface BinaryExpressionAstNode {
     | '|'
     | '&'
     | '^'
+    | '!='
   left: AstNode
   right: AstNode
 }
@@ -420,6 +421,7 @@ export interface TypedOrAndNode {
 export interface TypedNumericEqualsNode {
   kind: 'binary'
   op: '==n'
+  negate: boolean
   left: TypedNode<JavaNumericPrimitiveValue>
   right: TypedNode<JavaNumericPrimitiveValue>
 }
@@ -427,6 +429,7 @@ export interface TypedNumericEqualsNode {
 export interface TypedBooleanEqualsNode {
   kind: 'binary'
   op: '==b'
+  negate: boolean
   left: TypedNode<JavaBooleanValue>
   right: TypedNode<JavaBooleanValue>
 }
@@ -434,6 +437,7 @@ export interface TypedBooleanEqualsNode {
 export interface TypedReferenceEqualsNode {
   kind: 'binary'
   op: '==r'
+  negate: boolean
   left: TypedNode<JavaReferenceValue | JavaNullValue>
   right: TypedNode<JavaReferenceValue | JavaNullValue>
 }
