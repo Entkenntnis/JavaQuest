@@ -338,7 +338,10 @@ function evaluate_internal(
               result = true
             }
           }
-          if ((left.value && !right.value) || (!left.value && right.value)) {
+          if (
+            node.op == '^b' &&
+            ((left.value && !right.value) || (!left.value && right.value))
+          ) {
             result = true
           }
           return { type: 'boolean', value: result }

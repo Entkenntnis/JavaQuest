@@ -9,8 +9,8 @@
   shift @left
   compare @left
   bitAnd @left
-  bitOr @left
   bitXor @left
+  bitOr @left
   and @left
   or @left
   // ternary @right
