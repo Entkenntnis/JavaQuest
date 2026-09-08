@@ -319,40 +319,13 @@ function typecheck_internal(
           node.op == '<=' ||
           node.op == '>='
         ) {
-          if (typeL == 'double' || typeR == 'double') {
-            const tn: TypedRelationalCompareNode = {
-              kind: 'binary',
-              op: node.op,
-              left: innerL,
-              right: innerR,
-            }
-            return ['double', tn]
-          }
-          if (typeL == 'float' || typeR == 'float') {
-            const tn: TypedRelationalCompareNode = {
-              kind: 'binary',
-              op: node.op,
-              left: innerL,
-              right: innerR,
-            }
-            return ['float', tn]
-          }
-          if (typeL == 'long' || typeR == 'long') {
-            const tn: TypedRelationalCompareNode = {
-              kind: 'binary',
-              op: node.op,
-              left: innerL,
-              right: innerR,
-            }
-            return ['long', tn]
-          }
           const tn: TypedRelationalCompareNode = {
             kind: 'binary',
             op: node.op,
             left: innerL,
             right: innerR,
           }
-          return ['int', tn]
+          return ['boolean', tn]
         }
       }
 

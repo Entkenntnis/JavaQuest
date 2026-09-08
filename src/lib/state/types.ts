@@ -147,8 +147,6 @@ export type JavaLongFloatDoubleValue =
   | JavaFloatValue
   | JavaDoubleValue
 
-export type JavaPromotedNumberValue = JavaLongFloatDoubleValue | JavaIntValue
-
 export type JavaValue =
   | JavaBooleanValue
   | JavaNumericPrimitiveValue
@@ -269,6 +267,7 @@ export type TypedNode<T extends JavaValue> =
           | TypedBooleanEqualsNode
           | TypedReferenceEqualsNode
           | TypedBooleanLogicalNode
+          | TypedRelationalCompareNode
       : never)
   | (T extends JavaLongValue
       ? TypedNumericArithNodeBLL | TypedNumericArithNodeBLR
@@ -280,7 +279,6 @@ export type TypedNode<T extends JavaValue> =
       ? TypedNumericArithNodeBDL | TypedNumericArithNodeBDR
       : never)
   | (T extends JavaBigIntegerValue ? TypedBitwiseNode : never)
-  | (T extends JavaPromotedNumberValue ? TypedRelationalCompareNode : never)
 
 // ---- LITERAL -----
 export interface TypedLiteralNode<T extends JavaAllowedLiteralValue> {

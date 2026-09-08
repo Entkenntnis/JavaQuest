@@ -7,7 +7,8 @@
   times @left
   plus @left
   shift @left
-  compare @left
+  relational @left
+  equality @left
   bitAnd @left
   bitXor @left
   bitOr @left
@@ -52,7 +53,8 @@ CastExpression {
 }
 
 BinaryExpression {
-  expression !compare (op<Compare, "==" | ">=" | "<=" | "!="> | CompareOp { "<" | ">" }) expression |
+  expression !relational op<Compare, ">" | ">=" | "<=" | "<"> expression |
+  expression !equality op<Equality, "==" | "!="> expression |
   expression !and op<Logic, "&&"> expression |
   expression !or op<Logic, "||"> expression |
   expression !bitAnd BitOp { "&" } expression |
