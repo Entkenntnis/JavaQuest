@@ -30,11 +30,12 @@ import type {
   TypedNumericEqualsNode,
   TypedOrAndNode,
   TypedReferenceEqualsNode,
-  TypedShiftNode,
+  TypedBitwiseNode,
   TypedStringConcatNodeL,
   TypedStringConcatNodeR,
   TypedUnaryPlusMinusNodeB,
   TypedUnaryPlusMinusNodeS,
+  TypedBooleanLogicalNode,
 } from '../state/types'
 
 export function typecheck(
@@ -353,14 +354,43 @@ function typecheck_internal(
         return ['boolean', tn]
       }
 
-      if (node.op == '==' && typeL == 'boolean' && typeR == 'boolean') {
-        const tn: TypedBooleanEqualsNode = {
-          kind: 'binary',
-          op: '==b',
-          left: innerL,
-          right: innerR,
+      if (typeL == 'boolean' && typeR == 'boolean') {
+        if (node.op == '==') {
+          const tn: TypedBooleanEqualsNode = {
+            kind: 'binary',
+            op: '==b',
+            left: innerL,
+            right: innerR,
+          }
+          return ['boolean', tn]
         }
-        return ['boolean', tn]
+        if (node.op == '|') {
+          const tn: TypedBooleanLogicalNode = {
+            kind: 'binary',
+            op: '|b',
+            left: innerL,
+            right: innerR,
+          }
+          return ['boolean', tn]
+        }
+        if (node.op == '&') {
+          const tn: TypedBooleanLogicalNode = {
+            kind: 'binary',
+            op: '&b',
+            left: innerL,
+            right: innerR,
+          }
+          return ['boolean', tn]
+        }
+        if (node.op == '^') {
+          const tn: TypedBooleanLogicalNode = {
+            kind: 'binary',
+            op: '^b',
+            left: innerL,
+            right: innerR,
+          }
+          return ['boolean', tn]
+        }
       }
 
       if (
@@ -390,9 +420,16 @@ function typecheck_internal(
           typeR == 'long')
       ) {
         // integral ops
-        if (node.op == '<<' || node.op == '>>' || node.op == '>>>') {
+        if (
+          node.op == '<<' ||
+          node.op == '>>' ||
+          node.op == '>>>' ||
+          node.op == '|' ||
+          node.op == '&' ||
+          node.op == '^'
+        ) {
           if (typeL == 'long') {
-            const tn: TypedShiftNode = {
+            const tn: TypedBitwiseNode = {
               kind: 'binary',
               op: node.op,
               left: innerL,
@@ -400,7 +437,7 @@ function typecheck_internal(
             }
             return ['long', tn]
           }
-          const tn: TypedShiftNode = {
+          const tn: TypedBitwiseNode = {
             kind: 'binary',
             op: node.op,
             left: innerL,

@@ -1,6 +1,7 @@
 import { printDouble } from './helper/floating/double'
 import { printFloat } from './helper/floating/float'
 import {
+  type JavaBooleanValue,
   type JavaByteValue,
   type JavaCharValue,
   type JavaDoubleValue,
@@ -301,6 +302,46 @@ function evaluate_internal(
             return { type: 'long', value: value.toString() }
           }
           return { type: 'int', value: Number(value) }
+        }
+        case '|':
+        case '&':
+        case '^': {
+          const left = evaluate<JavaIntegerValue>(node.left, env)
+          const right = evaluate<JavaIntegerValue>(node.right, env)
+          const isLong = left.type == 'long' || right.type == 'long'
+          const bits = isLong ? 64 : 32
+
+          const L = BigInt.asIntN(bits, BigInt(left.value))
+          const R = BigInt.asIntN(bits, BigInt(right.value))
+          const raw = node.op == '|' ? L | R : node.op == '&' ? L & R : L ^ R
+
+          const value = BigInt.asIntN(bits, raw)
+          if (isLong) {
+            return { type: 'long', value: value.toString() }
+          }
+          return { type: 'int', value: Number(value) }
+        }
+        case '|b':
+        case '&b':
+        case '^b': {
+          const left = evaluate<JavaBooleanValue>(node.left, env)
+          const right = evaluate<JavaBooleanValue>(node.right, env)
+
+          let result = false
+          if (node.op == '|b') {
+            if (left.value || right.value) {
+              result = true
+            }
+          }
+          if (node.op == '&b') {
+            if (left.value && right.value) {
+              result = true
+            }
+          }
+          if ((left.value && !right.value) || (!left.value && right.value)) {
+            result = true
+          }
+          return { type: 'boolean', value: result }
         }
       }
     }

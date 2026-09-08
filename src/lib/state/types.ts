@@ -180,7 +180,21 @@ export interface UnaryExpressionAstNode {
 
 export interface BinaryExpressionAstNode {
   kind: 'binary'
-  op: '+' | '-' | '*' | '/' | '%' | '||' | '&&' | '==' | '<<' | '>>' | '>>>'
+  op:
+    | '+'
+    | '-'
+    | '*'
+    | '/'
+    | '%'
+    | '||'
+    | '&&'
+    | '=='
+    | '<<'
+    | '>>'
+    | '>>>'
+    | '|'
+    | '&'
+    | '^'
   left: AstNode
   right: AstNode
 }
@@ -247,6 +261,7 @@ export type TypedNode<T extends JavaValue> =
           | TypedNumericEqualsNode
           | TypedBooleanEqualsNode
           | TypedReferenceEqualsNode
+          | TypedBooleanLogicalNode
       : never)
   | (T extends JavaLongValue
       ? TypedNumericArithNodeBLL | TypedNumericArithNodeBLR
@@ -257,7 +272,7 @@ export type TypedNode<T extends JavaValue> =
   | (T extends JavaDoubleValue
       ? TypedNumericArithNodeBDL | TypedNumericArithNodeBDR
       : never)
-  | (T extends JavaBigIntegerValue ? TypedShiftNode : never)
+  | (T extends JavaBigIntegerValue ? TypedBitwiseNode : never)
 
 // ---- LITERAL -----
 export interface TypedLiteralNode<T extends JavaAllowedLiteralValue> {
@@ -367,11 +382,18 @@ export interface TypedNumericArithNodeBDR {
   right: TypedNode<JavaDoubleValue>
 }
 
-export interface TypedShiftNode {
+export interface TypedBitwiseNode {
   kind: 'binary'
-  op: '<<' | '>>' | '>>>'
+  op: '<<' | '>>' | '>>>' | '|' | '&' | '^'
   left: TypedNode<JavaIntegerValue>
   right: TypedNode<JavaIntegerValue>
+}
+
+export interface TypedBooleanLogicalNode {
+  kind: 'binary'
+  op: '|b' | '&b' | '^b'
+  left: TypedNode<JavaBooleanValue>
+  right: TypedNode<JavaBooleanValue>
 }
 
 export interface TypedStringConcatNodeL {
