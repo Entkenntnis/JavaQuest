@@ -28,8 +28,6 @@ function fold(
   switch (node.kind) {
     case 'literal':
     case 'string-literal':
-      // I suspect that null is not a constant and would need to be excluded
-      // but I'm not sure, check later against JVM reference
       return node
     case 'identifier':
       // never constant
@@ -60,7 +58,7 @@ function collapse(
   rebuilt: TypedNode<JavaValue>,
   scratch: JavaEnvironment,
 ): TypedNode<JavaValue> {
-  if (!chidlrenAreLeaves(rebuilt)) return rebuilt
+  if (!isConstantSubtree(rebuilt)) return rebuilt
 
   let value: JavaValue
   try {
@@ -73,28 +71,27 @@ function collapse(
     return { kind: 'string-literal', value: scratch.heap[value.ref].value }
   }
 
-  if (value.type == 'char' || value.type == 'byte' || value.type == 'short') {
-    return rebuilt
-  }
-
-  return { kind: 'literal', value } as any
+  return { kind: 'literal', value } as TypedNode<JavaValue>
 }
 
-function isLeaf(node: TypedNode<JavaValue>) {
-  return node.kind == 'literal' || node.kind == 'string-literal'
+function isConstant(node: TypedNode<JavaValue>) {
+  return (
+    (node.kind == 'literal' && node.value.type != 'null') ||
+    node.kind == 'string-literal'
+  )
 }
 
-function chidlrenAreLeaves(node: TypedNode<JavaValue>): boolean {
+function isConstantSubtree(node: TypedNode<JavaValue>): boolean {
   switch (node.kind) {
     case 'literal':
     case 'string-literal':
     case 'identifier':
-      return isLeaf(node)
+      return isConstant(node)
     case 'cast':
     case 'unary':
-      return isLeaf(node.operand)
+      return isConstant(node.operand)
     case 'binary':
-      return isLeaf(node.left) && isLeaf(node.right)
+      return isConstant(node.left) && isConstant(node.right)
   }
 }
 
