@@ -10,7 +10,9 @@ import {
   type JavaIntegerValue,
   type JavaIntValue,
   type JavaLongValue,
+  type JavaNullValue,
   type JavaNumericPrimitiveValue,
+  type JavaReferenceValue,
   type JavaShortValue,
   type JavaValue,
   type TypedNode,
@@ -283,44 +285,20 @@ function evaluate_internal(
         case '==r': {
           const left = evaluate(node.left, env)
           const right = evaluate(node.right, env)
-          if (left.type == 'null' && right.type == 'null') {
-            return { type: 'boolean', value: !node.negate }
-          }
-          if (left.type == 'null' || right.type == 'null') {
-            return { type: 'boolean', value: node.negate }
-          }
-          const raw = left.ref === right.ref
-          return {
-            type: 'boolean',
-            value: node.negate ? !raw : raw,
-          }
+          return compareR(left, right, node.negate)
         }
         case '==box': {
-          const left = evaluate(node.left, env)
-          const right = evaluate(node.right, env)
-          let raw = left.value == right.value
+          let left = evaluate(node.left, env)
+          let right = evaluate(node.right, env)
 
-          // in some situation, this constrain is not holding
-          if (
-            left.type == 'double' ||
-            right.type == 'double' ||
-            left.type == 'float' ||
-            right.type == 'float'
-          ) {
-            // no caching for float/double
-            raw = false
+          if (left.type != 'reference' && left.type != 'null') {
+            left = primitiveValueIntoHeap(left, env)
           }
-          if (
-            (left.type == 'int' && (left.value > 128 || left.value < -128)) ||
-            (right.type == 'int' && (right.value > 128 || right.value < -128))
-          ) {
-            raw = false
+
+          if (right.type != 'reference' && right.type != 'null') {
+            right = primitiveValueIntoHeap(right, env)
           }
-          throw 'TODO'
-          return {
-            type: 'boolean',
-            value: false,
-          }
+          return compareR(left, right, node.negate)
         }
         case '<<':
         case '>>':
@@ -460,38 +438,7 @@ function evaluate_internal(
       if (node.objectify)
         if (isPrimitive(raw)) {
           if (node.objectify) {
-            // convert to object and loose most/all of it's usefulness
-            // the name will be the only discriminator
-            let ref = freshHeapRef(env)
-
-            if (raw.type == 'boolean') {
-              ref = `box_cache_boolean_${raw.value}`
-            }
-            if (raw.type == 'byte') {
-              ref = `box_cache_byte_${raw.value}`
-            }
-            if (raw.type == 'short' && raw.value >= -128 && raw.value <= 127) {
-              ref = `box_cache_short_${raw.value}`
-            }
-            if (raw.type == 'char' && raw.value <= 127) {
-              ref = `box_cache_char_${raw.value}`
-            }
-            if (raw.type == 'int' && raw.value >= -128 && raw.value <= 127) {
-              ref = `box_cache_int_${raw.value}`
-            }
-
-            if (raw.type == 'long') {
-              const v = BigInt(raw.value)
-              if (v >= -128 && v < 127) {
-                ref = `box_cache_long_${raw.value}`
-              }
-            }
-
-            env.heap[ref] = {
-              class: 'java.lang.Object',
-              __hack_from_objectify_boxing: raw,
-            }
-            return { type: 'reference', ref }
+            return primitiveValueIntoHeap(raw, env)
           }
           if (node.boxResult) {
             return { ...raw, boxed: true }
@@ -499,6 +446,62 @@ function evaluate_internal(
         }
       return raw
     }
+  }
+}
+
+function primitiveValueIntoHeap(
+  raw: JavaNumericPrimitiveValue | JavaBooleanValue,
+  env: JavaEnvironment,
+): JavaReferenceValue {
+  // convert to object and lose most/all of it's usefulness
+  // the name will be the only discriminator
+  let ref = freshHeapRef(env)
+
+  if (raw.type == 'boolean') {
+    ref = `box_cache_boolean_${raw.value}`
+  }
+  if (raw.type == 'byte') {
+    ref = `box_cache_byte_${raw.value}`
+  }
+  if (raw.type == 'short' && raw.value >= -128 && raw.value <= 127) {
+    ref = `box_cache_short_${raw.value}`
+  }
+  if (raw.type == 'char' && raw.value <= 127) {
+    ref = `box_cache_char_${raw.value}`
+  }
+  if (raw.type == 'int' && raw.value >= -128 && raw.value <= 127) {
+    ref = `box_cache_int_${raw.value}`
+  }
+
+  if (raw.type == 'long') {
+    const v = BigInt(raw.value)
+    if (v >= -128 && v < 127) {
+      ref = `box_cache_long_${raw.value}`
+    }
+  }
+
+  env.heap[ref] = {
+    class: 'java.lang.Object',
+    __hack_from_objectify_boxing: raw,
+  }
+  return { type: 'reference', ref }
+}
+
+function compareR(
+  left: JavaReferenceValue | JavaNullValue,
+  right: JavaReferenceValue | JavaNullValue,
+  negate: boolean,
+): JavaBooleanValue {
+  if (left.type == 'null' && right.type == 'null') {
+    return { type: 'boolean', value: !negate }
+  }
+  if (left.type == 'null' || right.type == 'null') {
+    return { type: 'boolean', value: negate }
+  }
+  const raw = left.ref === right.ref
+  return {
+    type: 'boolean',
+    value: negate ? !raw : raw,
   }
 }
 

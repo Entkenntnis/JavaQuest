@@ -220,28 +220,20 @@ function typecheck_internal(
       const [typeL, innerL, dataL] = typecheck_internal(node.left, env)
       const [typeR, innerR, dataR] = typecheck_internal(node.right, env)
 
-      // EQUALITY with boxed values need a special treatment as this does not work well with
+      const isBoxL = dataL && 'boxed' in dataL && dataL.boxed
+      const isBoxR = dataR && 'boxed' in dataR && dataR.boxed
+
+      // EQUALITY with boxed values need a special treatment
       if (
         (node.op == '==' || node.op == '!=') &&
-        dataL &&
-        dataR &&
-        'boxed' in dataL &&
-        'boxed' in dataR &&
-        dataL.boxed &&
-        dataR.boxed
+        ((isBoxL && (isBoxR || typeR == 'reference' || typeR == 'null')) ||
+          (isBoxR && (isBoxL || typeL == 'reference' || typeL == 'null')))
       ) {
-        if (
-          typeL == 'reference' ||
-          typeR == 'reference' ||
-          typeL == 'null' ||
-          typeR == 'null'
-        ) {
-          throw new Error(
-            'internal system error, should not happen for boxed value',
-          )
-        }
-        if (typeL != typeR) {
-          throw new Error('incompatible types')
+        // type check!
+        if (isBoxL && isBoxR) {
+          if (typeL != typeR) {
+            throw new Error('incompatible types')
+          }
         }
         const tn: TypedBoxedReferenceEqualsNode = {
           kind: 'binary',
