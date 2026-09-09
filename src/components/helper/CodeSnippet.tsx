@@ -10,7 +10,7 @@ import { useEffect, useRef } from 'react'
 import { defaultHighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { java } from '@codemirror/lang-java'
 import { useCore } from '../../lib/state/core'
-import { questsData } from '../../lib/data/quests-data'
+import { questsData } from '../../lib/content/quests-data'
 
 const placeholderTag = '___placeholder___'
 

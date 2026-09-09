@@ -1,4 +1,4 @@
-import type { TestSuiteEntry } from '../state/types'
+import type { TestSuiteEntry } from '../state/types.ts'
 import { literals } from './tests/literals.ts'
 import { identifiersAndCasts } from './tests/identifiers-and-casts.ts'
 import { binaryArithmetic } from './tests/binary-arithmetic.ts'

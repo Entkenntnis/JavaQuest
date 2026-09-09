@@ -1,4 +1,4 @@
-import { testSuite } from '../../lib/data/test-suite'
+import { testSuite } from '../../lib/java/test-suite'
 import type {
   JavaEnvironment,
   SuiteResult,

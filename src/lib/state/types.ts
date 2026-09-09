@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 export interface CoreState {
   page: Page
   ui: Ui
@@ -29,6 +31,12 @@ export interface QuestData {
   id: number
   title: string
   code: string
+}
+
+export interface ChapterData {
+  title: string
+  quests: number[]
+  description: () => ReactNode
 }
 
 export interface TestHarnessDerefStringValue {

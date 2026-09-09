@@ -3,7 +3,7 @@ import { CodeSnippet } from '../helper/CodeSnippet'
 import { FaIcon } from '../helper/FaIcon'
 import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
-import { questsData } from '../../lib/data/quests-data'
+import { questsData } from '../../lib/content/quests-data'
 import { InputBar } from '../helper/InputBar'
 
 export function Quest() {
