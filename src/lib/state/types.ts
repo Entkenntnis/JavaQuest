@@ -492,6 +492,7 @@ export interface TypedConditionalOperatorNode {
   left: TypedNode<JavaValue>
   right: TypedNode<JavaValue>
   boxResult?: true
+  objectify?: true
 }
 
 export interface TypedConditionalOperatorNumericCastNode {
@@ -500,6 +501,7 @@ export interface TypedConditionalOperatorNumericCastNode {
   left: TypedNode<JavaNumericPrimitiveValue>
   right: TypedNode<JavaNumericPrimitiveValue>
   boxResult?: true
+  objectify?: true
   castTo?: 'byte' | 'short' | 'char' | 'int' | 'long' | 'float' | 'double'
 }
 
@@ -532,4 +534,5 @@ export interface JavaStringHeapObject {
 
 export interface JavaObject {
   class: 'java.lang.Object'
+  __hack_from_objectify_boxing?: JavaNumericPrimitiveValue | JavaBooleanValue
 }

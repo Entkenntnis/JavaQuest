@@ -111,7 +111,9 @@ function isConstantSubtree(node: TypedNode<JavaValue>): boolean {
       return (
         isConstant(node.condition) &&
         isConstant(node.left) &&
-        isConstant(node.right)
+        isConstant(node.right) &&
+        !node.boxResult &&
+        !node.objectify
       )
   }
 }
@@ -314,9 +316,10 @@ function evaluate_internal(
           ) {
             raw = false
           }
+          throw 'TODO'
           return {
             type: 'boolean',
-            value: node.negate ? !raw : raw,
+            value: false,
           }
         }
         case '<<':
@@ -454,9 +457,46 @@ function evaluate_internal(
         raw = evaluate<JavaValue>(cond.value ? node.left : node.right, env)
       }
 
-      if (isPrimitive(raw) && node.boxResult) {
-        return { ...raw, boxed: true }
-      }
+      if (node.objectify)
+        if (isPrimitive(raw)) {
+          if (node.objectify) {
+            // convert to object and loose most/all of it's usefulness
+            // the name will be the only discriminator
+            let ref = freshHeapRef(env)
+
+            if (raw.type == 'boolean') {
+              ref = `box_cache_boolean_${raw.value}`
+            }
+            if (raw.type == 'byte') {
+              ref = `box_cache_byte_${raw.value}`
+            }
+            if (raw.type == 'short' && raw.value >= -128 && raw.value <= 127) {
+              ref = `box_cache_short_${raw.value}`
+            }
+            if (raw.type == 'char' && raw.value <= 127) {
+              ref = `box_cache_char_${raw.value}`
+            }
+            if (raw.type == 'int' && raw.value >= -128 && raw.value <= 127) {
+              ref = `box_cache_int_${raw.value}`
+            }
+
+            if (raw.type == 'long') {
+              const v = BigInt(raw.value)
+              if (v >= -128 && v < 127) {
+                ref = `box_cache_long_${raw.value}`
+              }
+            }
+
+            env.heap[ref] = {
+              class: 'java.lang.Object',
+              __hack_from_objectify_boxing: raw,
+            }
+            return { type: 'reference', ref }
+          }
+          if (node.boxResult) {
+            return { ...raw, boxed: true }
+          }
+        }
       return raw
     }
   }

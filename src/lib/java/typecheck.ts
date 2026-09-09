@@ -730,7 +730,7 @@ function typecheck_internal(
       }
 
       // 7. General Types -> currently just fall back to Object
-      tn.boxResult = true
+      tn.objectify = true
       return ['reference', tn, { name: 'java.lang.Object' }]
     }
   }

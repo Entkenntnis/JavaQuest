@@ -28,6 +28,10 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
           value: { type: '__str', value: obj.value },
         }
       }
+      // auto unboxing, like in cross check harness
+      if (obj.class == 'java.lang.Object' && obj.__hack_from_objectify_boxing) {
+        return { value: obj.__hack_from_objectify_boxing }
+      }
     }
     if (value.type == 'reference') {
       throw new Error(
@@ -46,9 +50,9 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
   }
 }
 
-const suiteResults = testSuite.map((el) =>
-  runCase(el.code, el.env ? cloneEnv(el.env) : { local: {}, heap: {} }),
-)
+const suiteResults = testSuite.map((el, i) => {
+  return runCase(el.code, el.env ? cloneEnv(el.env) : { local: {}, heap: {} })
+})
 
 function cloneEnv(env: JavaEnvironment): JavaEnvironment {
   return JSON.parse(JSON.stringify(env))
@@ -88,7 +92,12 @@ export function Suite() {
         </label>
       </p>
       {testSuite.map((el, i) => (
-        <Entry key={el.code} entry={el} result={suiteResults[i]} n={i} />
+        <Entry
+          key={'[' + i + ']' + el.code}
+          entry={el}
+          result={suiteResults[i]}
+          n={i}
+        />
       ))}
     </div>
   )
