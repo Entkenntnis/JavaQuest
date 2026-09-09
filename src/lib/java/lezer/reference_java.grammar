@@ -163,7 +163,7 @@ ArgumentList {
 }
 
 MethodReference {
-  (type | baseExpression | kw<"super">) "::" TypeArguments? (kw<"new"> | Identifier)
+  (type | baseExpression ("." kw<"super">)? | kw<"super">) "::" TypeArguments? (kw<"new"> | Identifier)
 }
 
 TypeArguments {
@@ -417,7 +417,7 @@ Modifiers {
 
 modifier {
   kw<"public"> | kw<"protected"> | kw<"private"> | kw<"abstract"> | kw<"static"> | kw<"final"> | kw<"strictfp"> |
-  kw<"default"> kw<"synchronized"> | kw<"native"> | kw<"transient"> | kw<"volatile">
+  kw<"default"> | kw<"synchronized"> | kw<"native"> | kw<"transient"> | kw<"volatile">
 }
 
 TypeParameters {
@@ -625,7 +625,7 @@ ReceiverParameter {
 }
 
 SpreadParameter {
-  Modifiers? unannotatedType "..." VariableDeclarator
+  Modifiers? unannotatedType annotation* "..." VariableDeclarator
 }
 
 Throws {
