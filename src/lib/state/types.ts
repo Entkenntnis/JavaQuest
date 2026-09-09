@@ -265,7 +265,9 @@ export type TypedNode<T extends JavaValue> =
   | TypedIdentifierNode
   | TypedConditionalOperatorNode
   | (T extends JavaAllowedLiteralValue ? TypedLiteralNode<T> : never)
-  | (T extends JavaNumericPrimitiveValue ? TypedNumericCastNode<T> : never)
+  | (T extends JavaNumericPrimitiveValue
+      ? TypedNumericCastNode<T> | TypedConditionalOperatorNumericCastNode
+      : never)
   | (T extends JavaLongFloatDoubleValue ? TypedUnaryPlusMinusNodeB<T> : never)
   | (T extends JavaReferenceValue
       ? TypedLiteralStringNode | TypedStringConcatNodeL | TypedStringConcatNodeR
@@ -481,7 +483,15 @@ export interface TypedConditionalOperatorNode {
   left: TypedNode<JavaValue>
   right: TypedNode<JavaValue>
   boxResult?: true
-  castTo?: 'short'
+}
+
+export interface TypedConditionalOperatorNumericCastNode {
+  kind: 'ternary'
+  condition: TypedNode<JavaBooleanValue>
+  left: TypedNode<JavaNumericPrimitiveValue>
+  right: TypedNode<JavaNumericPrimitiveValue>
+  boxResult?: true
+  castTo?: 'byte' | 'short' | 'char' | 'int' | 'long' | 'float' | 'double'
 }
 
 export type TypecheckResult =
@@ -503,7 +513,7 @@ export interface JavaEnvironment {
   heap: Record<string, JavaHeapObject>
 }
 
-export type JavaHeapObject = JavaStringHeapObject
+export type JavaHeapObject = JavaStringHeapObject | JavaObject
 
 export interface JavaStringHeapObject {
   class: 'java.lang.String'

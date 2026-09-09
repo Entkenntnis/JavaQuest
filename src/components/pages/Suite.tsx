@@ -21,12 +21,12 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
     const ast = cst2ast(cst)
     const typed = typecheck(ast, env)
     const value = evaluate(foldConstants(typed), env)
-    if (
-      value.type == 'reference' &&
-      env.heap[value.ref].class == 'java.lang.String'
-    ) {
-      return {
-        value: { type: '__str', value: env.heap[value.ref].value },
+    if (value.type == 'reference') {
+      const obj = env.heap[value.ref]
+      if (obj.class == 'java.lang.String') {
+        return {
+          value: { type: '__str', value: obj.value },
+        }
       }
     }
     if (value.type == 'reference') {
@@ -36,6 +36,9 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
     }
     if (value.type == 'null') {
       throw new Error('null output is not supported in the test harness')
+    }
+    if (value.boxed) {
+      delete value.boxed
     }
     return { value }
   } catch (e) {

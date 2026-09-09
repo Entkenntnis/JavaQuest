@@ -79,7 +79,11 @@ function collapse(
   }
 
   if (value.type == 'reference') {
-    return { kind: 'string-literal', value: scratch.heap[value.ref].value }
+    const obj = scratch.heap[value.ref]
+    if (obj.class != 'java.lang.String') {
+      return rebuilt
+    }
+    return { kind: 'string-literal', value: obj.value }
   }
 
   return { kind: 'literal', value } as TypedNode<JavaValue>
@@ -411,10 +415,19 @@ function evaluate_internal(
     }
     case 'ternary': {
       const cond = evaluate(node.condition, env)
-      let raw = evaluate(cond.value ? node.left : node.right, env)
-      if (node.castTo) {
-        raw = convertTo(node.castTo, raw as any)
+      let raw
+      if ('castTo' in node) {
+        raw = evaluate<JavaNumericPrimitiveValue>(
+          cond.value ? node.left : node.right,
+          env,
+        )
+        if (node.castTo) {
+          raw = convertTo(node.castTo, raw)
+        }
+      } else {
+        raw = evaluate<JavaValue>(cond.value ? node.left : node.right, env)
       }
+
       if (isPrimitive(raw) && node.boxResult) {
         return { ...raw, boxed: true }
       }
@@ -583,7 +596,10 @@ function javaValueToString(val: JavaValue, env: JavaEnvironment): string {
     case 'reference':
       // TODO: if new methods arrive, find the toString method and invoke it
       const obj = env.heap[val.ref]
-      return obj.value
+      if (obj.class == 'java.lang.String') {
+        return obj.value
+      }
+      return '?OBJ?'
     case 'null':
       return 'null'
   }

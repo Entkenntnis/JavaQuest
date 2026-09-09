@@ -38,7 +38,9 @@ import type {
   TypedBooleanLogicalNode,
   TypedRelationalCompareNode,
   TypedConditionalOperatorNode,
+  TypedConditionalOperatorNumericCastNode,
 } from '../state/types'
+import { foldConstants } from './evaluate'
 
 export function typecheck(
   node: AstNode,
@@ -499,6 +501,7 @@ function typecheck_internal(
         left: innerL,
         right: innerR,
       }
+
       // 1. same type, also data payload data (boxed, reference name)
       if (typeL == typeR && JSON.stringify(dataL) == JSON.stringify(dataR)) {
         switch (typeL) {
@@ -525,13 +528,172 @@ function typecheck_internal(
         (typeL == 'byte' && typeR == 'short') ||
         (typeL == 'short' && typeR == 'byte')
       ) {
-        tn.castTo = 'short'
-        return ['short', tn]
+        const tnn: TypedConditionalOperatorNumericCastNode = {
+          kind: 'ternary',
+          condition: condV,
+          left: innerL,
+          right: innerR,
+          castTo: 'short',
+        }
+        return ['short', tnn]
       }
 
       // 4. special int rule
+      if (typeL == 'int') {
+        const folded = foldConstants(innerL)
+        if (folded.kind == 'literal' && folded.value.type == 'int') {
+          // L is an int constant
+          const n = folded.value.value
+          if (typeR == 'byte' && n >= -128 && n <= 127) {
+            const tnn: TypedConditionalOperatorNumericCastNode = {
+              kind: 'ternary',
+              condition: condV,
+              left: innerL,
+              right: innerR,
+              castTo: 'byte',
+            }
+            return ['byte', tnn]
+          }
+          if (typeR == 'short' && n >= -32768 && n <= 32767) {
+            const tnn: TypedConditionalOperatorNumericCastNode = {
+              kind: 'ternary',
+              condition: condV,
+              left: innerL,
+              right: innerR,
+              castTo: 'short',
+            }
+            return ['short', tnn]
+          }
+          if (typeR == 'char' && n >= 0 && n <= (1 << 16) - 1) {
+            const tnn: TypedConditionalOperatorNumericCastNode = {
+              kind: 'ternary',
+              condition: condV,
+              left: innerL,
+              right: innerR,
+              castTo: 'char',
+            }
+            return ['char', tnn]
+          }
+        }
+      }
+      if (typeR == 'int') {
+        const folded = foldConstants(innerR)
+        if (folded.kind == 'literal' && folded.value.type == 'int') {
+          // L is an int constant
+          const n = folded.value.value
+          if (typeL == 'byte' && n >= -128 && n <= 127) {
+            const tnn: TypedConditionalOperatorNumericCastNode = {
+              kind: 'ternary',
+              condition: condV,
+              left: innerL,
+              right: innerR,
+              castTo: 'byte',
+            }
+            return ['byte', tnn]
+          }
+          if (typeL == 'short' && n >= -32768 && n <= 32767) {
+            const tnn: TypedConditionalOperatorNumericCastNode = {
+              kind: 'ternary',
+              condition: condV,
+              left: innerL,
+              right: innerR,
+              castTo: 'short',
+            }
+            return ['short', tnn]
+          }
+          if (typeL == 'char' && n >= 0 && n <= (1 << 16) - 1) {
+            const tnn: TypedConditionalOperatorNumericCastNode = {
+              kind: 'ternary',
+              condition: condV,
+              left: innerL,
+              right: innerR,
+              castTo: 'char',
+            }
+            return ['char', tnn]
+          }
+        }
+      }
 
-      throw 'TODO'
+      // promotion
+      if (
+        (typeL == 'byte' ||
+          typeL == 'char' ||
+          typeL == 'short' ||
+          typeL == 'int' ||
+          typeL == 'long' ||
+          typeL == 'float' ||
+          typeL == 'double') &&
+        (typeR == 'byte' ||
+          typeR == 'char' ||
+          typeR == 'short' ||
+          typeR == 'int' ||
+          typeR == 'long' ||
+          typeR == 'float' ||
+          typeR == 'double')
+      ) {
+        if (typeL == 'double' || typeR == 'double') {
+          const tnn: TypedConditionalOperatorNumericCastNode = {
+            kind: 'ternary',
+            condition: condV,
+            left: innerL,
+            right: innerR,
+            castTo: 'double',
+          }
+          return ['double', tnn]
+        }
+        if (typeL == 'float' || typeR == 'float') {
+          const tnn: TypedConditionalOperatorNumericCastNode = {
+            kind: 'ternary',
+            condition: condV,
+            left: innerL,
+            right: innerR,
+            castTo: 'float',
+          }
+          return ['float', tnn]
+        }
+        if (typeL == 'long' || typeR == 'long') {
+          const tnn: TypedConditionalOperatorNumericCastNode = {
+            kind: 'ternary',
+            condition: condV,
+            left: innerL,
+            right: innerR,
+            castTo: 'long',
+          }
+          return ['long', tnn]
+        }
+        const tnn: TypedConditionalOperatorNumericCastNode = {
+          kind: 'ternary',
+          condition: condV,
+          left: innerL,
+          right: innerR,
+          castTo: 'int',
+        }
+        return ['int', tnn]
+      }
+
+      // 6. Null + Something -> box
+      if (typeL == 'null' && typeR != 'null') {
+        switch (typeR) {
+          case 'reference':
+            return [typeR, tn, dataR]
+          default:
+            tn.boxResult = true
+            return [typeR, tn, { boxed: true }]
+        }
+      }
+      if (typeL != 'null' && typeR == 'null') {
+        switch (typeL) {
+          case 'reference':
+            return [typeL, tn, dataL]
+          default:
+            tn.boxResult = true
+            return [typeL, tn, { boxed: true }]
+        }
+      }
+
+      // 7. General Types -> currently just fall back to Object
+      tn.boxResult = true
+      return ['reference', tn, { name: 'java.lang.Object' }]
     }
   }
 }
