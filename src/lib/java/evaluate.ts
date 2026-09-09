@@ -136,7 +136,6 @@ function evaluate_internal(
       return node.value
     }
     case 'string-literal': {
-      // TODO: should move to separate constant folding pass (later)
       // walk the heap
       for (const [key, val] of Object.entries(env.heap)) {
         if (
@@ -181,6 +180,9 @@ function evaluate_internal(
         }
         case '!': {
           const inner = evaluate(node.operand, env)
+          if (typeof inner.value !== 'boolean') {
+            throw new Error('boolean expected, but got null')
+          }
           return { type: 'boolean', value: !inner.value }
         }
         case '~': {
@@ -667,6 +669,9 @@ function javaValueToString(val: JavaValue, env: JavaEnvironment): string {
       const obj = env.heap[val.ref]
       if (obj.class == 'java.lang.String') {
         return obj.value
+      }
+      if (obj.__hack_from_objectify_boxing) {
+        return javaValueToString(obj.__hack_from_objectify_boxing, env)
       }
       return '?OBJ?'
     case 'null':

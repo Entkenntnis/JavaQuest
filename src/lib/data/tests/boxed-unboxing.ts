@@ -41,10 +41,16 @@ export const boxedUnboxing: TestSuiteEntry[] = [
     output: { type: 'long', value: '-6' },
   },
   // ------------------------- casts of boxed results -------------------------
-  // A cast to the boxed value's own width (or wider) unboxes and succeeds. But a *single*
-  // narrowing cast (Integer -> byte/short/char) is rejected by javac: casting a wrapper
-  // straight to a narrower primitive is not a valid casting conversion; the wrapper must
-  // first be unboxed to int. So `(byte)(int)(Integer)` is legal, `(byte)(Integer)` is not.
+  // Generic rule (JLS 5.5): casting a *reference* type to a primitive is an unboxing
+  // conversion optionally followed by a WIDENING primitive conversion -- never a narrowing
+  // one. So a wrapper only casts to its own primitive type or to types that primitive
+  // widens to. Targets that would need narrowing are javac errors, even though the same
+  // primitive->primitive narrowing is legal after an explicit unbox:
+  //   `(byte)(Integer)`    error    (int -> byte would narrow)
+  //   `(byte)(int)(Integer)`  -24   (unbox to int first, then narrow)
+  // The byte<->char special "widening and narrowing" conversion is likewise NOT available
+  // after an unbox: `(short)(Byte)` works (byte->short is pure widening) but `(char)(Byte)`
+  // is an error.
   {
     code: `(int)(true ? 1000 : null)`,
     output: { type: 'int', value: 1000 },
@@ -67,6 +73,94 @@ export const boxedUnboxing: TestSuiteEntry[] = [
   },
   {
     code: `(byte)(true ? 1000 : null)`,
+    isError: true,
+  },
+  // Every wrapper casts to its *own* primitive (identity unbox) and, from there, only to
+  // wider primitives.
+  {
+    code: `(byte)(true ? (byte)100 : null)`,
+    output: { type: 'byte', value: 100 },
+  },
+  {
+    code: `(short)(true ? (short)300 : null)`,
+    output: { type: 'short', value: 300 },
+  },
+  {
+    code: `(char)(true ? (char)300 : null)`,
+    output: { type: 'char', value: 300 },
+  },
+  {
+    code: `(boolean)(true ? true : null)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(short)(true ? (byte)100 : null)`,
+    output: { type: 'short', value: 100 },
+  },
+  {
+    code: `(int)(true ? (byte)100 : null)`,
+    output: { type: 'int', value: 100 },
+  },
+  {
+    code: `(long)(true ? (byte)100 : null)`,
+    output: { type: 'long', value: '100' },
+  },
+  {
+    code: `(int)(true ? (short)300 : null)`,
+    output: { type: 'int', value: 300 },
+  },
+  {
+    code: `(float)(true ? 1000L : null)`,
+    output: { type: 'float', value: 1000 },
+  },
+  {
+    code: `(double)(true ? 1000L : null)`,
+    output: { type: 'double', value: 1000 },
+  },
+  // Every target that would *narrow* after the unbox is a compile error -- including
+  // long/float/double widening the other way, which the reverse cast allows.
+  {
+    code: `(byte)(true ? (short)300 : null)`,
+    isError: true,
+  },
+  {
+    code: `(char)(true ? (short)300 : null)`,
+    isError: true,
+  },
+  {
+    code: `(char)(true ? (byte)100 : null)`,
+    isError: true,
+  },
+  {
+    code: `(short)(true ? (char)300 : null)`,
+    isError: true,
+  },
+  {
+    code: `(byte)(true ? (char)300 : null)`,
+    isError: true,
+  },
+  {
+    code: `(int)(true ? 1000L : null)`,
+    isError: true,
+  },
+  {
+    code: `(int)(true ? 1.5 : null)`,
+    isError: true,
+  },
+  {
+    code: `(long)(true ? 1.5 : null)`,
+    isError: true,
+  },
+  {
+    code: `(float)(true ? 1.5 : null)`,
+    isError: true,
+  },
+  {
+    code: `(int)(true ? 1.5f : null)`,
+    isError: true,
+  },
+  {
+    code: `(long)(true ? 1.5f : null)`,
     isError: true,
   },
   // ------------------------- NPE: unboxing a null-selected arm -------------------------
@@ -140,6 +234,20 @@ export const boxedUnboxing: TestSuiteEntry[] = [
   // A reference-typed conditional in a primitive cast context is *target-typed*: the selected
   // arm is boxed, cast to the target wrapper and unboxed, so a mismatching arm is a runtime
   // ClassCastException, not a compile error.
+  // Contrast this with the single-wrapper conditional above: `(byte)(Integer)` is a javac
+  // error (Integer cannot *statically* be downcast to Byte), whereas `(byte)(lub)` compiles
+  // and only fails at run time, because the intersection type is Object-ish enough for a
+  // downcast to the wrapper to be legal -- the actual Integer object then cannot be cast to
+  // Byte. The same lub with a String arm (the intersection gains CharSequence) goes back to
+  // being rejected at compile time for such narrow targets.
+  {
+    code: `(int)(true ? 1000 : false)`,
+    output: { type: 'int', value: 1000 },
+  },
+  {
+    code: `(byte)(true ? 1000 : false)`,
+    isError: true,
+  },
   {
     code: `(int)(b ? 100 : false)`,
     output: { type: 'int', value: 100 },
