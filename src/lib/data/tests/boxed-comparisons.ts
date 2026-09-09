@@ -302,4 +302,53 @@ export const boxedComparisons: TestSuiteEntry[] = [
     code: `(true ? 100 : null) < 200`,
     output: { type: 'boolean', value: true },
   },
+  // ------------------------- wrapper cache boundary values for byte / char / short -------------------------
+  // The other integer wrappers share the Integer -128..127 instances (Short/Long) or the
+  // whole range (Byte) or 0..127 (Character). Here the *cache edges themselves* are pinned:
+  // the inclusive upper/lower cache limits still yield one shared instance, while one past
+  // the limit boxes into distinct objects. Byte caches its entire range, so even -128/127
+  // (which for Integer/Short/Long would be *inside* the shared -128..127 cache) are reached
+  // through the Byte cache.
+  {
+    code: `(true ? (byte)-128 : null) == (true ? (byte)-128 : null)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? (byte)127 : null) == (true ? (byte)127 : null)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? (char)127 : null) == (true ? (char)127 : null)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? (char)128 : null) == (true ? (char)128 : null)`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(true ? (short)128 : null) == (true ? (short)128 : null)`,
+    output: { type: 'boolean', value: false },
+  },
+  // ------------------------- boxed conditional vs the literal null -------------------------
+  // Comparing a boxed result against the *null literal* is a plain reference comparison and
+  // never unboxes (mirroring the env-locals null tests above). Choosing the numeric arm
+  // yields a non-null wrapper (== null is false); forcing the null arm with a false constant
+  // condition must select null and therefore compare equal.
+  {
+    code: `(true ? 100 : null) == null`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(false ? 100 : null) == null`,
+    output: { type: 'boolean', value: true },
+  },
+  // ------------------------- unsigned char promotion in mixed-width relational -------------------------
+  // Relational unboxes both operands, then binary numeric promotion widens char to a *signed*
+  // int while preserving its 0..65535 value and short is sign-extended. So the largest char
+  // beats even -1 or 0 in short -- a signed interpretation of char (as e.g. the interpreter
+  // might compute it from bits) would give the opposite answer.
+  {
+    code: `(true ? (char)65535 : null) > (true ? (short)-1 : null)`,
+    output: { type: 'boolean', value: true },
+  },
 ]

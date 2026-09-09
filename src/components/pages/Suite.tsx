@@ -50,7 +50,7 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
   }
 }
 
-const suiteResults = testSuite.map((el, i) => {
+const suiteResults = testSuite.map((el) => {
   return runCase(el.code, el.env ? cloneEnv(el.env) : { local: {}, heap: {} })
 })
 
