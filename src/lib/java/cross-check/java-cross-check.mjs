@@ -272,8 +272,8 @@ function summary(text) {
 }
 
 function isMatch(entry, actual) {
-  if (actual.error) return entry.isError == true
-  if (entry.isError) return false
+  if (actual.error) return entry.error === actual.error.kind
+  if (entry.error) return false
   return (
     actual.value !== undefined &&
     actual.value.special === undefined &&
@@ -289,14 +289,16 @@ for (let i = 0; i < entries.length; i++) {
   const actual = results[i]
   const matched = isMatch(entry, actual)
   if (matched) {
-    if (entry.isError) errorMatch += 1
+    if (entry.error) errorMatch += 1
     else valueMatch += 1
   } else {
     let detail
-    if (entry.isError && !actual.error) {
-      detail = `expected error, but Java evaluates to ${JSON.stringify(actual.value)}`
-    } else if (!entry.isError && actual.error) {
-      detail = `expected ${JSON.stringify(entry.output)}, but Java ${actual.error.kind} error: ${actual.error.msg}`
+    if (entry.error && !actual.error) {
+      detail = `expected ${entry.error} error, but Java evaluates to ${JSON.stringify(actual.value)}`
+    } else if (!entry.error && actual.error) {
+      detail = `expected a value, but Java ${actual.error.kind} error: ${actual.error.msg}`
+    } else if (entry.error && actual.error && entry.error != actual.error.kind) {
+      detail = `expected ${entry.error} error, but Java ${actual.error.kind} error: ${actual.error.msg}`
     } else {
       detail = `expected ${JSON.stringify(entry.output)}, got ${JSON.stringify(actual.value)}`
     }
@@ -304,7 +306,7 @@ for (let i = 0; i < entries.length; i++) {
   }
   if (verbose) {
     const status = matched
-      ? entry.isError
+      ? entry.error
         ? 'ok   (error)'
         : 'ok   (value)'
       : 'MISMATCH'
@@ -312,7 +314,7 @@ for (let i = 0; i < entries.length; i++) {
     if (entry.env) {
       console.log(`      env:      ${JSON.stringify(entry.env)}`)
     }
-    console.log(`      expected: ${entry.isError ? 'error' : JSON.stringify(entry.output)}`)
+    console.log(`      expected: ${entry.error ? entry.error + ' error' : JSON.stringify(entry.output)}`)
     console.log(
       `      actual:   ${actual.error ? `${actual.error.kind} error: ${summary(actual.error.msg)}` : JSON.stringify(actual.value)}`,
     )

@@ -36,9 +36,20 @@ export interface TestHarnessDerefStringValue {
   value: string
 }
 
+// Every error carries the phase in which real Java rejects the code:
+//   'compile' -- javac rejects it (bad syntax, incompatible types, ...);
+//   'runtime' -- it compiles but the JVM throws (NPE, ClassCastException, ...).
+// The interpreter must fail in the same phase to match an entry.
+export type TestErrorPhase = 'compile' | 'runtime'
+
+export interface TestHarnessError {
+  phase: TestErrorPhase
+  message: string
+}
+
 export interface TestSuiteEntry {
   code: string
-  isError?: boolean
+  error?: TestErrorPhase
   output?:
     | JavaBooleanValue
     | JavaNumericPrimitiveValue
@@ -48,7 +59,7 @@ export interface TestSuiteEntry {
 }
 
 export interface SuiteResult {
-  error?: string
+  error?: TestHarnessError
   value?:
     | JavaBooleanValue
     | JavaNumericPrimitiveValue

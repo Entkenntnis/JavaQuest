@@ -72,11 +72,11 @@ export const conditional1: TestSuiteEntry[] = [
   },
   {
     code: `true ? 1/0 : 2`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `false ? 1 : 1/0`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `true ? true : (1/0 == 1)`,
@@ -597,7 +597,7 @@ export const conditional1: TestSuiteEntry[] = [
   },
   {
     code: `b ? 1 : 1/0`,
-    isError: true,
+    error: 'runtime',
     env: {
       local: { b: { type: 'boolean', value: false } },
       heap: {},
@@ -605,7 +605,7 @@ export const conditional1: TestSuiteEntry[] = [
   },
   {
     code: `b ? 1/0 : 2`,
-    isError: true,
+    error: 'runtime',
     env: {
       local: { b: { type: 'boolean', value: true } },
       heap: {},
@@ -621,7 +621,7 @@ export const conditional1: TestSuiteEntry[] = [
   },
   {
     code: `b ? 1L : 1L/0L`,
-    isError: true,
+    error: 'runtime',
     env: {
       local: { b: { type: 'boolean', value: false } },
       heap: {},
@@ -637,7 +637,7 @@ export const conditional1: TestSuiteEntry[] = [
   },
   {
     code: `b ? "x" + (1/0) : "a"`,
-    isError: true,
+    error: 'runtime',
     env: {
       local: { b: { type: 'boolean', value: true } },
       heap: {},

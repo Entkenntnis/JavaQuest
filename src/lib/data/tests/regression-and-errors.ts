@@ -225,69 +225,69 @@ export const regressionAndErrors: TestSuiteEntry[] = [
   // ------------------------- runtime guards: integer division/modulo by zero (reached at runtime) -------------------------
   {
     code: `10 / (5 - 5)`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `10L / (5L - 5L)`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `1 / (int)0.5`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `100L % (1L - 1L)`,
-    isError: true,
+    error: 'runtime',
   },
   // ------------------------- typecheck guards: compile-time type errors -------------------------
   {
     code: `1 + true`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `'a' && true`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `!1.5`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(boolean)null`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `null + 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1 == "1"`,
-    isError: true,
+    error: 'compile',
   },
   // ==================== UNBOUND & ERROR CASES ====================
   // ------------------------- identifiers: unbound & keyword error cases -------------------------
   {
     code: `definitelyNotThere`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `if`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `int`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `boolean`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `this`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `super`,
-    isError: true,
+    error: 'compile',
   },
 ]

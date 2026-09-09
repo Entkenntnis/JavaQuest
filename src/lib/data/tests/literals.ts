@@ -21,7 +21,7 @@ export const literals: TestSuiteEntry[] = [
   },
   {
     code: `2147483648`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `9223372036854775807L`,
@@ -29,7 +29,7 @@ export const literals: TestSuiteEntry[] = [
   },
   {
     code: `9223372036854775808L`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `42L`,
@@ -90,11 +90,11 @@ export const literals: TestSuiteEntry[] = [
   },
   {
     code: `0x100000000`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0x1_0000_0000`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0xFFFFFFFFL`,
@@ -114,15 +114,15 @@ export const literals: TestSuiteEntry[] = [
   },
   {
     code: `0xFFFFFFFFFFFFFFFF`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0x`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0x1G`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- int: octal -------------------------
   {
@@ -167,27 +167,27 @@ export const literals: TestSuiteEntry[] = [
   },
   {
     code: `08`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `09`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0o`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0o8`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0o777`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0O17`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- int: binary -------------------------
   {
@@ -224,23 +224,23 @@ export const literals: TestSuiteEntry[] = [
   },
   {
     code: `0b11111111111111111111111111111111111111111111111111111111111111111L`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0b`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0b102`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0b_1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0b100000000000000000000000000000000`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- int: underscores -------------------------
   {
@@ -265,11 +265,11 @@ export const literals: TestSuiteEntry[] = [
   },
   {
     code: `1_`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0x_FF`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- float: decimal -------------------------
   {
@@ -382,31 +382,31 @@ export const literals: TestSuiteEntry[] = [
   },
   {
     code: `1e`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1.2e`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1.2.3`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1e309`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1.7976931348623159e308`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `3.4028236e38f`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1e39f`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1e39`,
@@ -414,11 +414,11 @@ export const literals: TestSuiteEntry[] = [
   },
   {
     code: `1e400`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1e-400`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1e-323`,
@@ -426,11 +426,11 @@ export const literals: TestSuiteEntry[] = [
   },
   {
     code: `1e-324`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1e-46f`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- float: hexadecimal -------------------------
   {
@@ -491,35 +491,35 @@ export const literals: TestSuiteEntry[] = [
   },
   {
     code: `0x1p1024`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0x1.fffffffffffff8p1023`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0x1p`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0x1.8p`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0x1.8`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0x1p-1075`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0x1.8p-1074f`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0x1p-150f`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `0x1.8p-1074`,
@@ -639,31 +639,31 @@ export const literals: TestSuiteEntry[] = [
     // This test fails (= compiler passes) incorrectly in Java 21
     // The behaviour is fixed in Java 25
     code: `'😀'`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `''`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `'ab'`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `'\\400'`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `'\\777'`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `'\\8'`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `'\\q'`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- string -------------------------
   {
@@ -748,23 +748,23 @@ export const literals: TestSuiteEntry[] = [
   },
   {
     code: `"a\\q"`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `"\\u004"`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `"a`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `"a\\`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: '"a\\\nb"',
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- layout & parse robustness -------------------------
   {
@@ -777,14 +777,14 @@ export const literals: TestSuiteEntry[] = [
   },
   {
     code: ``,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `42 43`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `42abc`,
-    isError: true,
+    error: 'compile',
   },
 ]

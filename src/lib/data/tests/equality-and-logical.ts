@@ -37,11 +37,11 @@ export const equalityAndLogical: TestSuiteEntry[] = [
   },
   {
     code: `1 && true`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `true && (1/0 == 1)`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `false && (1/0 == 1)`,
@@ -53,35 +53,35 @@ export const equalityAndLogical: TestSuiteEntry[] = [
   },
   {
     code: `false || (1/0 == 1)`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `true || 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `false && 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `false && null`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `true || "x"`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `false && 'a'`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `true || 9223372036854775807L`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `true || (boolean)5`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- logical operators: short-circuit guards around / and % by zero -------------------------
   {
@@ -264,19 +264,19 @@ export const equalityAndLogical: TestSuiteEntry[] = [
   // ------------------------- equality ==: errors -------------------------
   {
     code: `1/0 == 1`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `true == 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1 == "x"`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `null == 1`,
-    isError: true,
+    error: 'compile',
   },
   // ==================== NON-EQUALITY (!=) ====================
   // ------------------------- non-equality !=: booleans -------------------------
@@ -599,35 +599,35 @@ export const equalityAndLogical: TestSuiteEntry[] = [
   },
   {
     code: `1 != 2 && (1/0 == 1)`,
-    isError: true,
+    error: 'runtime',
   },
   // ------------------------- non-equality !=: errors -------------------------
   {
     code: `true != 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1 != "x"`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `null != 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1 != null`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1/0 != 1`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `1 != 1/0`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `1 != 2 == 1`,
-    isError: true,
+    error: 'compile',
   },
 ]

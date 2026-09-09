@@ -283,15 +283,15 @@ export const strings: TestSuiteEntry[] = [
   // ------------------------- string used with non-'+' operators (expected: Java compile error) -------------------------
   {
     code: `"a" + "b" * 2`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `"x" - 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1 / "x"`,
-    isError: true,
+    error: 'compile',
   },
   // ==================== IDENTIFIERS - EXPRESSIONS ====================
   // ------------------------- identifiers: int arithmetic -------------------------

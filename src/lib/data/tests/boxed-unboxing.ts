@@ -73,7 +73,7 @@ export const boxedUnboxing: TestSuiteEntry[] = [
   },
   {
     code: `(byte)(true ? 1000 : null)`,
-    isError: true,
+    error: 'compile',
   },
   // Every wrapper casts to its *own* primitive (identity unbox) and, from there, only to
   // wider primitives.
@@ -121,47 +121,47 @@ export const boxedUnboxing: TestSuiteEntry[] = [
   // long/float/double widening the other way, which the reverse cast allows.
   {
     code: `(byte)(true ? (short)300 : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(char)(true ? (short)300 : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(char)(true ? (byte)100 : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(short)(true ? (char)300 : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(byte)(true ? (char)300 : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(int)(true ? 1000L : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(int)(true ? 1.5 : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(long)(true ? 1.5 : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(float)(true ? 1.5 : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(int)(true ? 1.5f : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(long)(true ? 1.5f : null)`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- NPE: unboxing a null-selected arm -------------------------
   // When the constant condition picks the null arm of an Integer/Boolean-typed conditional,
@@ -169,19 +169,19 @@ export const boxedUnboxing: TestSuiteEntry[] = [
   // These extend the `(false ? 1 : null) + 1` case to ==, relational, binary -, and !.
   {
     code: `(false ? 1 : null) == 1`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `(false ? 1 : null) < 2`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `(false ? 1000 : null) - 1`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `!(false ? false : null)`,
-    isError: true,
+    error: 'runtime',
   },
   // ------------------------- boxed Boolean in boolean contexts -------------------------
   // JLS 15.25 allows a Boolean *wrapper* as a ternary condition (and 15.23/15.24 as an
@@ -216,7 +216,7 @@ export const boxedUnboxing: TestSuiteEntry[] = [
   //    not even the -128..127 cache makes them equal.
   {
     code: `(true ? 100 : null) == (true ? "a" : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(true ? 100 : false) == (true ? "a" : null)`,
@@ -246,7 +246,7 @@ export const boxedUnboxing: TestSuiteEntry[] = [
   },
   {
     code: `(byte)(true ? 1000 : false)`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `(int)(b ? 100 : false)`,
@@ -258,7 +258,7 @@ export const boxedUnboxing: TestSuiteEntry[] = [
   },
   {
     code: `(int)(b ? 100 : false)`,
-    isError: true,
+    error: 'runtime',
     env: {
       local: { b: { type: 'boolean', value: false } },
       heap: {},

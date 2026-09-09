@@ -428,11 +428,11 @@ export const conditional2: TestSuiteEntry[] = [
   // compile-time error (== is only reference equality here).
   {
     code: `(true ? 100 : false) == 100`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(true ? 1000 : false) == 1000`,
-    isError: true,
+    error: 'compile',
   },
   // Boxed locals: reading the same wrapper variable twice yields one object (== true),
   // whereas a freshly boxed non-cached constant is a distinct object (== false). These
@@ -489,13 +489,13 @@ export const conditional2: TestSuiteEntry[] = [
   // Unboxing a null arm raises NullPointerException at run time ...
   {
     code: `(false ? 1 : null) + 1`,
-    isError: true,
+    error: 'runtime',
   },
   // ... while the lub of two different wrappers is not an unboxable type, so using it as a
   // numeric operand is a compile-time error even though the numeric arm is selected.
   {
     code: `(true ? 1000 : false) + 1`,
-    isError: true,
+    error: 'compile',
   },
   // Integer-typed conditional over boxed locals: == and + unbox numerically.
   {
@@ -529,24 +529,24 @@ export const conditional2: TestSuiteEntry[] = [
   // ------------------------- conditional: compile-time type errors -------------------------
   {
     code: `1 ? 2 : 3`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1.5 ? 2 : 3`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `null ? 1 : 2`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `"x" ? 1 : 2`,
-    isError: true,
+    error: 'compile',
   },
   // Non-boolean runtime (variable) conditions and non-literal boolean candidates.
   {
     code: `x ? 1 : 2`,
-    isError: true,
+    error: 'compile',
     env: {
       local: { x: { type: 'int', value: 1 } },
       heap: {},
@@ -554,7 +554,7 @@ export const conditional2: TestSuiteEntry[] = [
   },
   {
     code: `ch ? 1 : 2`,
-    isError: true,
+    error: 'compile',
     env: {
       local: { ch: { type: 'char', value: 65 } },
       heap: {},
@@ -562,7 +562,7 @@ export const conditional2: TestSuiteEntry[] = [
   },
   {
     code: `d ? 1 : 2`,
-    isError: true,
+    error: 'compile',
     env: {
       local: { d: { type: 'double', value: 1.5 } },
       heap: {},
@@ -570,7 +570,7 @@ export const conditional2: TestSuiteEntry[] = [
   },
   {
     code: `s ? 1 : 2`,
-    isError: true,
+    error: 'compile',
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
       heap: {
@@ -580,6 +580,6 @@ export const conditional2: TestSuiteEntry[] = [
   },
   {
     code: `(1 + 1) ? 2 : 3`,
-    isError: true,
+    error: 'compile',
   },
 ]

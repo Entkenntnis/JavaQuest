@@ -504,43 +504,43 @@ export const shiftOperators: TestSuiteEntry[] = [
   // ------------------------- shifts: compile-time type errors -------------------------
   {
     code: `1 << 1.5`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1.5 << 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1.0f >> 1L`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1L << 1.0f`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `true << 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1 << true`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1 << "a"`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `"a" << 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `null << 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1 << (boolean)true`,
-    isError: true,
+    error: 'compile',
   },
 
 ]

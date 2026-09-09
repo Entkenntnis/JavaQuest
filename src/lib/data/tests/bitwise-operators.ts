@@ -503,7 +503,7 @@ export const bitwiseOperators: TestSuiteEntry[] = [
   // for & | ^, whereas && / || would short-circuit around it.
   {
     code: `false & (1 / b == 1)`,
-    isError: true,
+    error: 'runtime',
     env: { local: { b: { type: 'int', value: 0 } }, heap: {} },
   },
   {
@@ -513,7 +513,7 @@ export const bitwiseOperators: TestSuiteEntry[] = [
   },
   {
     code: `true | (1 / b == 1)`,
-    isError: true,
+    error: 'runtime',
     env: { local: { b: { type: 'int', value: 0 } }, heap: {} },
   },
   {
@@ -523,17 +523,17 @@ export const bitwiseOperators: TestSuiteEntry[] = [
   },
   {
     code: `false | (1 / b == 1)`,
-    isError: true,
+    error: 'runtime',
     env: { local: { b: { type: 'int', value: 0 } }, heap: {} },
   },
   {
     code: `true & (1 / b == 1)`,
-    isError: true,
+    error: 'runtime',
     env: { local: { b: { type: 'int', value: 0 } }, heap: {} },
   },
   {
     code: `true ^ (1 / b == 1)`,
-    isError: true,
+    error: 'runtime',
     env: { local: { b: { type: 'int', value: 0 } }, heap: {} },
   },
   // ------------------------- bitwise: identifiers -------------------------
@@ -582,40 +582,40 @@ export const bitwiseOperators: TestSuiteEntry[] = [
   // ------------------------- bitwise: compile-time type errors -------------------------
   {
     code: `1 & true`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `true | 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1.5 & 3`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `5L ^ 1.5`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1.0f | 1.0f`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `"x" | 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `null & 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `'a' & "b"`,
-    isError: true,
+    error: 'compile',
   },
   // Equality binds tighter than &, so this is int & boolean -> compile error.
   {
     code: `1 & 1 == 1`,
-    isError: true,
+    error: 'compile',
   },
 
 ]

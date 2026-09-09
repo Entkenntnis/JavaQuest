@@ -136,19 +136,19 @@ export const unaryPrecedence: TestSuiteEntry[] = [
   // ------------------------- unary precedence: type errors (unary must bind before binary) -------------------------
   {
     code: `!1 == 0`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `-true == false`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `!~1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `~!true`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- unary precedence: vs casts -------------------------
   {

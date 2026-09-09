@@ -100,11 +100,11 @@ export const identifiersAndCasts: TestSuiteEntry[] = [
   },
   {
     code: `-2147483649`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `+2147483648`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `-9223372036854775808L`,
@@ -112,11 +112,11 @@ export const identifiersAndCasts: TestSuiteEntry[] = [
   },
   {
     code: `-9223372036854775809L`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `+9223372036854775808L`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `-1L`,
@@ -152,7 +152,7 @@ export const identifiersAndCasts: TestSuiteEntry[] = [
   },
   {
     code: `-true`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `-1.5`,
@@ -229,11 +229,11 @@ export const identifiersAndCasts: TestSuiteEntry[] = [
   },
   {
     code: `-"x"`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `-null`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- unary plus: evaluate branches -------------------------
   {
@@ -254,11 +254,11 @@ export const identifiersAndCasts: TestSuiteEntry[] = [
   },
   {
     code: `+true`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `+null`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- unary logical complement '!' -------------------------
   {
@@ -279,15 +279,15 @@ export const identifiersAndCasts: TestSuiteEntry[] = [
   },
   {
     code: `!0`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `!"hi"`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `!null`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- unary bitwise complement '~' -------------------------
   {
@@ -324,7 +324,7 @@ export const identifiersAndCasts: TestSuiteEntry[] = [
   },
   {
     code: `~true`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- casts: integer sources -------------------------
   {
@@ -407,18 +407,18 @@ export const identifiersAndCasts: TestSuiteEntry[] = [
   // ------------------------- casts: errors -------------------------
   {
     code: `(boolean)1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(int)true`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(int)null`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(int)"5"`,
-    isError: true,
+    error: 'compile',
   },
 ]

@@ -219,57 +219,57 @@ export const boxedComparisons: TestSuiteEntry[] = [
   // evaluator-only exception could not detect these.
   {
     code: `(true ? 100 : null) == (true ? (short)100 : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(true ? 100 : null) != (true ? (short)100 : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `true || ((true ? 100 : null) == (true ? (short)100 : null))`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `false && ((true ? 100 : null) == (true ? (short)100 : null))`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(true ? 100 : null) == (true ? 100L : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(true ? 1000 : null) == (true ? 1000.0 : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(true ? 100 : null) == (true ? 100f : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(true ? 100 : null) == (true ? (char)100 : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(true ? (short)100 : null) == (true ? (byte)100 : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(true ? (char)65 : null) == (true ? (byte)65 : null)`,
-    isError: true,
+    error: 'compile',
   },
   // Boolean wrappers only unbox against a primitive boolean; against numbers they stay
   // reference-typed and are incomparable.
   {
     code: `(true ? true : null) == (true ? 100 : null)`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `(true ? true : null) == 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `true || ((true ? true : null) == 1)`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- relational between mixed numeric wrappers: numeric -------------------------
   // Unlike ==, the relational operators unbox both operands and compare numerically, so any

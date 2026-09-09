@@ -488,31 +488,31 @@ export const relational: TestSuiteEntry[] = [
   // ------------------------- relational: compile-time type errors -------------------------
   {
     code: `true < false`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `false >= true`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `true <= 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `"a" < "b"`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1 < "x"`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `null < 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `'a' > true`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- relational: regression guards for composite relational expressions -------------------------
   // A relational expression has type boolean, and relational operators bind tighter than
@@ -596,15 +596,15 @@ export const relational: TestSuiteEntry[] = [
   // ------------------------- relational: chained relational (compile error in Java) -------------------------
   {
     code: `1 < 2 < 3`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `1 < 2 <= 3`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `3 > 2 >= 1`,
-    isError: true,
+    error: 'compile',
   },
   // ------------------------- relational: equality before relational (precedence) -------------------------
   {

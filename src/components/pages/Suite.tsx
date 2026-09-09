@@ -14,12 +14,19 @@ import { typecheck } from '../../lib/java/typecheck'
 import { useCore } from '../../lib/state/core'
 
 function runCase(code: string, env: JavaEnvironment): SuiteResult {
+  // Errors raised while building the AST or type checking mirror javac's compile-time
+  // rejection; everything the evaluator throws afterwards is a runtime error.
+  let typed
   try {
     const tree = parser.parse(code)
     const cst = cursorToCstNode(tree.cursor(), Text.of([code]))
     checkForParseErrors(cst)
     const ast = cst2ast(cst)
-    const typed = typecheck(ast, env)
+    typed = typecheck(ast, env)
+  } catch (e) {
+    return { error: { phase: 'compile', message: (e as any).toString() } }
+  }
+  try {
     const value = evaluate(foldConstants(typed), env)
     if (value.type == 'reference') {
       const obj = env.heap[value.ref]
@@ -46,7 +53,7 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
     }
     return { value }
   } catch (e) {
-    return { error: (e as any).toString() }
+    return { error: { phase: 'runtime', message: (e as any).toString() } }
   }
 }
 
@@ -59,8 +66,8 @@ function cloneEnv(env: JavaEnvironment): JavaEnvironment {
 }
 
 function isPass(entry: TestSuiteEntry, result: SuiteResult) {
-  if (result.error) return entry.isError == true
-  if (entry.isError) return false
+  if (result.error) return entry.error === result.error.phase
+  if (entry.error) return false
   return (
     result.value !== undefined &&
     JSON.stringify(result.value) === JSON.stringify(entry.output)
@@ -113,22 +120,21 @@ function Entry({
   n: number
 }) {
   const core = useCore()
-  const { error, value } = result
+  const pass = isPass(entry, result)
 
-  const hasResult = error || value
+  const actual = result.error
+    ? `Fehler [${result.error.phase}]: ${result.error.message}`
+    : `Output: ${JSON.stringify(result.value)}`
 
-  const outputStr = JSON.stringify(value)
-  const expectedStr = JSON.stringify(entry.output)
-  const isTheSame = outputStr === expectedStr
-
-  const isFailure =
-    (error && !entry.isError) || (!entry.isError && !value) || !isTheSame
+  const expected = entry.error
+    ? `Fehler [${entry.error}]`
+    : JSON.stringify(entry.output)
 
   return (
     <div
       className={clsx(
         'flex justify-between border-t-2 border-pink-300',
-        core.ws.ui.testOnlyFail && !isFailure && 'hidden',
+        core.ws.ui.testOnlyFail && pass && 'hidden',
       )}
     >
       <div>
@@ -142,37 +148,19 @@ function Entry({
           </div>
         )}
       </div>
-      <div className="flex-column">
-        {!hasResult && <div className="p-1">...</div>}
-        {error && entry.isError && (
-          <div className="p-1 text-green-800">
-            <pre>OK, mit Fehler {error}</pre>
-          </div>
-        )}
-        {((error && !entry.isError) || (!entry.isError && !value)) && (
-          <div className="p-1 text-red-600">
-            <pre>FAIL! Fehler: {error}</pre>
-          </div>
-        )}
-        {value && (
-          <div className="">
-            {!isTheSame && entry.isError && (
-              <div className="text-red-600 font-bold m-4">Fehler erwartet</div>
-            )}
-            <div
-              className={clsx(
-                isTheSame ? 'text-green-600' : 'text-red-600',
-                'm-1',
-              )}
-            >
-              <pre>Output: {outputStr}</pre>
-            </div>
-          </div>
-        )}
-        {!isTheSame && !entry.isError && (
-          <div className="m-1">
-            <pre>Expected: {expectedStr}</pre>
-          </div>
+      <div className="flex-column p-1">
+        <pre
+          className={clsx(
+            'm-1 whitespace-pre-wrap break-words',
+            pass ? 'text-green-600' : 'text-red-600',
+          )}
+        >
+          {actual}
+        </pre>
+        {!pass && (
+          <pre className="m-1 whitespace-pre-wrap break-words text-gray-900">
+            Erwartet: {expected}
+          </pre>
         )}
       </div>
     </div>

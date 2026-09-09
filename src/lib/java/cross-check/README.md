@@ -2,7 +2,8 @@
 
 Validates `src/lib/data/test-suite.ts` against **real Java**: every entry is compiled
 and run with a real JDK (via `Harness.java`), and the result is compared to the suite's
-expected `output` / `isError`. The test suite is the single source of truth for both
+expected `output` or expected error phase (`error: 'compile' | 'runtime'`). The test
+suite is the single source of truth for both
 this harness (Java semantics) and the interpreter page (Suite UI).
 
 ## Usage
@@ -29,13 +30,14 @@ class T<n> {
 }
 ```
 
-and compares that JSON to the entry's `output` (error case: any javac/JVM failure
-matches `isError`).
+and compares that JSON to the entry's `output`. In the error case the failing phase must
+match `error` exactly: javac failures report `'compile'`, JVM failures `'runtime'`.
 
 ## Test-suite entry contract
 
 - `code` — **one expression**. Statement lists are not supported; multi-statement code
-  degrades into a javac error, which an `isError` entry would pass for the wrong reason.
+  degrades into a javac error, which an `error: 'compile'` entry would pass for the wrong
+  reason.
 - `env.local` — per-variable values rendered as Java declarations:
   - numeric/boolean with `boxed: true` → wrapper decls (`Integer x = 100;`,
     `Short y = (short) 100;`, `Long l = ...L;` …); MIN int/long go through
@@ -45,15 +47,17 @@ matches `isError`).
     (`isInterned`) or `new String(...)` (not interned).
 - `output` — only `boolean`, numeric primitives, or `__str` (dereferenced String result).
   Reference results of other classes, and `null` results, are not assertable.
-- `isError` — the code fails under Java in *some* phase (see bounds #1).
+- `error` — `'compile'` (javac rejects the code) or `'runtime'` (it compiles but the JVM
+  throws). Both phases are exact: an entry only passes when Java fails in precisely that
+  phase, and the interpreter (Suite page) must fail in the same phase to match.
 
 ## Bounds / semantics the suite relies on
 
-1. **`isError` does not record the failing phase.** A Java compile error and a runtime
-   error (NPE, ArithmeticException, …) both satisfy `isError`. If an entry is meant to
-   pin a *compile-time* rejection (so the interpreter must reject it in typecheck, not in
-   the evaluator), guard it behind a short-circuit that never runs but still type-checks,
-   e.g. `true || (x == y)`.
+1. **`error` records the failing phase, but not the reason within it.** The harness only
+   tells *which* phase Java rejects in (compile = kind 99, runtime = kind 114), not the
+   precise diagnostic. If an entry is meant to pin a *compile-time* rejection (so the
+   interpreter must reject it in typecheck, not in the evaluator), guard it behind a
+   short-circuit that never runs but still type-checks, e.g. `true || (x == y)`.
 2. **Boxed identity is the real JVM's**, i.e. `==`/`!=` on wrappers is reference equality
    subject to autoboxing caches: Integer/Short/Long share −128..127, Character 0..127,
    Byte the full range, Boolean two singletons, Float/Double none. So two env boxed
@@ -72,5 +76,6 @@ matches `isError`).
 5. **Caching/formatting baseline is whatever the JDK does** (wrapper caches, shortest
    float/double printing via `Double.toString`), *not* the interpreter's model. A green
    run certifies expectations == real Java only; it says nothing about interpreter parity
-   (that is the separate Suite page, which also treats internal interpreter exceptions as
-   passes on `isError` entries — verify visually).
+   (that is the separate Suite page — verify visually; it tags interpreter exceptions as
+   `compile` when raised in parse/typecheck and `runtime` when raised in the evaluator, and
+   only counts an entry as passing when that phase equals the entry's `error`).

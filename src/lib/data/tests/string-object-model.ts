@@ -301,15 +301,15 @@ export const stringObjectModel: TestSuiteEntry[] = [
   // Division / modulo by zero still throws even inside a string concatenation.
   {
     code: `"" + (1 / 0)`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `"" + (1 % 0)`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `(1 / 0) + ""`,
-    isError: true,
+    error: 'runtime',
   },
   // ------------------------- constant folding: int & long string identities -------------------------
   {
@@ -515,19 +515,19 @@ export const stringObjectModel: TestSuiteEntry[] = [
   // ------------------------- constant folding: division / modulo by zero stays runtime -------------------------
   {
     code: `"" + ((-1) / 0)`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `"" + (0 / 0)`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `(1L / 0L) + ""`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `-(1 / 0)`,
-    isError: true,
+    error: 'runtime',
   },
   // ------------------------- constant folding: unary operator string identities -------------------------
   {
@@ -586,6 +586,6 @@ export const stringObjectModel: TestSuiteEntry[] = [
   // ------------------------- constant folding: modulo by zero in string context stays runtime -------------------------
   {
     code: `"" + ((-1) % 0)`,
-    isError: true,
+    error: 'runtime',
   },
 ]

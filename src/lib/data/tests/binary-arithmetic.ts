@@ -401,41 +401,40 @@ export const binaryArithmetic: TestSuiteEntry[] = [
   // ------------------------- binary arithmetic: division / modulo by zero (ArithmeticException) -------------------------
   {
     code: `1 / 0`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `1 % 0`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `0 / 0`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `1L / 0L`,
-    isError: true,
+    error: 'runtime',
   },
   {
     code: `1L % 0L`,
-    isError: true,
+    error: 'runtime',
   },
 
   // ------------------------- binary arithmetic: non-numeric operands (errors) -------------------------
   {
     code: `true + 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `false * 2`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `null - 1`,
-    isError: true,
+    error: 'compile',
   },
   {
     code: `true / false`,
-    isError: true,
+    error: 'compile',
   },
-
 ]
