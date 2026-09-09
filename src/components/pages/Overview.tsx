@@ -1,7 +1,4 @@
-import {
-  faCircleDot,
-  faSquareCaretRight,
-} from '@fortawesome/free-solid-svg-icons'
+import { faCircleDot } from '@fortawesome/free-solid-svg-icons'
 import { chaptersData } from '../../lib/content/chapters-data'
 import { questsData } from '../../lib/content/quests-data'
 import { navigate } from '../../lib/router/navigate'
