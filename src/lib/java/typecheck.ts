@@ -39,6 +39,7 @@ import type {
   TypedRelationalCompareNode,
   TypedConditionalOperatorNode,
   TypedConditionalOperatorNumericCastNode,
+  TypedBoxedReferenceEqualsNode,
 } from '../state/types'
 import { foldConstants } from './evaluate'
 
@@ -218,6 +219,40 @@ function typecheck_internal(
     case 'binary': {
       const [typeL, innerL, dataL] = typecheck_internal(node.left, env)
       const [typeR, innerR, dataR] = typecheck_internal(node.right, env)
+
+      // EQUALITY with boxed values need a special treatment as this does not work well with
+      if (
+        (node.op == '==' || node.op == '!=') &&
+        dataL &&
+        dataR &&
+        'boxed' in dataL &&
+        'boxed' in dataR &&
+        dataL.boxed &&
+        dataR.boxed
+      ) {
+        if (
+          typeL == 'reference' ||
+          typeR == 'reference' ||
+          typeL == 'null' ||
+          typeR == 'null'
+        ) {
+          throw new Error(
+            'internal system error, should not happen for boxed value',
+          )
+        }
+        if (typeL != typeR) {
+          throw new Error('incompatible types')
+        }
+        const tn: TypedBoxedReferenceEqualsNode = {
+          kind: 'binary',
+          op: '==box',
+          negate: node.op == '!=',
+          left: innerL,
+          right: innerR,
+        }
+        return ['boolean', tn]
+      }
+
       if (
         (typeL == 'byte' ||
           typeL == 'char' ||
@@ -416,21 +451,6 @@ function typecheck_internal(
       }
 
       if (
-        (node.op == '==' || node.op == '!=') &&
-        (typeL == 'reference' || typeL == 'null') &&
-        (typeR == 'reference' || typeR == 'null')
-      ) {
-        const tn: TypedReferenceEqualsNode = {
-          kind: 'binary',
-          op: '==r',
-          negate: node.op == '!=',
-          left: innerL,
-          right: innerR,
-        }
-        return ['boolean', tn]
-      }
-
-      if (
         (typeL == 'byte' ||
           typeL == 'char' ||
           typeL == 'short' ||
@@ -470,6 +490,21 @@ function typecheck_internal(
         }
       }
 
+      if (
+        (node.op == '==' || node.op == '!=') &&
+        (typeL == 'reference' || typeL == 'null') &&
+        (typeR == 'reference' || typeR == 'null')
+      ) {
+        const tn: TypedReferenceEqualsNode = {
+          kind: 'binary',
+          op: '==r',
+          negate: node.op == '!=',
+          left: innerL,
+          right: innerR,
+        }
+        return ['boolean', tn]
+      }
+
       // <--- insert open stuff here
 
       throw new Error(
@@ -483,6 +518,9 @@ function typecheck_internal(
       }
       if (value.type == 'reference') {
         return ['reference', node, { name: env.heap[value.ref].class }]
+      }
+      if (value.type != 'null' && value.boxed) {
+        return [value.type, node, { boxed: true }]
       }
       return [value.type, node]
     }

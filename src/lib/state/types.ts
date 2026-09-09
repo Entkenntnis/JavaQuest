@@ -284,6 +284,7 @@ export type TypedNode<T extends JavaValue> =
           | TypedNumericEqualsNode
           | TypedBooleanEqualsNode
           | TypedReferenceEqualsNode
+          | TypedBoxedReferenceEqualsNode
           | TypedBooleanLogicalNode
           | TypedRelationalCompareNode
       : never)
@@ -463,6 +464,14 @@ export interface TypedReferenceEqualsNode {
   negate: boolean
   left: TypedNode<JavaReferenceValue | JavaNullValue>
   right: TypedNode<JavaReferenceValue | JavaNullValue>
+}
+
+export interface TypedBoxedReferenceEqualsNode {
+  kind: 'binary'
+  op: '==box'
+  negate: boolean
+  left: TypedNode<JavaBooleanValue | JavaNumericPrimitiveValue>
+  right: TypedNode<JavaBooleanValue | JavaNumericPrimitiveValue>
 }
 
 export interface TypedRelationalCompareNode {

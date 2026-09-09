@@ -5576,6 +5576,641 @@ export const testSuite: TestSuiteEntry[] = [
     code: `(1 + 1) ? 2 : 3`,
     isError: true,
   },
+  // ==================== BOXED WRAPPER COMPARISONS (== / != / < etc.) ====================
+  // Boxed values are wrapper objects (Integer, Short, ...). == / != between two reference
+  // operands compares *identity* (JLS 15.21.3) subject to the autoboxing caches of
+  // valueOf(): Integer/Short/Long share the -128..127 instances, Character the 0..127
+  // ones, Byte the whole range, Boolean two singletons, Float/Double none. So two boxed
+  // env locals compare equal only when they denote the *same* cached instance (or one
+  // variable is read twice); equal values outside the cache box to distinct objects.
+  // Feeding wrappers in through env.boxed makes the harness render one wrapper
+  // declaration per local; every expectation below is whatever real Java produces.
+  // ------------------------- boxed == boxed: identity & wrapper caches -------------------------
+  // Reading the same wrapper variable twice yields one object -- also for a non-cached value.
+  {
+    code: `a == a`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { a: { type: 'int', value: 1000, boxed: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `a == a`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { a: { type: 'double', value: 1.5, boxed: true } },
+      heap: {},
+    },
+  },
+  // Integer cache -128..127: equal cached values share one object ...
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        a: { type: 'int', value: 100, boxed: true },
+        b: { type: 'int', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        a: { type: 'int', value: 127, boxed: true },
+        b: { type: 'int', value: 127, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        a: { type: 'int', value: -128, boxed: true },
+        b: { type: 'int', value: -128, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  // ... while equal values outside the cache box into distinct objects.
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'int', value: 1000, boxed: true },
+        b: { type: 'int', value: 1000, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'int', value: 128, boxed: true },
+        b: { type: 'int', value: 128, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'int', value: -129, boxed: true },
+        b: { type: 'int', value: -129, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'int', value: -2147483648, boxed: true },
+        b: { type: 'int', value: -2147483648, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  // Short reuses the Integer cache (-128..127): 100 is cached, 1000 is not.
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        a: { type: 'short', value: 100, boxed: true },
+        b: { type: 'short', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'short', value: 1000, boxed: true },
+        b: { type: 'short', value: 1000, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'short', value: -32768, boxed: true },
+        b: { type: 'short', value: -32768, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  // The whole Byte range is cached, so equal Byte variables always share an object.
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        a: { type: 'byte', value: 100, boxed: true },
+        b: { type: 'byte', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'byte', value: 100, boxed: true },
+        b: { type: 'byte', value: -100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  // Long cache -128..127: 100 cached, 1000 not. Long.MIN needs parseLong in the harness.
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        a: { type: 'long', value: '100', boxed: true },
+        b: { type: 'long', value: '100', boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'long', value: '1000', boxed: true },
+        b: { type: 'long', value: '1000', boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'long', value: '-9223372036854775808', boxed: true },
+        b: { type: 'long', value: '-9223372036854775808', boxed: true },
+      },
+      heap: {},
+    },
+  },
+  // Character cache 0..127: 100 ('d') is cached, 200 is not.
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        a: { type: 'char', value: 100, boxed: true },
+        b: { type: 'char', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'char', value: 200, boxed: true },
+        b: { type: 'char', value: 200, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  // Boolean has two singletons.
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        a: { type: 'boolean', value: true, boxed: true },
+        b: { type: 'boolean', value: true, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  // Floating point wrappers are never cached: equal values box into distinct objects.
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'double', value: 1.5, boxed: true },
+        b: { type: 'double', value: 1.5, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'float', value: 1.5, boxed: true },
+        b: { type: 'float', value: 1.5, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  // != is the negation of the same identity comparison.
+  {
+    code: `a != b`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        a: { type: 'int', value: 100, boxed: true },
+        b: { type: 'int', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a != b`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        a: { type: 'int', value: 1000, boxed: true },
+        b: { type: 'int', value: 1000, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a != a`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: { a: { type: 'int', value: 1000, boxed: true } },
+      heap: {},
+    },
+  },
+  // ------------------------- boxed vs primitive & literals: unboxing -------------------------
+  // One boxed and one primitive operand make == a *numeric* equality (JLS 15.21.1): the
+  // wrapper is unboxed, then binary numeric promotion applies across any width.
+  {
+    code: `a == 100`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { a: { type: 'int', value: 100, boxed: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `a == 1000L`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { a: { type: 'int', value: 1000, boxed: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `a == 1000.0`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { a: { type: 'int', value: 1000, boxed: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `a == 100`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { a: { type: 'short', value: 100, boxed: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `c == 'a'`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { c: { type: 'char', value: 97, boxed: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `a == 100`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { a: { type: 'long', value: '100', boxed: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `b == true`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { b: { type: 'boolean', value: true, boxed: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `b == false`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: { b: { type: 'boolean', value: true, boxed: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `d == 1.5`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { d: { type: 'double', value: 1.5, boxed: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `a != 1000`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: { a: { type: 'int', value: 1000, boxed: true } },
+      heap: {},
+    },
+  },
+  // Boxed variable vs an unboxed env local of a *different* primitive width.
+  {
+    code: `a == p`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        a: { type: 'int', value: 1000, boxed: true },
+        p: { type: 'long', value: '1000' },
+      },
+      heap: {},
+    },
+  },
+  // ------------------------- boxed vs null -------------------------
+  // A wrapper variable compared against null is a reference comparison (never unboxed).
+  {
+    code: `x == n`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        x: { type: 'int', value: 100, boxed: true },
+        n: { type: 'null', value: null },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `x != n`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        x: { type: 'int', value: 100, boxed: true },
+        n: { type: 'null', value: null },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `n == n`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { n: { type: 'null', value: null } },
+      heap: {},
+    },
+  },
+  // ------------------------- == / != across different wrapper types: compile-time errors -------------------------
+  // Two boxed operands of *different* wrapper classes are reference-typed but not mutually
+  // convertible by casting, so javac rejects them ("incomparable types"). Integer x = 100;
+  // Short y = 100; x == y is a compile-time error -- also when the comparison is hidden
+  // behind a short-circuiting operator, because typing still happens: a runtime check or an
+  // evaluator-only exception could not detect these.
+  {
+    code: `x == y`,
+    isError: true,
+    env: {
+      local: {
+        x: { type: 'int', value: 100, boxed: true },
+        y: { type: 'short', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `x != y`,
+    isError: true,
+    env: {
+      local: {
+        x: { type: 'int', value: 100, boxed: true },
+        y: { type: 'short', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `true || (x == y)`,
+    isError: true,
+    env: {
+      local: {
+        x: { type: 'int', value: 100, boxed: true },
+        y: { type: 'short', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `false && (x == y)`,
+    isError: true,
+    env: {
+      local: {
+        x: { type: 'int', value: 100, boxed: true },
+        y: { type: 'short', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    isError: true,
+    env: {
+      local: {
+        a: { type: 'int', value: 100, boxed: true },
+        b: { type: 'long', value: '100', boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    isError: true,
+    env: {
+      local: {
+        a: { type: 'int', value: 1000, boxed: true },
+        b: { type: 'double', value: 1000, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    isError: true,
+    env: {
+      local: {
+        a: { type: 'int', value: 100, boxed: true },
+        b: { type: 'float', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    isError: true,
+    env: {
+      local: {
+        a: { type: 'int', value: 100, boxed: true },
+        b: { type: 'char', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    isError: true,
+    env: {
+      local: {
+        a: { type: 'short', value: 100, boxed: true },
+        b: { type: 'byte', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a == b`,
+    isError: true,
+    env: {
+      local: {
+        a: { type: 'char', value: 65, boxed: true },
+        b: { type: 'byte', value: 65, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  // Boolean wrappers only unbox against a primitive boolean; against numbers they stay
+  // reference-typed and are incomparable.
+  {
+    code: `b == a`,
+    isError: true,
+    env: {
+      local: {
+        b: { type: 'boolean', value: true, boxed: true },
+        a: { type: 'int', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `b == 1`,
+    isError: true,
+    env: {
+      local: { b: { type: 'boolean', value: true, boxed: true } },
+      heap: {},
+    },
+  },
+  {
+    code: `true || (b == 1)`,
+    isError: true,
+    env: {
+      local: { b: { type: 'boolean', value: true, boxed: true } },
+      heap: {},
+    },
+  },
+  // ------------------------- relational between mixed numeric wrappers: numeric -------------------------
+  // Unlike ==, the relational operators unbox both operands and compare numerically, so any
+  // wrapper/primitive numeric mix compiles (JLS 15.20.1) -- Integer vs Short is fine here.
+  {
+    code: `x < y`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        x: { type: 'int', value: 100, boxed: true },
+        y: { type: 'short', value: 200, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `x <= y`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        x: { type: 'int', value: 100, boxed: true },
+        y: { type: 'short', value: 200, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `x > y`,
+    output: { type: 'boolean', value: false },
+    env: {
+      local: {
+        x: { type: 'int', value: 100, boxed: true },
+        y: { type: 'short', value: 200, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `l <= i`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        l: { type: 'long', value: '1000', boxed: true },
+        i: { type: 'int', value: 1000, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `c < s`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        c: { type: 'char', value: 65, boxed: true },
+        s: { type: 'short', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `d < f`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        d: { type: 'double', value: 1.5, boxed: true },
+        f: { type: 'float', value: 2.5, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `x < 200`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { x: { type: 'int', value: 100, boxed: true } },
+      heap: {},
+    },
+  },
   // ==================== STRING CONCATENATION & CONVERSION ====================
   // ------------------------- string concatenation: basics & ordering -------------------------
   {

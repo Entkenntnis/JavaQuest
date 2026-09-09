@@ -293,6 +293,32 @@ function evaluate_internal(
             value: node.negate ? !raw : raw,
           }
         }
+        case '==box': {
+          const left = evaluate(node.left, env)
+          const right = evaluate(node.right, env)
+          let raw = left.value == right.value
+
+          // in some situation, this constrain is not holding
+          if (
+            left.type == 'double' ||
+            right.type == 'double' ||
+            left.type == 'float' ||
+            right.type == 'float'
+          ) {
+            // no caching for float/double
+            raw = false
+          }
+          if (
+            (left.type == 'int' && (left.value > 128 || left.value < -128)) ||
+            (right.type == 'int' && (right.value > 128 || right.value < -128))
+          ) {
+            raw = false
+          }
+          return {
+            type: 'boolean',
+            value: node.negate ? !raw : raw,
+          }
+        }
         case '<<':
         case '>>':
         case '>>>': {
