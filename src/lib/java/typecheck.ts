@@ -40,6 +40,8 @@ import type {
   TypedConditionalOperatorNode,
   TypedConditionalOperatorNumericCastNode,
   TypedBoxedReferenceEqualsNode,
+  JavaNumericPrimitiveValue,
+  JavaBooleanValue,
 } from '../state/types'
 import { foldConstants } from './evaluate'
 
@@ -143,7 +145,14 @@ function typecheck_internal(
       throw new Error('invalid input type for unary operator')
     }
     case 'cast': {
-      const [type, inner] = typecheck_internal(node.operand, env)
+      const [type, inner, data] = typecheck_internal(node.operand, env)
+
+      if (data && 'boxed' in data && data.boxed) {
+        if (!isIdentityOrWideningCast(type, node.type)) {
+          throw new Error('incompatible types')
+        }
+      }
+
       if (node.type == 'boolean') {
         if (type == 'boolean') {
           const tn: TypedBooleanCastNode = {
@@ -756,4 +765,36 @@ function constructLiteralNodeResult(node: LiteralAstNode): TypecheckResult {
     case 'null':
       return ['null', typedLiteral(node.value)]
   }
+}
+
+function isIdentityOrWideningCast(
+  from: JavaValue['type'],
+  to: (JavaNumericPrimitiveValue | JavaBooleanValue)['type'],
+): boolean {
+  if (from == 'boolean' && to == 'boolean') {
+    return true
+  }
+  if (from == 'byte' && to != 'boolean' && to != 'char') return true
+
+  if (from == 'short' && to != 'boolean' && to != 'char' && to != 'byte')
+    return true
+
+  if (from == 'char' && to != 'boolean' && to != 'short' && to != 'byte')
+    return true
+
+  if (
+    from == 'int' &&
+    (to == 'int' || to == 'long' || to == 'float' || to == 'double')
+  )
+    return true
+
+  if (from == 'long' && (to == 'long' || to == 'float' || to == 'double'))
+    return true
+
+  if (from == 'float' && (to == 'float' || to == 'double')) return true
+
+  if (from == 'double' && to == 'double') return true
+
+  // re
+  return false
 }
