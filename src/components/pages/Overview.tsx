@@ -21,11 +21,11 @@ export function Overview() {
           Java LogiQuest
         </h1>
         <p className="italic text-center mb-20">
-          Entdecke die Welt der Logik hinter der Java-Programmierung
+          Entdecke die Logik der Programmierung
         </p>
         {chaptersData.map((chapter, i) => {
           return (
-            <div key={i} className="mt-20 border-b border-gray-200 pb-6">
+            <div key={i} className="mt-28 border-b border-gray-200 pb-6">
               <h2 className="px-4 text-2xl">
                 <FaIcon icon={faCircleDot} className="text-pink-500 mr-3" />
                 Kapitel {i + 1}: {chapter.title}
