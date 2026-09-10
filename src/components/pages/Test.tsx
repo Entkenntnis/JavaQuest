@@ -32,6 +32,7 @@ export function Test() {
         ws.ui.testAst = ast
       })
       const typed = typecheck(ast, env)
+      console.log(typed)
       const value = evaluate(foldConstants(typed), env)
       core.mutateWs((ws) => {
         ws.ui.testOutput = value

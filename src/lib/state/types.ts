@@ -63,6 +63,7 @@ export type TestErrorPhase = 'compile' | 'runtime'
 export interface TestHarnessError {
   phase: TestErrorPhase
   message: string
+  internal?: true
 }
 
 export interface TestSuiteEntry {

@@ -214,6 +214,9 @@ function evaluate_internal(
             node.right,
             env,
           )
+          if (innerLeft.value === null || innerRight.value === null) {
+            throw new Error('failure to unbox null')
+          }
 
           const [promoType, left, right] = binaryNumericPromotion(
             innerLeft,
@@ -277,10 +280,13 @@ function evaluate_internal(
           }
         }
         case '==n': {
-          const [, left, right] = binaryNumericPromotion(
-            evaluate(node.left, env),
-            evaluate(node.right, env),
-          )
+          const innerLeft = evaluate(node.left, env)
+          const innerRight = evaluate(node.right, env)
+          if (innerLeft.value === null || innerRight.value === null) {
+            throw new Error('failure to unbox null')
+          }
+
+          const [, left, right] = binaryNumericPromotion(innerLeft, innerRight)
           const raw = left.value === right.value
           return { type: 'boolean', value: node.negate ? !raw : raw }
         }
@@ -378,9 +384,14 @@ function evaluate_internal(
         case '>':
         case '<=':
         case '>=': {
+          const innerLeft = evaluate(node.left, env)
+          const innerRight = evaluate(node.right, env)
+          if (innerLeft.value === null || innerRight.value === null) {
+            throw new Error('failure to unbox null')
+          }
           const [promoType, left, right] = binaryNumericPromotion(
-            evaluate(node.left, env),
-            evaluate(node.right, env),
+            innerLeft,
+            innerRight,
           )
           if (
             promoType == 'double' ||

@@ -2,6 +2,8 @@ import { testSuite } from '../../lib/java/test-suite'
 import type {
   JavaEnvironment,
   SuiteResult,
+  TestErrorPhase,
+  TestHarnessError,
   TestSuiteEntry,
 } from '../../lib/state/types'
 import { parser } from '../../lib/java/lezer/parser'
@@ -13,9 +15,18 @@ import { evaluate, foldConstants } from '../../lib/java/evaluate'
 import { typecheck } from '../../lib/java/typecheck'
 import { useCore } from '../../lib/state/core'
 
+function toHarnessError(e: unknown, phase: TestErrorPhase): TestHarnessError {
+  const message = (e as any).toString()
+  const internal =
+    (typeof e === 'string' && e.startsWith('internal system error')) ||
+    e instanceof TypeError ||
+    e instanceof RangeError ||
+    e instanceof ReferenceError ||
+    e instanceof SyntaxError
+  return internal ? { phase, message, internal: true } : { phase, message }
+}
+
 function runCase(code: string, env: JavaEnvironment): SuiteResult {
-  // Errors raised while building the AST or type checking mirror javac's compile-time
-  // rejection; everything the evaluator throws afterwards is a runtime error.
   let typed
   try {
     const tree = parser.parse(code)
@@ -24,7 +35,7 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
     const ast = cst2ast(cst)
     typed = typecheck(ast, env)
   } catch (e) {
-    return { error: { phase: 'compile', message: (e as any).toString() } }
+    return { error: toHarnessError(e, 'compile') }
   }
   try {
     const value = evaluate(foldConstants(typed), env)
@@ -53,7 +64,7 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
     }
     return { value }
   } catch (e) {
-    return { error: { phase: 'runtime', message: (e as any).toString() } }
+    return { error: toHarnessError(e, 'runtime') }
   }
 }
 
@@ -66,7 +77,10 @@ function cloneEnv(env: JavaEnvironment): JavaEnvironment {
 }
 
 function isPass(entry: TestSuiteEntry, result: SuiteResult) {
-  if (result.error) return entry.error === result.error.phase
+  if (result.error) {
+    if (result.error.internal) return false
+    return entry.error === result.error.phase
+  }
   if (entry.error) return false
   return (
     result.value !== undefined &&
@@ -123,7 +137,9 @@ function Entry({
   const pass = isPass(entry, result)
 
   const actual = result.error
-    ? `Fehler [${result.error.phase}]: ${result.error.message}`
+    ? result.error.internal
+      ? `Interner Systemfehler: ${result.error.message}`
+      : `Fehler [${result.error.phase}]: ${result.error.message}`
     : `Output: ${JSON.stringify(result.value)}`
 
   const expected = entry.error
