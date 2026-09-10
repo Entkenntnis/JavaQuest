@@ -15,7 +15,7 @@ const verbose =
 const filter = process.argv.slice(2).find((arg) => !arg.startsWith('-'))
 
 const { testSuite } = await import(
-  join(__dirname, '../../data/test-suite.ts') + `?t=${Date.now()}`
+  join(__dirname, '../test-suite.ts') + `?t=${Date.now()}`
 )
 
 const entries = testSuite
@@ -297,7 +297,11 @@ for (let i = 0; i < entries.length; i++) {
       detail = `expected ${entry.error} error, but Java evaluates to ${JSON.stringify(actual.value)}`
     } else if (!entry.error && actual.error) {
       detail = `expected a value, but Java ${actual.error.kind} error: ${actual.error.msg}`
-    } else if (entry.error && actual.error && entry.error != actual.error.kind) {
+    } else if (
+      entry.error &&
+      actual.error &&
+      entry.error != actual.error.kind
+    ) {
       detail = `expected ${entry.error} error, but Java ${actual.error.kind} error: ${actual.error.msg}`
     } else {
       detail = `expected ${JSON.stringify(entry.output)}, got ${JSON.stringify(actual.value)}`
@@ -314,7 +318,9 @@ for (let i = 0; i < entries.length; i++) {
     if (entry.env) {
       console.log(`      env:      ${JSON.stringify(entry.env)}`)
     }
-    console.log(`      expected: ${entry.error ? entry.error + ' error' : JSON.stringify(entry.output)}`)
+    console.log(
+      `      expected: ${entry.error ? entry.error + ' error' : JSON.stringify(entry.output)}`,
+    )
     console.log(
       `      actual:   ${actual.error ? `${actual.error.kind} error: ${summary(actual.error.msg)}` : JSON.stringify(actual.value)}`,
     )

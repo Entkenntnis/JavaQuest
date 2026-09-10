@@ -63,7 +63,9 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
       throw new Error('Referenzausgabe ist im Test nicht vergleichbar')
     }
     if (value.type == 'null') {
-      throw new Error('null ist als Ausgabe nicht unterstützt')
+      // A bare null result is a harness limitation, not a JVM error: tag it as an
+      // internal system error so it can never be mistaken for a matching runtime error.
+      throw 'Interner Systemfehler: null ist als Ausgabe nicht darstellbar'
     }
     if (value.boxed) {
       delete value.boxed

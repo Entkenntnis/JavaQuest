@@ -183,6 +183,27 @@ export const boxedUnboxing: TestSuiteEntry[] = [
     code: `!(false ? false : null)`,
     error: 'runtime',
   },
+  // The unary +/-/~ operators also demand a primitive, so a null-selected wrapper arm must
+  // NPE too. (Their non-null arms are pinned in the numeric-arithmetic section above.)
+  // EXPECTED RED: the evaluator only guards null in the binary numeric/relational operators,
+  // not in the unary ones, so these currently slip through as a null result (which the
+  // harness tags as an internal system error, never as a matching runtime error).
+  {
+    code: `+(false ? 1 : null)`,
+    error: 'runtime',
+  },
+  {
+    code: `-(false ? 1 : null)`,
+    error: 'runtime',
+  },
+  {
+    code: `~(false ? 1 : null)`,
+    error: 'runtime',
+  },
+  {
+    code: `!(true ? null : false)`,
+    error: 'runtime',
+  },
   // ------------------------- boxed Boolean in boolean contexts -------------------------
   // JLS 15.25 allows a Boolean *wrapper* as a ternary condition (and 15.23/15.24 as an
   // &&/|| operand): the wrapper is unboxed, so a non-null boxed Boolean drives the branch,
@@ -203,6 +224,22 @@ export const boxedUnboxing: TestSuiteEntry[] = [
   {
     code: `(true ? false : null) == (true ? false : 1)`,
     output: { type: 'boolean', value: true },
+  },
+  // The wrapper is unboxed in these boolean contexts before any branching/short-circuit, so a
+  // null-selected arm throws NPE: as a ?: condition, and as a &&/|| left operand.
+  // EXPECTED RED: the evaluator reads the raw null as a falsy/absent value instead of
+  // unboxing it, so it silently picks the other branch / returns the null.
+  {
+    code: `(false ? true : null) ? 1 : 2`,
+    error: 'runtime',
+  },
+  {
+    code: `(false ? true : null) && true`,
+    error: 'runtime',
+  },
+  {
+    code: `(false ? true : null) || true`,
+    error: 'runtime',
   },
   // ------------------------- lub-typed boxed values ("the Serializable thingy") -------------------------
   // `cond ? int : boolean` has neither an Integer nor a Boolean type: javac boxes both arms
