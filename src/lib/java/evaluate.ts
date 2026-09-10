@@ -158,7 +158,14 @@ function evaluate_internal(
     case 'unary': {
       switch (node.op) {
         case '+': {
-          const inner = evaluate<JavaNumericPrimitiveValue>(node.operand, env)
+          // null is annoying - it is bleeding everywhere into the system
+          const inner = evaluate<JavaNumericPrimitiveValue | JavaNullValue>(
+            node.operand,
+            env,
+          )
+          if (inner.type == 'null') {
+            throw new Error('NullPointerException beim Entpacken von null')
+          }
           if (isSmallInt(inner)) {
             return toInt(inner)
           } else {
@@ -166,7 +173,13 @@ function evaluate_internal(
           }
         }
         case '-': {
-          const inner = evaluate<JavaNumericPrimitiveValue>(node.operand, env)
+          const inner = evaluate<JavaNumericPrimitiveValue | JavaNullValue>(
+            node.operand,
+            env,
+          )
+          if (inner.type == 'null') {
+            throw new Error('NullPointerException beim Entpacken von null')
+          }
           if (isSmallInt(inner)) {
             return toInt({ type: 'int', value: -inner.value })
           }
@@ -179,14 +192,19 @@ function evaluate_internal(
           return { type: inner.type, value: -inner.value }
         }
         case '!': {
-          const inner = evaluate(node.operand, env)
-          if (typeof inner.value !== 'boolean') {
-            throw 'Interner Systemfehler: boolean erwartet'
+          return {
+            type: 'boolean',
+            value: !unboxBoolean(evaluate(node.operand, env)),
           }
-          return { type: 'boolean', value: !inner.value }
         }
         case '~': {
-          const inner = evaluate<JavaIntegerValue>(node.operand, env)
+          const inner = evaluate<JavaIntegerValue | JavaNullValue>(
+            node.operand,
+            env,
+          )
+          if (inner.type == 'null') {
+            throw new Error('NullPointerException beim Entpacken von null')
+          }
           return convertTo(inner.type == 'long' ? 'long' : 'int', {
             type: 'long',
             value: (~BigInt(inner.value)).toString(),
@@ -197,12 +215,22 @@ function evaluate_internal(
     case 'binary': {
       switch (node.op) {
         case '&&': {
-          const innerLeft = evaluate(node.left, env)
-          return !innerLeft.value ? innerLeft : evaluate(node.right, env)
+          if (!unboxBoolean(evaluate(node.left, env))) {
+            return { type: 'boolean', value: false }
+          }
+          return {
+            type: 'boolean',
+            value: unboxBoolean(evaluate(node.right, env)),
+          }
         }
         case '||': {
-          const innerLeft = evaluate(node.left, env)
-          return innerLeft.value ? innerLeft : evaluate(node.right, env)
+          if (unboxBoolean(evaluate(node.left, env))) {
+            return { type: 'boolean', value: true }
+          }
+          return {
+            type: 'boolean',
+            value: unboxBoolean(evaluate(node.right, env)),
+          }
         }
         case '+':
         case '-':
@@ -434,18 +462,18 @@ function evaluate_internal(
       return env.local[node.name]
     }
     case 'ternary': {
-      const cond = evaluate(node.condition, env)
+      const cond = unboxBoolean(evaluate(node.condition, env))
       let raw
       if ('castTo' in node) {
         raw = evaluate<JavaNumericPrimitiveValue>(
-          cond.value ? node.left : node.right,
+          cond ? node.left : node.right,
           env,
         )
         if (node.castTo) {
           raw = convertTo(node.castTo, raw)
         }
       } else {
-        raw = evaluate<JavaValue>(cond.value ? node.left : node.right, env)
+        raw = evaluate<JavaValue>(cond ? node.left : node.right, env)
       }
 
       if (node.objectify)
@@ -550,6 +578,17 @@ function isPrimitive(
     val.type == 'double' ||
     val.type == 'boolean'
   )
+}
+
+function unboxBoolean(val: JavaValue): boolean {
+  if (val.type == 'null') {
+    throw new Error('NullPointerException beim Entpacken von null')
+  }
+  // at some point we would have "real" wrapper, so we would need to adjust this
+  if (!('value' in val) || typeof val.value !== 'boolean') {
+    throw 'Interner Systemfehler: boolean erwartet'
+  }
+  return val.value
 }
 
 function convertTo(
