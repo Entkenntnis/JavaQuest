@@ -66,25 +66,7 @@ export function Overview() {
           <br />
           <span className="text-lg italic block mt-6">Geschafft!</span>
         </div>
-        <div className="pb-4 mx-4">-- Footer -- Impressum </div>
-        {/*questsList.map((quest) => {
-        const path = `/quest-${quest.id}`
-        return (
-          <div className="ml-4 my-6" key={quest.id}>
-            [{quest.id}] {quest.title}{' '}
-            <a
-              href={path}
-              className="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 rounded"
-              onClick={(e) => {
-                e.preventDefault()
-                navigate(core, path)
-              }}
-            >
-              Öffnen
-            </a>
-          </div>
-        )
-      })*/}
+        <div className="pb-4 mx-4">Impressum</div>
       </div>
     </div>
   )

@@ -11,8 +11,8 @@ export const chaptersData: ChapterData[] = [
     ),
   },
   {
-    title: 'Ein weiteres Kapitel',
-    quests: [1, 2, 3, 4, 5, 6],
+    title: 'TODO, im Aufbau',
+    quests: [],
     description: () => (
       <>
         <p>Hi!</p>
@@ -20,8 +20,8 @@ export const chaptersData: ChapterData[] = [
     ),
   },
   {
-    title: 'Noch ein Kapitel',
-    quests: [1, 2, 3, 4, 5, 6],
+    title: 'Auch TODO',
+    quests: [],
     description: () => (
       <>
         <p>Hi!</p>
