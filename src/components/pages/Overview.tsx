@@ -32,7 +32,9 @@ export function Overview() {
                 Kapitel {i + 1}: {chapter.title}
               </h2>
               <details className="ml-5 pl-4 mr-5 pr-2 mt-6 pb-2 pt-1 border-gray-400 border rounded-lg">
-                <summary className="select-none">Beschreibung</summary>
+                <summary className="select-none cursor-pointer">
+                  Beschreibung
+                </summary>
                 <div className="mt-4">{chapter.description()}</div>
               </details>
               <h3 className="px-6 mt-6 text-lg">Aufgaben</h3>
