@@ -1,5 +1,16 @@
 import type { JavaEnvironment, QuestData } from '../state/types'
 
+function intEnv(...entries: [string, number][]): JavaEnvironment {
+  const env: JavaEnvironment = {
+    local: {},
+    heap: {},
+  }
+  for (const [name, value] of entries) {
+    env.local[name] = { type: 'int', value }
+  }
+  return env
+}
+
 export const questsData: { [key: number]: QuestData } = {
   1: {
     id: 1,
@@ -17,18 +28,12 @@ class Willkommen {
     `.trim(),
     checker: {
       reference: 'zahl == 42',
-      data: [0, 41, 42, 43, 60, 66, 67, 68, 76, 24, 100, -100, -1000, 10000],
+      data: [-1000, 0, 41, 42, 43, 66, 67, 68, 100],
       driver(el, oracle) {
         if (el == 67) {
           return 'Geh in die Ecke.'
         }
-        const env: JavaEnvironment = {
-          local: { zahl: { type: 'int', value: el } },
-          heap: {},
-        }
-        const value = oracle(env)
-        if (typeof value === 'string') return value
-        if (value) {
+        if (oracle(intEnv(['zahl', el]))) {
           return '42 ist eine coole Zahl!'
         }
         return '<keine Ausgabe>'
@@ -51,6 +56,19 @@ class Vorzeichen {
     }
 }
     `.trim(),
+    checker: {
+      reference: 'zahl < 0',
+      data: [-1000, -100, -5, -1, 0, 1, 5, 100, 1000],
+      driver(el, oracle) {
+        if (el > 0) {
+          return 'positiv'
+        }
+        if (oracle(intEnv(['zahl', el]))) {
+          return 'negativ'
+        }
+        return 'zero'
+      },
+    },
   },
   3: {
     id: 3,
@@ -65,6 +83,16 @@ class LevelUp {
     }
 }
     `.trim(),
+    checker: {
+      reference: 'xp >= 120',
+      data: [-1000, -1, 0, 60, 119, 120, 121, 200, 1000],
+      driver(el, oracle) {
+        if (oracle(intEnv(['xp', el]))) {
+          return 'LevelUp möglich!'
+        }
+        return '<keine Ausgabe>'
+      },
+    },
   },
   4: {
     id: 4,
@@ -75,12 +103,23 @@ class Passwort {
     void testePasswort(int code) {
         if (___placeholder___) {
             System.out.println("Falsches Passwort");
-            System.exit();
+            System.exit(1);
         }
         System.out.println("Zugang gewährt");
     }
 }
     `.trim(),
+    checker: {
+      reference: 'code != 2026',
+      data: [-1000, -1, 0, 1, 100, 2025, 2026, 2027, 100000],
+      driver(el, oracle) {
+        if (oracle(intEnv(['code', el]))) {
+          return 'Falsches Passwort'
+        } else {
+          return 'Zugang gewährt'
+        }
+      },
+    },
   },
   5: {
     id: 5,
@@ -96,6 +135,17 @@ class Altersfreigabe {
     }
 }
     `.trim(),
+    checker: {
+      reference: 'alter >= 18',
+      data: [-5, -1, 0, 5, 17, 18, 19, 100, 1000],
+      driver(el, oracle) {
+        if (oracle(intEnv(['alter', el]))) {
+          return 'Volljährig'
+        } else {
+          return 'Minderjährig'
+        }
+      },
+    },
   },
   6: {
     id: 6,
@@ -113,5 +163,29 @@ class Zahlenvergleich {
     }
 }
     `.trim(),
+    checker: {
+      reference: 'b > a',
+      data: [
+        [0, 0],
+        [1, 2],
+        [2, 1],
+        [-1, 1],
+        [1, -1],
+        [5, 5],
+        [100, 2],
+        [2, 100],
+        [-100, -200],
+      ],
+      driver(el, oracle) {
+        const [a, b] = el
+        if (a > b) {
+          return 'a ist größer'
+        } else if (oracle(intEnv(['a', a], ['b', b]))) {
+          return 'b ist größer'
+        } else {
+          return 'gleich'
+        }
+      },
+    },
   },
 }

@@ -47,6 +47,8 @@ export function InputBar() {
                 ws.ui.questInput = e.target.value
               })
             }}
+            maxLength={1024}
+            autoFocus
           ></input>
         </div>
         <div className="m-3 shrink-0 text-lg pb-1">

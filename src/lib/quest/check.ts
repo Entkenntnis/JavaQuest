@@ -33,15 +33,11 @@ export function check(core: Core) {
     let output
     try {
       output = quest.checker.driver(el, (env) => {
-        try {
-          const value = evalSnippet(snippet, env)
-          if (value.type != 'boolean') {
-            throw `Wert vom Typ "${value.type}" erhalten, erwarte booleschen Ausdruck.`
-          }
-          return value.value
-        } catch (e) {
-          return (e as any).toString()
+        const value = evalSnippet(snippet, env)
+        if (value.type != 'boolean') {
+          throw `Wert vom Typ "${value.type}" erhalten, erwarte booleschen Ausdruck.`
         }
+        return value.value
       })
     } catch (e) {
       output = (e as Error).toString()

@@ -40,7 +40,7 @@ export interface QuestData {
 export interface QuestChecker<T> {
   data: T[]
   reference: string
-  driver: (el: T, oracle: (env: JavaEnvironment) => boolean | string) => string
+  driver: (el: T, oracle: (env: JavaEnvironment) => boolean) => string
 }
 
 export interface ChapterData {
