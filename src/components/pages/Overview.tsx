@@ -24,7 +24,7 @@ export function Overview() {
           return (
             <div key={i} className="mt-28 border-b border-gray-200 pb-6">
               <h2 className="px-4 text-2xl">
-                <FaIcon icon={faCircleDot} className="text-pink-500 mr-3" />
+                <FaIcon icon={faCircleDot} className="text-pink-400 mr-3" />
                 Kapitel {i + 1}: {chapter.title}
               </h2>
               <details className="ml-5 pl-4 mr-5 pr-2 mt-6 pb-2 pt-1 border-gray-400 border rounded-lg">
