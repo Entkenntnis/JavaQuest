@@ -40,7 +40,7 @@ export function check(core: Core) {
         return value.value
       })
     } catch (e) {
-      output = (e as Error).toString()
+      output = e instanceof Error ? e.message : String(e)
     }
     return output
   }

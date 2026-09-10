@@ -9,15 +9,13 @@ import type {
   JavaLongValue,
 } from '../state/types'
 
-function conversionError(node: CstNode, reason: string) {
-  return new Error(
-    `[cst2ast] ${reason}\n  node: ${node.name} [${node.from}, ${node.to}]\n  source: ${JSON.stringify(node.text)}`,
-  )
+function conversionError(_node: CstNode, reason: string) {
+  return new Error(reason)
 }
 
 export function checkForParseErrors(node: CstNode) {
   if (node.isError) {
-    throw conversionError(node, 'input does not parse')
+    throw conversionError(node, 'Syntaxfehler')
   }
   for (const child of node.children) {
     checkForParseErrors(child)
@@ -26,11 +24,11 @@ export function checkForParseErrors(node: CstNode) {
 
 export function cst2ast(node: CstNode): AstNode {
   if (node.isError) {
-    throw 'internal system error: please check for errors first'
+    throw 'Interner Systemfehler: Eingabe zuerst auf Fehler prüfen'
   }
   if (node.name == 'Expression') {
     if (node.children.length != 1) {
-      throw 'internal system error: valid expression must have one child'
+      throw 'Interner Systemfehler: gültiger Ausdruck muss genau ein Kind haben'
     }
     return cst2ast(node.children[0])
   } else if (node.name == 'UnaryExpression') {
@@ -51,7 +49,7 @@ export function cst2ast(node: CstNode): AstNode {
     if (op == '~') {
       return { kind: 'unary', op, operand: cst2ast(operand) }
     }
-    throw conversionError(node, 'unknown unary operator')
+    throw conversionError(node, 'Unbekannter unärer Operator')
   } else if (node.name == 'IntegerLiteral') {
     return { kind: 'literal', value: parseIntegerLiteral(node) }
   } else if (node.name == 'FloatingPointLiteral') {
@@ -77,7 +75,7 @@ export function cst2ast(node: CstNode): AstNode {
       type != 'float' &&
       type != 'double'
     ) {
-      throw conversionError(node, 'invalid cast target type')
+      throw conversionError(node, 'Ungültiger Cast-Typ')
     }
     return { kind: 'cast', type, operand: cst2ast(operandNode) }
   } else if (node.name == 'ParenthesizedExpression') {
@@ -106,7 +104,7 @@ export function cst2ast(node: CstNode): AstNode {
       operator != '>=' &&
       operator != '<='
     ) {
-      throw conversionError(node, 'unsupported operator')
+      throw conversionError(node, 'Nicht unterstützter Operator')
     }
     return {
       kind: 'binary',
@@ -124,7 +122,7 @@ export function cst2ast(node: CstNode): AstNode {
       right: cst2ast(node.children[4]),
     }
   }
-  throw conversionError(node, 'no converter registered for this node')
+  throw 'Interner Systemfehler: nicht unterstützter Ausdruck'
 }
 
 const radixPrefix = {
@@ -173,11 +171,11 @@ function parseIntegerLiteral(
   }
   digits = digits.replace(/_/g, '')
   if (digits.length === 0) {
-    throw 'internal system error: no digits'
+    throw 'Interner Systemfehler: keine Ziffern'
   }
   if (!radixPattern[radix].test(digits)) {
     // the famous case is 08, that the grammar is not handling
-    throw conversionError(node, 'invalid digit in integer literal')
+    throw conversionError(node, 'Unzulässige Ziffer im Ganzzahlliteral')
   }
 
   const magnitude = BigInt(radixPrefix[radix] + digits)
@@ -187,13 +185,10 @@ function parseIntegerLiteral(
   if (radix == 10) {
     const decimalmaximum = minus ? 1n << BigInt(bits - 1) : signedMaximum
     if (magnitude > decimalmaximum) {
-      throw conversionError(node, 'integer literal is out of range')
+      throw conversionError(node, 'Ganzzahl zu groß')
     }
   } else if (magnitude > unsignedMaximum) {
-    throw conversionError(
-      node,
-      `integer literal does not fit into ${bits} bits`,
-    )
+    throw conversionError(node, 'Ganzzahl zu groß')
   }
 
   const signed = BigInt.asIntN(bits, minus ? -magnitude : magnitude)
@@ -229,18 +224,18 @@ function parseFloatingPointLiteral(
   if (isFloat) {
     const rounded = Math.fround(value)
     if (!Number.isFinite(rounded)) {
-      throw conversionError(node, 'floating literal is too large for a float')
+      throw conversionError(node, 'Gleitkommazahl zu groß')
     }
     if (rounded == 0 && !isZero) {
-      throw conversionError(node, 'floating literal is too small for a float')
+      throw conversionError(node, 'Gleitkommazahl zu klein')
     }
     return { type: 'float', value: rounded }
   }
   if (!Number.isFinite(value)) {
-    throw conversionError(node, 'floating literal is too large for a double')
+    throw conversionError(node, 'Gleitkommazahl zu groß')
   }
   if (value == 0 && !isZero) {
-    throw conversionError(node, 'floating literal is too small for a double')
+    throw conversionError(node, 'Gleitkommazahl zu klein')
   }
   return { type: 'double', value }
 }
@@ -295,7 +290,7 @@ function doubleFromMantissa(m: bigint, p: number) {
 function parseHexFloat(body: string): number {
   const exponentMatch = /[pP]([+-]?[0-9_]+)$/.exec(body)
   if (!exponentMatch) {
-    throw 'internal system error: hex exponent missing'
+    throw 'Interner Systemfehler: Hex-Exponent fehlt'
   }
   const exponent = parseInt(exponentMatch[1].replace(/_/g, ''), 10)
   const significand = body
@@ -307,7 +302,7 @@ function parseHexFloat(body: string): number {
     dotIndex == -1 ? significand : significand.slice(0, dotIndex)
   const fractionPart = dotIndex == -1 ? '' : significand.slice(dotIndex + 1)
   if (integerPart.length + fractionPart.length == 0) {
-    throw 'internal system error: no mantissa digits'
+    throw 'Interner Systemfehler: keine Mantissen-Ziffern'
   }
   const m = BigInt('0x' + integerPart + fractionPart)
   return doubleFromMantissa(m, exponent - 4 * fractionPart.length)
@@ -335,7 +330,7 @@ function unescape(text: string): string {
       continue
     }
     const next = text[i + 1]
-    if (next == undefined) throw new Error('cannot parse string')
+    if (next == undefined) throw new Error('Unzulässiges Escapezeichen')
     if (/[0-7]/.test(next)) {
       const maxDigits = next <= '3' ? 3 : 2
       let code = 0
@@ -353,11 +348,12 @@ function unescape(text: string): string {
       let j = i + 1
       while (j < text.length && text[j] == 'u') j += 1
       const hex = text.slice(j, j + 4)
-      if (!/^[0-9a-fA-F]{4}$/.test(hex)) throw new Error('cannot parse string')
+      if (!/^[0-9a-fA-F]{4}$/.test(hex))
+        throw new Error('Unzulässiges Escapezeichen')
       result += String.fromCharCode(parseInt(hex, 16))
       i = j + 4
     } else {
-      throw new Error('cannot parse string')
+      throw new Error('Unzulässiges Escapezeichen')
     }
   }
   return result
@@ -366,14 +362,11 @@ function unescape(text: string): string {
 function parseCharacterLiteral(node: CstNode): JavaCharValue {
   const raw = node.text
   if (raw.length < 2 || raw[0] != "'" || raw[raw.length - 1] != "'") {
-    throw conversionError(node, 'malformed character literal')
+    throw conversionError(node, 'Ungültiges Zeichenliteral')
   }
   const decoded = unescape(raw.slice(1, -1))
   if (decoded.length != 1) {
-    throw conversionError(
-      node,
-      'character literal must contain exactly one UTF-16 code unit',
-    )
+    throw conversionError(node, 'Zeichenliteral muss genau ein Zeichen enthalten')
   }
   return { type: 'char', value: decoded.charCodeAt(0) }
 }
@@ -381,7 +374,7 @@ function parseCharacterLiteral(node: CstNode): JavaCharValue {
 function parseStringLiteral(node: CstNode): string {
   const raw = node.text
   if (raw.length < 2 || raw[0] != '"' || raw[raw.length - 1] != '"') {
-    throw conversionError(node, 'malformed string literal')
+    throw conversionError(node, 'Ungültiges Zeichenkettenliteral')
   }
   return unescape(raw.slice(1, -1))
 }
@@ -390,5 +383,5 @@ function parseBooleanLiteral(node: CstNode): JavaBooleanValue {
   const raw = node.text
   if (raw == 'true') return { type: 'boolean', value: true }
   if (raw == 'false') return { type: 'boolean', value: false }
-  throw 'internal system error: invalid boolean literal'
+  throw 'Interner Systemfehler: ungültiges Boolean-Literal'
 }

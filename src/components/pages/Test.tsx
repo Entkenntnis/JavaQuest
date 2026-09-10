@@ -40,7 +40,7 @@ export function Test() {
       })
     } catch (e) {
       core.mutateWs((ws) => {
-        ws.ui.testError = (e as any).toString()
+        ws.ui.testError = e instanceof Error ? e.message : String(e)
       })
     }
   }

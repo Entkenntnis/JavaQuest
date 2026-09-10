@@ -16,14 +16,22 @@ import { typecheck } from '../../lib/java/typecheck'
 import { useCore } from '../../lib/state/core'
 
 function toHarnessError(e: unknown, phase: TestErrorPhase): TestHarnessError {
-  const message = (e as any).toString()
+  const raw = e instanceof Error ? e.message : String(e)
   const internal =
-    (typeof e === 'string' && e.startsWith('internal system error')) ||
+    (typeof e === 'string' && e.startsWith('Interner Systemfehler')) ||
     e instanceof TypeError ||
     e instanceof RangeError ||
     e instanceof ReferenceError ||
     e instanceof SyntaxError
-  return internal ? { phase, message, internal: true } : { phase, message }
+  if (internal) {
+    const detail = raw.replace(/^Interner Systemfehler: /, '')
+    return {
+      phase,
+      message: `Interner Systemfehler: ${detail}`,
+      internal: true,
+    }
+  }
+  return { phase, message: raw }
 }
 
 function runCase(code: string, env: JavaEnvironment): SuiteResult {
@@ -52,12 +60,10 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
       }
     }
     if (value.type == 'reference') {
-      throw new Error(
-        'comparison with reference not meaningful in test harness',
-      )
+      throw new Error('Referenzausgabe ist im Test nicht vergleichbar')
     }
     if (value.type == 'null') {
-      throw new Error('null output is not supported in the test harness')
+      throw new Error('null ist als Ausgabe nicht unterstützt')
     }
     if (value.boxed) {
       delete value.boxed
@@ -138,7 +144,7 @@ function Entry({
 
   const actual = result.error
     ? result.error.internal
-      ? `Interner Systemfehler: ${result.error.message}`
+      ? result.error.message
       : `Fehler [${result.error.phase}]: ${result.error.message}`
     : `Output: ${JSON.stringify(result.value)}`
 

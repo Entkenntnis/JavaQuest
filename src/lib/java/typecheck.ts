@@ -52,6 +52,21 @@ export function typecheck(
   return typecheck_internal(node, env)[1]
 }
 
+// For error messages: show the Java class for reference types instead of the
+// internal "reference" tag.
+function displayType(type: string, data: unknown): string {
+  if (type == 'null') return '<Null>'
+  if (
+    type == 'reference' &&
+    data != null &&
+    typeof data == 'object' &&
+    'name' in data
+  ) {
+    return (data as { name: string }).name
+  }
+  return type
+}
+
 function typecheck_internal(
   node: AstNode,
   env: JavaEnvironment,
@@ -68,7 +83,7 @@ function typecheck_internal(
       ]
     }
     case 'unary': {
-      const [type, inner] = typecheck_internal(node.operand, env)
+      const [type, inner, data] = typecheck_internal(node.operand, env)
 
       if (node.op == '+' || node.op == '-') {
         if (
@@ -142,14 +157,18 @@ function typecheck_internal(
           return ['long', tn]
         }
       }
-      throw new Error('invalid input type for unary operator')
+      throw new Error(
+        `Ungültiger Operandentyp ${displayType(type, data)} für unären Operator "${node.op}"`,
+      )
     }
     case 'cast': {
       const [type, inner, data] = typecheck_internal(node.operand, env)
 
       if (data && 'boxed' in data && data.boxed) {
         if (!isIdentityOrWideningCast(type, node.type)) {
-          throw new Error('incompatible types')
+          throw new Error(
+            `Inkompatible Typen: ${displayType(type, data)} kann nicht in ${node.type} konvertiert werden`,
+          )
         }
       }
 
@@ -162,10 +181,14 @@ function typecheck_internal(
           }
           return ['boolean', tn]
         }
-        throw new Error('boolean expected in cast')
+        throw new Error(
+          `Inkompatible Typen: ${displayType(type, data)} kann nicht in boolean konvertiert werden`,
+        )
       }
       if (type == 'null' || type == 'boolean' || type == 'reference') {
-        throw new Error('cast expected for numeric value')
+        throw new Error(
+          `Inkompatible Typen: ${displayType(type, data)} kann nicht in ${node.type} konvertiert werden`,
+        )
       }
       if (node.type == 'byte') {
         const tn: TypedNumericCastNode<JavaByteValue> = {
@@ -223,7 +246,7 @@ function typecheck_internal(
         }
         return ['double', tn]
       }
-      throw new Error('invalid input type for cast')
+      throw new Error('Inkompatible Typen: ungültiger Cast')
     }
     case 'binary': {
       const [typeL, innerL, dataL] = typecheck_internal(node.left, env)
@@ -241,7 +264,7 @@ function typecheck_internal(
         // type check!
         if (isBoxL && isBoxR) {
           if (typeL != typeR) {
-            throw new Error('incompatible types')
+            throw new Error(`Inkompatible Typen: ${typeL} und ${typeR}`)
           }
         }
         const tn: TypedBoxedReferenceEqualsNode = {
@@ -509,13 +532,13 @@ function typecheck_internal(
       // <--- insert open stuff here
 
       throw new Error(
-        `invalid binary operation ${node.op} between ${typeL} and ${typeR}`,
+        `Ungültige Operandentypen für binären Operator "${node.op}": ${displayType(typeL, dataL)} und ${displayType(typeR, dataR)}`,
       )
     }
     case 'identifier': {
       const value = env.local[node.name]
       if (!value) {
-        throw new Error('unknown identifier')
+        throw new Error(`Symbol nicht gefunden: Variable "${node.name}"`)
       }
       if (value.type == 'reference') {
         return ['reference', node, { name: env.heap[value.ref].class }]
@@ -528,7 +551,7 @@ function typecheck_internal(
     case 'ternary': {
       const [condT, condV] = typecheck_internal(node.condition, env)
       if (condT != 'boolean') {
-        throw 'Expecting boolean for first operand of conditional operator'
+        throw new Error('Inkompatible Typen: Bedingung muss boolean sein')
       }
 
       const [typeL, innerL, dataL] = typecheck_internal(node.left, env)
@@ -749,9 +772,9 @@ function constructLiteralNodeResult(node: LiteralAstNode): TypecheckResult {
     case 'boolean':
       return ['boolean', typedLiteral(node.value)]
     case 'byte':
-      throw new Error('impossible literal')
+      throw 'Interner Systemfehler: unmögliches Literal'
     case 'short':
-      throw new Error('impossible literal')
+      throw 'Interner Systemfehler: unmögliches Literal'
     case 'char':
       return ['char', typedLiteral(node.value)]
     case 'int':

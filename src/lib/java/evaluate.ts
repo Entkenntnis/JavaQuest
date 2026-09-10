@@ -181,7 +181,7 @@ function evaluate_internal(
         case '!': {
           const inner = evaluate(node.operand, env)
           if (typeof inner.value !== 'boolean') {
-            throw new Error('boolean expected, but got null')
+            throw 'Interner Systemfehler: boolean erwartet'
           }
           return { type: 'boolean', value: !inner.value }
         }
@@ -215,7 +215,7 @@ function evaluate_internal(
             env,
           )
           if (innerLeft.value === null || innerRight.value === null) {
-            throw new Error('failure to unbox null')
+            throw new Error('NullPointerException beim Entpacken von null')
           }
 
           const [promoType, left, right] = binaryNumericPromotion(
@@ -242,10 +242,10 @@ function evaluate_internal(
 
           if (isInteger) {
             if (node.op == '/' && BigInt(right.value) == 0n) {
-              throw new Error('Division by zero')
+              throw new Error('Division durch Null')
             }
             if (node.op == '%' && BigInt(right.value) == 0n) {
-              throw new Error('Modulo by zero')
+              throw new Error('Modulo durch Null')
             }
             return convertTo(left.type, {
               type: 'long',
@@ -283,7 +283,7 @@ function evaluate_internal(
           const innerLeft = evaluate(node.left, env)
           const innerRight = evaluate(node.right, env)
           if (innerLeft.value === null || innerRight.value === null) {
-            throw new Error('failure to unbox null')
+            throw new Error('NullPointerException beim Entpacken von null')
           }
 
           const [, left, right] = binaryNumericPromotion(innerLeft, innerRight)
@@ -387,7 +387,7 @@ function evaluate_internal(
           const innerLeft = evaluate(node.left, env)
           const innerRight = evaluate(node.right, env)
           if (innerLeft.value === null || innerRight.value === null) {
-            throw new Error('failure to unbox null')
+            throw new Error('NullPointerException beim Entpacken von null')
           }
           const [promoType, left, right] = binaryNumericPromotion(
             innerLeft,
