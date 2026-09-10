@@ -1,4 +1,4 @@
-import type { QuestData } from '../state/types'
+import type { JavaEnvironment, QuestData } from '../state/types'
 
 export const questsData: { [key: number]: QuestData } = {
   1: {
@@ -15,6 +15,25 @@ class Willkommen {
     }
 }
     `.trim(),
+    checker: {
+      reference: 'zahl == 42',
+      data: [0, 41, 42, 43, 60, 66, 67, 68, 76, 24, 100, -100, -1000, 10000],
+      driver(el, oracle) {
+        if (el == 67) {
+          return 'Geh in die Ecke.'
+        }
+        const env: JavaEnvironment = {
+          local: { zahl: { type: 'int', value: el } },
+          heap: {},
+        }
+        const value = oracle(env)
+        if (typeof value === 'string') return value
+        if (value) {
+          return '42 ist eine coole Zahl!'
+        }
+        return '<keine Ausgabe>'
+      },
+    },
   },
   2: {
     id: 2,

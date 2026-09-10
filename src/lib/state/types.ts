@@ -15,6 +15,9 @@ interface Ui {
   testOutput?: JavaValue
   testOutputEnv?: string
   testOnlyFail: boolean
+
+  questInput: string
+  questOutput: string
 }
 
 interface Quest {
@@ -31,6 +34,13 @@ export interface QuestData {
   id: number
   title: string
   code: string
+  checker: QuestChecker<any>
+}
+
+export interface QuestChecker<T> {
+  data: T[]
+  reference: string
+  driver: (el: T, oracle: (env: JavaEnvironment) => boolean | string) => string
 }
 
 export interface ChapterData {

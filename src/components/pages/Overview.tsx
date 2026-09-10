@@ -1,4 +1,5 @@
 import { faCircleDot } from '@fortawesome/free-solid-svg-icons'
+import { faJava } from '@fortawesome/free-brands-svg-icons'
 import { chaptersData } from '../../lib/content/chapters-data'
 import { questsData } from '../../lib/content/quests-data'
 import { navigate } from '../../lib/router/navigate'
@@ -13,7 +14,10 @@ export function Overview() {
 
   return (
     <div className="h-full bg-rose-50 overflow-auto">
-      <div className="max-w-[600px] mx-auto bg-white">
+      <div className="max-w-[600px] mx-auto bg-white relative">
+        <div className="absolute right-5 top-4">
+          <FaIcon icon={faJava} className="text-[50px] text-pink-700" />
+        </div>
         <h1 className="mb-6 text-3xl pl-4 mx-4 pt-8 border-b-2 border-pink-500 pb-3">
           Java LogiQuest
         </h1>
