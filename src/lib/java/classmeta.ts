@@ -224,6 +224,9 @@ function buildEqualsHandler(className: JavaWrapperObject['class']) {
     if (obj.class != className) {
       return { type: 'boolean', value: false }
     }
-    return { type: 'boolean', value: obj.value.value === own.value.value }
+    return {
+      type: 'boolean',
+      value: Object.is(obj.value.value, own.value.value),
+    }
   }
 }

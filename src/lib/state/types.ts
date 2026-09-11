@@ -560,6 +560,7 @@ export interface TypedMethodInvocationNode {
   kind: 'invoke'
   owner: TypedNode<JavaValue>
   args: TypedNode<JavaValue>[]
+  paramTypes: Type[]
   handler: (
     owern: JavaReferenceValue,
     args: JavaValue[],

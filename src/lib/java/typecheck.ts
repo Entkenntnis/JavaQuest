@@ -185,7 +185,7 @@ function typecheck_internal(
         className = typeToWrapper[type]
       }
 
-      if (type == 'null') {
+      if (type == 'null' && node.owner.kind == 'identifier') {
         // assume Object
         className = 'java.lang.Object'
       }
@@ -247,6 +247,7 @@ function typecheck_internal(
       const tn: TypedMethodInvocationNode = {
         kind: 'invoke',
         args,
+        paramTypes: methodMeta.sig.params,
         owner: inner,
         handler: methodMeta.handler,
       }

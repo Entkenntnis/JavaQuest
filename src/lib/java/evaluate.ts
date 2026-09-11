@@ -15,6 +15,7 @@ import {
   type JavaReferenceValue,
   type JavaShortValue,
   type JavaValue,
+  type Type,
   type TypedNode,
 } from '../state/types'
 import { typeToWrapper } from './helper/typing'
@@ -392,12 +393,20 @@ function evaluate_internal(
     }
     case 'invoke': {
       let owner = evaluate(node.owner, env)
-      if ('boxed' in owner && typeof owner.boxed === 'string') {
-        owner = { type: 'reference', ref: owner.boxed }
+      // box owner to Object, because primitives can never be owners
+      if (isPrimitive(owner)) {
+        if (typeof owner.boxed === 'string') {
+          owner = { type: 'reference', ref: owner.boxed }
+        } else {
+          // put on head
+          owner = primitiveValueIntoHeap(owner, env)
+        }
       }
       if (owner.type != 'reference')
         throw new Error('npe or internal error? no primitive expected here')
-      const args = node.args.map((arg) => evaluate(arg, env))
+      const args = node.args.map((arg, i) =>
+        convertArgument(evaluate(arg, env), node.paramTypes[i], env),
+      )
       return node.handler(owner, args, env)
     }
     case 'ternary': {
@@ -471,7 +480,7 @@ function primitiveValueIntoHeap(
   const ref = boxCacheRef(raw) ?? freshHeapRef(env)
   env.heap[ref] = {
     class: typeToWrapper[raw.type],
-    value: raw,
+    value: { ...raw, boxed: undefined },
     isWrapper: true,
   }
   return { type: 'reference', ref }
@@ -537,6 +546,48 @@ function unboxBoolean(val: JavaValue): boolean {
     throw 'Interner Systemfehler: boolean erwartet'
   }
   return val.value
+}
+
+function convertArgument(
+  value: JavaValue,
+  target: Type,
+  env: JavaEnvironment,
+): JavaValue {
+  if (target.kind == 'array') {
+    throw 'Interner Systemfehler: Array-Parameter werden noch nicht unterstützt'
+  }
+  if (target.kind == 'class') {
+    if (value.type == 'reference' || value.type == 'null') {
+      return value
+    }
+    if (typeof value.boxed === 'string') {
+      return { type: 'reference', ref: value.boxed }
+    }
+    return primitiveValueIntoHeap(value, env)
+  }
+  if (value.type == 'null') {
+    throw new Error('NullPointerException beim Entpacken von null')
+  }
+  const raw = value.type == 'reference' ? unboxWrapper(value, env) : value
+  if (target.prim == 'boolean') {
+    if (raw.type != 'boolean') throw 'Interner Systemfehler: boolean erwartet'
+    return { type: 'boolean', value: raw.value }
+  }
+  if (raw.type == 'boolean') throw 'Interner Systemfehler: Zahl erwartet'
+  return convertTo(target.prim, raw)
+}
+
+function unboxWrapper(
+  value: JavaReferenceValue,
+  env: JavaEnvironment,
+): JavaNumericPrimitiveValue | JavaBooleanValue {
+  const obj = env.heap[value.ref]
+  if (!('isWrapper' in obj)) {
+    throw new Error(
+      `ClassCastException: ${obj.class} kann nicht entpackt werden`,
+    )
+  }
+  return obj.value
 }
 
 function convertTo(
