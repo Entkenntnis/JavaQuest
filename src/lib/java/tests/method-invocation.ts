@@ -564,4 +564,38 @@ export const methodInvocation: TestSuiteEntry[] = [
     },
     error: 'runtime',
   },
+  // A same-type numeric ternary stays a *primitive* (no boxed branch), so it cannot be
+  // dereferenced -- in contrast to `(true ? 1 : null)` above.
+  {
+    code: `(true ? 1 : 2).equals(1)`,
+    error: 'compile',
+  },
+  // Numeric promotion of a mixed ternary makes it long/double, likewise not dereferenceable.
+  {
+    code: `(true ? 1000 : 1000L).equals(1000)`,
+    error: 'compile',
+  },
+  {
+    code: `(true ? 1000 : 1.5).equals(1000)`,
+    error: 'compile',
+  },
+  // The null type cannot be dereferenced, even against null.
+  {
+    code: `null.equals(null)`,
+    error: 'compile',
+  },
+  // A null-valued variable compiles; the NPE is runtime.
+  {
+    code: `s.equals(null)`,
+    env: {
+      local: { s: { type: 'null', value: null } },
+      heap: {},
+    },
+    error: 'runtime',
+  },
+  // equals takes exactly one argument.
+  {
+    code: `"abc".equals(1, 2)`,
+    error: 'compile',
+  },
 ]

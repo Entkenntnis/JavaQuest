@@ -20,6 +20,7 @@ import { boxedBoxing } from './tests/boxed-boxing.ts'
 import { strings } from './tests/strings.ts'
 import { stringObjectModel } from './tests/string-object-model.ts'
 import { methodInvocation } from './tests/method-invocation.ts'
+import { equalsSubtle } from './tests/equals-subtle.ts'
 import { toStringCases } from './tests/to-string.ts'
 import { regressionAndErrors } from './tests/regression-and-errors.ts'
 
@@ -45,6 +46,7 @@ export const testSuite: TestSuiteEntry[] = [
   ...strings,
   ...stringObjectModel,
   ...methodInvocation,
+  ...equalsSubtle,
   ...toStringCases,
   ...regressionAndErrors,
 ]
