@@ -2,15 +2,13 @@ import type { TestSuiteEntry } from '../../state/types'
 
 export const boxedUnboxing: TestSuiteEntry[] = [
   // ==================== UNBOXING CONTEXTS OF BOXED (WRAPPER) RESULTS ====================
-  // The harness can no longer feed boxed locals in through env.boxed (the cross-check
-  // renderDecl rejects them), so wrappers are minted *inside the expression* with the
-  // reference-typed ternary trick:  `(cond ? <primitive> : null)` boxes the primitive arm
-  // (Integer/Short/...), while `(cond ? <primitive> : false)` or `... : "x"` boxes it into
-  // an Object-typed lub (the "Serializable thingy"). Harness.out()/the Suite page auto-unbox
-  // whatever wrapper actually reaches the top, so primitive JSON is the assertable result.
-  // A boxed value is unboxed whenever the surrounding operator demands a primitive: numeric
-  // arithmetic, unary +/-/~, casts, equality/relational against a primitive, and boolean
-  // contexts (==, &&/||/!, and even the condition of a ?:). Unboxing null throws an NPE.
+  // Boxed locals cannot be fed through env.boxed (the cross-check renderDecl rejects them), so
+  // wrappers are minted inside the expression with a reference-typed ternary: `(cond ? <prim> :
+  // null)` boxes to the wrapper (Integer/Short/...), while `(cond ? <prim> : false)` / `: "x"`
+  // boxes into an Object-typed lub. The Suite/harness auto-unbox whatever wrapper reaches the
+  // top. A boxed value is unboxed whenever the surrounding operator demands a primitive:
+  // numeric arithmetic, unary +/-/~, casts, equality/relational against a primitive, and
+  // boolean contexts (==, &&/||/!, the condition of a ?:). Unboxing null throws an NPE.
   // ------------------------- numeric arithmetic unboxes boxed operands -------------------------
   // Arithmetic between two Integer-typed conditionals unboxes both and yields the promoted
   // primitive -- this works for cached and non-cached values alike (caching is irrelevant to
@@ -41,16 +39,12 @@ export const boxedUnboxing: TestSuiteEntry[] = [
     output: { type: 'long', value: '-6' },
   },
   // ------------------------- casts of boxed results -------------------------
-  // Generic rule (JLS 5.5): casting a *reference* type to a primitive is an unboxing
-  // conversion optionally followed by a WIDENING primitive conversion -- never a narrowing
-  // one. So a wrapper only casts to its own primitive type or to types that primitive
-  // widens to. Targets that would need narrowing are javac errors, even though the same
-  // primitive->primitive narrowing is legal after an explicit unbox:
-  //   `(byte)(Integer)`    error    (int -> byte would narrow)
-  //   `(byte)(int)(Integer)`  -24   (unbox to int first, then narrow)
-  // The byte<->char special "widening and narrowing" conversion is likewise NOT available
-  // after an unbox: `(short)(Byte)` works (byte->short is pure widening) but `(char)(Byte)`
-  // is an error.
+  // JLS 5.5: casting a *reference* to a primitive is an unboxing conversion optionally
+  // followed by a widening primitive conversion -- never a narrowing one. So a wrapper casts
+  // only to its own primitive or to wider types; narrowing targets are javac errors (unlike
+  // primitive->primitive narrowing, which an explicit unbox permits):
+  //   `(byte)(Integer)` error, `(byte)(int)(Integer)` = -24.
+  // byte<->char is not a widening path either: `(short)(Byte)` works, `(char)(Byte)` errors.
   {
     code: `(int)(true ? 1000 : null)`,
     output: { type: 'int', value: 1000 },
@@ -185,9 +179,6 @@ export const boxedUnboxing: TestSuiteEntry[] = [
   },
   // The unary +/-/~ operators also demand a primitive, so a null-selected wrapper arm must
   // NPE too. (Their non-null arms are pinned in the numeric-arithmetic section above.)
-  // EXPECTED RED: the evaluator only guards null in the binary numeric/relational operators,
-  // not in the unary ones, so these currently slip through as a null result (which the
-  // harness tags as an internal system error, never as a matching runtime error).
   {
     code: `+(false ? 1 : null)`,
     error: 'runtime',
@@ -227,8 +218,6 @@ export const boxedUnboxing: TestSuiteEntry[] = [
   },
   // The wrapper is unboxed in these boolean contexts before any branching/short-circuit, so a
   // null-selected arm throws NPE: as a ?: condition, and as a &&/|| left operand.
-  // EXPECTED RED: the evaluator reads the raw null as a falsy/absent value instead of
-  // unboxing it, so it silently picks the other branch / returns the null.
   {
     code: `(false ? true : null) ? 1 : 2`,
     error: 'runtime',
@@ -242,15 +231,11 @@ export const boxedUnboxing: TestSuiteEntry[] = [
     error: 'runtime',
   },
   // ------------------------- lub-typed boxed values ("the Serializable thingy") -------------------------
-  // `cond ? int : boolean` has neither an Integer nor a Boolean type: javac boxes both arms
-  // and types the conditional as the lub of Integer and Boolean (an Object/Serializable/
-  // Comparable-ish intersection). Two consequences tested here:
-  //  * The single-wrapper conditional `int : null` stays *Integer*, and Integer == String is
-  //    a compile-time error ("incomparable types") -- also when hidden behind short-circuit.
-  //  * The lub conditional can legally be compared with a String (String implements the
-  //    interfaces in the intersection), but the two results are distinct objects, so == false
-  //    -- likewise Integer lub vs a same-valued cached Short wrapper: different classes, so
-  //    not even the -128..127 cache makes them equal.
+  // `cond ? int : boolean` boxes both arms and types the conditional as the lub of Integer and
+  // Boolean (Object/Serializable/Comparable-ish), unlike `cond ? int : null`, which stays
+  // Integer. So Integer == String is a compile-time error, while the Object-typed lub may be
+  // compared with a String (distinct objects -> false) or a same-valued Short wrapper
+  // (different classes -> false, despite the cache).
   {
     code: `(true ? 100 : null) == (true ? "a" : null)`,
     error: 'compile',
@@ -263,20 +248,12 @@ export const boxedUnboxing: TestSuiteEntry[] = [
     code: `(true ? 100 : false) == (true ? (short)100 : null)`,
     output: { type: 'boolean', value: false },
   },
-  // ------------------------- extras: real Java, larger model changes required -------------------------
-  // These are all verified Java behaviour but depend on semantics the interpreter does not
-  // model yet (target-typing of ?: inside a primitive cast, toString of a lub-boxed value,
-  // wrapper reuse through nested ternaries). They are pinned here so the cross-check certifies
-  // them; expect the Suite page to stay red until that work lands.
-  // A reference-typed conditional in a primitive cast context is *target-typed*: the selected
-  // arm is boxed, cast to the target wrapper and unboxed, so a mismatching arm is a runtime
-  // ClassCastException, not a compile error.
-  // Contrast this with the single-wrapper conditional above: `(byte)(Integer)` is a javac
-  // error (Integer cannot *statically* be downcast to Byte), whereas `(byte)(lub)` compiles
-  // and only fails at run time, because the intersection type is Object-ish enough for a
-  // downcast to the wrapper to be legal -- the actual Integer object then cannot be cast to
-  // Byte. The same lub with a String arm (the intersection gains CharSequence) goes back to
-  // being rejected at compile time for such narrow targets.
+  // ------------------------- target-typed casts of a reference conditional -------------------------
+  // A reference-typed conditional in a primitive cast is *target-typed*: the selected arm is
+  // boxed, cast to the target wrapper and unboxed, so a mismatching arm is a runtime
+  // ClassCastException, not a compile error. Contrast the single-wrapper conditional above,
+  // where `(byte)(Integer)` is a javac error (Integer cannot statically downcast to Byte);
+  // the Object-ish lub is permissive enough to compile and only fail at run time.
   {
     code: `(int)(true ? 1000 : false)`,
     output: { type: 'int', value: 1000 },
@@ -284,6 +261,40 @@ export const boxedUnboxing: TestSuiteEntry[] = [
   {
     code: `(byte)(true ? 1000 : false)`,
     error: 'runtime',
+  },
+  {
+    code: `(short)(true ? 1000 : false)`,
+    error: 'runtime',
+  },
+  {
+    code: `(long)(true ? 1000 : false)`,
+    error: 'runtime',
+  },
+  {
+    code: `(boolean)(true ? true : 1)`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(boolean)(false ? true : 1)`,
+    error: 'runtime',
+  },
+  {
+    code: `(double)(true ? 1.5 : false)`,
+    output: { type: 'double', value: 1.5 },
+  },
+  // The lub may include a String arm: the cast compiles, and only a non-matching selected arm
+  // throws. A String-typed (single-wrapper) conditional cannot be cast to a primitive at all.
+  {
+    code: `(int)(true ? 1000 : "x")`,
+    output: { type: 'int', value: 1000 },
+  },
+  {
+    code: `(int)(false ? 1000 : "x")`,
+    error: 'runtime',
+  },
+  {
+    code: `(int)(true ? "a" : null)`,
+    error: 'compile',
   },
   {
     code: `(int)(b ? 100 : false)`,
@@ -301,8 +312,7 @@ export const boxedUnboxing: TestSuiteEntry[] = [
       heap: {},
     },
   },
-  // Direct (auto-unboxed) outputs and string conversion of lub results need the evaluator to
-  // turn an objectified wrapper back into a primitive/String.
+  // Direct (auto-unboxed) outputs and string conversion of a wrapper result.
   {
     code: `b ? 1000 : false`,
     output: { type: 'int', value: 1000 },

@@ -5,7 +5,7 @@ export const stringObjectModel: TestSuiteEntry[] = [
   // ------------------------- string interning: literals & constant folding share objects -------------------------
   // Java folds constant string concatenations at compile time and interns the folded
   // result, so syntactically different constant expressions can denote one String object.
-  // (These guard against regressing constant folding once == compares references.)
+  // (These guard against regressing constant folding now that == compares references.)
   {
     code: `("a" + "b") == "ab"`,
     output: { type: 'boolean', value: true },

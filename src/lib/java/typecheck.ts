@@ -173,6 +173,20 @@ function typecheck_internal(
         }
       }
 
+      if (type == 'reference') {
+        if (data.kind == 'class' && data.name == 'java.lang.String') {
+          throw new Error(
+            `Inkompatible Typen: java.lang.String kann nicht in ${typeToWrapper[node.type]} konvertiert werden`,
+          )
+        }
+        const tn: TypedUnboxCastNode = {
+          kind: 'cast',
+          type: node.type,
+          isUnboxing: true,
+          operand: inner,
+        }
+        return [node.type, tn]
+      }
       if (node.type == 'boolean') {
         if (type == 'boolean') {
           const tn: TypedBooleanCastNode = {
@@ -190,20 +204,6 @@ function typecheck_internal(
         throw new Error(
           `Inkompatible Typen: ${displayType(type, data)} kann nicht in ${node.type} konvertiert werden`,
         )
-      }
-      if (type == 'reference') {
-        if (data.kind == 'class' && data.name == 'java.lang.String') {
-          throw new Error(
-            `Inkompatible Typen: java.lang.String kann nicht in ${typeToWrapper[node.type]} konvertiert werden`,
-          )
-        }
-        const tn: TypedUnboxCastNode = {
-          kind: 'cast',
-          type: node.type,
-          isUnboxing: true,
-          operand: inner,
-        }
-        return [node.type, tn]
       }
       if (node.type == 'byte') {
         const tn: TypedNumericCastNode<JavaByteValue> = {

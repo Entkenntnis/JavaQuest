@@ -6,8 +6,7 @@ export const unaryPrecedence: TestSuiteEntry[] = [
   // and, when chained, nest left-to-right: `-~1` is -(~1), `~-1` is ~(-1). The grammar
   // models + / - and ! / ~ as two separate unary precedence tiers, so these cases probe
   // whether chained mixed unary operators and unary-vs-binary groupings match Java.
-  // Expectations below are the real-Java (cross-check) results; entries that fail in the
-  // in-app evaluator document a precedence ambiguity in the current grammar.
+  // Expectations below are the real-Java (cross-check) results.
   // ------------------------- unary precedence: chained +/- -------------------------
   {
     code: `- - -1`,

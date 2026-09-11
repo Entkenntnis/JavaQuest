@@ -83,8 +83,8 @@ export const regressionAndErrors: TestSuiteEntry[] = [
     output: { type: 'long', value: '0' },
   },
   // ------------------------- regression guards: double -> long saturation at the 2^63 boundary -------------------------
-  // RED: a double exactly equal to 2^63 must saturate to Long.MAX (JLS 5.1.3), but the
-  // current toLong clamps only with `>` so 2^63 wraps to Long.MIN instead.
+  // A double exactly equal to 2^63 saturates to Long.MAX (JLS 5.1.3); 2^63 is exactly
+  // representable, so the upper clamp must be inclusive (>= 2^63).
   {
     code: `(long)0x1p63`,
     output: { type: 'long', value: '9223372036854775807' },

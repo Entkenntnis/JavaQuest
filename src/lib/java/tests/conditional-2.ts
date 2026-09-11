@@ -444,9 +444,8 @@ export const conditional2: TestSuiteEntry[] = [
   },
   // ------------------------- conditional: cross-shape cache hits & unboxing paths -------------------------
   // Boxed results reached through different arm shapes (null / boolean / String on the other
-  // side) still route through the same wrapper cache. When both operands are already boxed
-  // (Integer locals) the conditional is an Integer-typed reference conditional: == against an
-  // int literal and arithmetic unbox the result numerically. Boxing only for the *chosen* arm.
+  // side) still route through the same wrapper cache, so identity follows the selected arm's
+  // cache entry. Boxing happens only for the *chosen* arm; a numeric context then unboxes it.
   {
     code: `(true ? 100 : null) == (true ? 100 : false)`,
     output: { type: 'boolean', value: true },
@@ -478,7 +477,8 @@ export const conditional2: TestSuiteEntry[] = [
     code: `(true ? 1000 : false) + 1`,
     error: 'compile',
   },
-  // Integer-typed conditional over boxed locals: == and + unbox numerically.
+  // A conditional whose both arms are Integer-typed conditionals is itself Integer-typed:
+  // == 1000 unboxes numerically.
   {
     code: `(b ? (true ? 1000 : null) : (true ? 5 : null)) == 1000`,
     output: { type: 'boolean', value: true },

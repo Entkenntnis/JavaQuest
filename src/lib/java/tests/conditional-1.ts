@@ -6,8 +6,7 @@ export const conditional1: TestSuiteEntry[] = [
   // is the least upper type of the two arms (binary numeric promotion for numeric arms,
   // reference/null rules for String arms) and the operator is right-associative with the
   // lowest precedence of any expression operator. Only the selected arm is evaluated.
-  // Expectations match real Java via the cross-check; the interpreter is implemented
-  // incrementally against this suite (several cases below are still work in progress).
+  // Expectations match real Java via the cross-check.
   // ------------------------- conditional: basics -------------------------
   {
     code: `true ? 1 : 2`,

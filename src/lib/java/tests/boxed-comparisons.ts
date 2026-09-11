@@ -4,12 +4,11 @@ export const boxedComparisons: TestSuiteEntry[] = [
   // ==================== BOXED WRAPPER COMPARISONS (== / != / < etc.) ====================
   // Boxed values are wrapper objects (Integer, Short, ...). == / != between two reference
   // operands compares *identity* (JLS 15.21.3) subject to the autoboxing caches of
-  // valueOf(): Integer/Short/Long share the -128..127 instances, Character the 0..127
-  // ones, Byte the whole range, Boolean two singletons, Float/Double none. So two boxed
-  // env locals compare equal only when they denote the *same* cached instance (or one
-  // variable is read twice); equal values outside the cache box to distinct objects.
-  // Feeding wrappers in through env.boxed makes the harness render one wrapper
-  // declaration per local; every expectation below is whatever real Java produces.
+  // operands compares *identity* (JLS 15.21.3) subject to the autoboxing caches of valueOf():
+  // Integer/Short/Long share the -128..127 instances, Character the 0..127 ones, Byte the
+  // whole range, Boolean two singletons, Float/Double none. So two equal boxed results compare
+  // equal only when they denote the *same* cached instance (or one variable is read twice);
+  // equal values outside the cache box to distinct objects. Every expectation is real Java.
   // ------------------------- boxed == boxed: identity & wrapper caches -------------------------
   // Integer cache -128..127: equal cached values share one object ...
   {
@@ -245,6 +244,77 @@ export const boxedComparisons: TestSuiteEntry[] = [
   {
     code: `true || ((true ? true : null) == 1)`,
     error: 'compile',
+  },
+  // A wrapper vs an unrelated *reference* class (String) is the same incomparable-types error
+  // (JLS 15.21.3): neither final class can be cast to the other. Holds in both operand orders,
+  // for every wrapper, and behind a short-circuit (typing still happens).
+  {
+    code: `(true ? 100 : null) != (true ? "a" : null)`,
+    error: 'compile',
+  },
+  {
+    code: `(true ? "a" : null) == (true ? 100 : null)`,
+    error: 'compile',
+  },
+  {
+    code: `(true ? "a" : null) != (true ? 100 : null)`,
+    error: 'compile',
+  },
+  {
+    code: `(true ? 100L : null) == (true ? "a" : null)`,
+    error: 'compile',
+  },
+  {
+    code: `(true ? true : null) == (true ? "a" : null)`,
+    error: 'compile',
+  },
+  {
+    code: `(true ? (char)100 : null) == (true ? "a" : null)`,
+    error: 'compile',
+  },
+  {
+    code: `(true ? (short)100 : null) == (true ? "a" : null)`,
+    error: 'compile',
+  },
+  {
+    code: `(true ? (byte)100 : null) == (true ? "a" : null)`,
+    error: 'compile',
+  },
+  {
+    code: `(true ? 1.5 : null) == (true ? "a" : null)`,
+    error: 'compile',
+  },
+  {
+    code: `true || ((true ? 100 : null) == (true ? "a" : null))`,
+    error: 'compile',
+  },
+  {
+    code: `false && ((true ? 100 : null) != (true ? "a" : null))`,
+    error: 'compile',
+  },
+  {
+    code: `(true ? 100 : null) == s`,
+    error: 'compile',
+    env: {
+      local: { s: { type: 'reference', ref: 'heap0' } },
+      heap: {
+        heap0: { class: 'java.lang.String', value: 'a', isInterned: true },
+      },
+    },
+  },
+  {
+    code: `(true ? 100 : null) == ("" + "a")`,
+    error: 'compile',
+  },
+  // The Object-typed lub conditional stays legal: Object is a supertype of the wrapper, so
+  // == is reference identity against the (possibly cached) boxed result.
+  {
+    code: `(true ? 100 : null) == (true ? 100 : "x")`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? 1000 : null) == (true ? 1000 : "x")`,
+    output: { type: 'boolean', value: false },
   },
   // ------------------------- relational between mixed numeric wrappers: numeric -------------------------
   // Unlike ==, the relational operators unbox both operands and compare numerically, so any

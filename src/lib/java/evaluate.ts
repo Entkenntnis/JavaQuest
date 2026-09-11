@@ -612,7 +612,6 @@ function unboxBoolean(val: JavaValue): boolean {
   if (val.type == 'null') {
     throw new Error('NullPointerException beim Entpacken von null')
   }
-  // at some point we would have "real" wrapper, so we would need to adjust this
   if (!('value' in val) || typeof val.value !== 'boolean') {
     throw 'Interner Systemfehler: boolean erwartet'
   }
