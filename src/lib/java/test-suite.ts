@@ -19,6 +19,7 @@ import { boxedConditionals } from './tests/boxed-conditionals.ts'
 import { boxedBoxing } from './tests/boxed-boxing.ts'
 import { strings } from './tests/strings.ts'
 import { stringObjectModel } from './tests/string-object-model.ts'
+import { methodInvocation } from './tests/method-invocation.ts'
 import { regressionAndErrors } from './tests/regression-and-errors.ts'
 
 export const testSuite: TestSuiteEntry[] = [
@@ -42,5 +43,6 @@ export const testSuite: TestSuiteEntry[] = [
   ...boxedBoxing,
   ...strings,
   ...stringObjectModel,
+  ...methodInvocation,
   ...regressionAndErrors,
 ]
