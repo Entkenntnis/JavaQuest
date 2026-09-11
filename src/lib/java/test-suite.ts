@@ -11,6 +11,7 @@ import { conditional1 } from './tests/conditional-1.ts'
 import { conditional2 } from './tests/conditional-2.ts'
 import { boxedComparisons } from './tests/boxed-comparisons.ts'
 import { boxedUnboxing } from './tests/boxed-unboxing.ts'
+import { boxedLocals } from './tests/boxed-locals.ts'
 import { strings } from './tests/strings.ts'
 import { stringObjectModel } from './tests/string-object-model.ts'
 import { regressionAndErrors } from './tests/regression-and-errors.ts'
@@ -28,6 +29,7 @@ export const testSuite: TestSuiteEntry[] = [
   ...conditional2,
   ...boxedComparisons,
   ...boxedUnboxing,
+  ...boxedLocals,
   ...strings,
   ...stringObjectModel,
   ...regressionAndErrors,

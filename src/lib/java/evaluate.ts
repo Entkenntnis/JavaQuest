@@ -329,11 +329,19 @@ function evaluate_internal(
           let right = evaluate(node.right, env)
 
           if (left.type != 'reference' && left.type != 'null') {
-            left = primitiveValueIntoHeap(left, env)
+            if (typeof left.boxed === 'string') {
+              left = { type: 'reference', ref: left.boxed }
+            } else {
+              left = primitiveValueIntoHeap(left, env)
+            }
           }
 
           if (right.type != 'reference' && right.type != 'null') {
-            right = primitiveValueIntoHeap(right, env)
+            if (typeof right.boxed === 'string') {
+              right = { type: 'reference', ref: right.boxed }
+            } else {
+              right = primitiveValueIntoHeap(right, env)
+            }
           }
           return compareR(left, right, node.negate)
         }
@@ -472,7 +480,11 @@ function evaluate_internal(
       }
     }
     case 'identifier': {
-      return env.local[node.name]
+      const value = env.local[node.name]
+      if ('boxed' in value) {
+        value.boxed = node.name
+      }
+      return value
     }
     case 'ternary': {
       const cond = unboxBoolean(evaluate(node.condition, env))
@@ -489,15 +501,19 @@ function evaluate_internal(
         raw = evaluate<JavaValue>(cond ? node.left : node.right, env)
       }
 
-      if (node.objectify)
-        if (isPrimitive(raw)) {
-          if (node.objectify) {
-            return primitiveValueIntoHeap(raw, env)
+      if (isPrimitive(raw)) {
+        if (node.objectify) {
+          if (typeof raw.boxed === 'string') {
+            return { type: 'reference', ref: raw.boxed }
           }
-          if (node.boxResult) {
-            return { ...raw, boxed: true }
-          }
+          return primitiveValueIntoHeap(raw, env)
         }
+        if (node.boxResult) {
+          // A boxed local selected by the conditional keeps the identity it was read
+          // with; only plain primitives get a fresh (or cached) wrapper.
+          return typeof raw.boxed === 'string' ? raw : { ...raw, boxed: true }
+        }
+      }
       return raw
     }
   }
@@ -517,37 +533,42 @@ export const typeToWrapper: Record<
   boolean: 'java.lang.Boolean',
 }
 
+// The JVM's autoboxing caches: Integer/Short/Long share the -128..127 instances,
+// Character the 0..127 ones, Byte the whole range and Boolean two singletons; Float and
+// Double are never cached. The returned name is the single source of truth for the heap
+// entry of a cached wrapper, shared by autoboxing and by boxed env locals.
+function boxCacheRef(
+  raw: JavaNumericPrimitiveValue | JavaBooleanValue,
+): string | null {
+  if (raw.type == 'boolean') {
+    return `box_cache_boolean_${raw.value}`
+  }
+  if (raw.type == 'byte') {
+    return `box_cache_byte_${raw.value}`
+  }
+  if (raw.type == 'short' && raw.value >= -128 && raw.value <= 127) {
+    return `box_cache_short_${raw.value}`
+  }
+  if (raw.type == 'char' && raw.value <= 127) {
+    return `box_cache_char_${raw.value}`
+  }
+  if (raw.type == 'int' && raw.value >= -128 && raw.value <= 127) {
+    return `box_cache_int_${raw.value}`
+  }
+  if (raw.type == 'long') {
+    const v = BigInt(raw.value)
+    if (v >= -128 && v <= 127) {
+      return `box_cache_long_${raw.value}`
+    }
+  }
+  return null
+}
+
 function primitiveValueIntoHeap(
   raw: JavaNumericPrimitiveValue | JavaBooleanValue,
   env: JavaEnvironment,
 ): JavaReferenceValue {
-  // convert to object and lose most/all of it's usefulness
-  // the name will be the only discriminator
-  let ref = freshHeapRef(env)
-
-  if (raw.type == 'boolean') {
-    ref = `box_cache_boolean_${raw.value}`
-  }
-  if (raw.type == 'byte') {
-    ref = `box_cache_byte_${raw.value}`
-  }
-  if (raw.type == 'short' && raw.value >= -128 && raw.value <= 127) {
-    ref = `box_cache_short_${raw.value}`
-  }
-  if (raw.type == 'char' && raw.value <= 127) {
-    ref = `box_cache_char_${raw.value}`
-  }
-  if (raw.type == 'int' && raw.value >= -128 && raw.value <= 127) {
-    ref = `box_cache_int_${raw.value}`
-  }
-
-  if (raw.type == 'long') {
-    const v = BigInt(raw.value)
-    if (v >= -128 && v < 127) {
-      ref = `box_cache_long_${raw.value}`
-    }
-  }
-
+  const ref = boxCacheRef(raw) ?? freshHeapRef(env)
   env.heap[ref] = {
     class: typeToWrapper[raw.type],
     value: raw,

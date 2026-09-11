@@ -39,13 +39,14 @@ match `error` exactly: javac failures report `'compile'`, JVM failures `'runtime
   degrades into a javac error, which an `error: 'compile'` entry would pass for the wrong
   reason.
 - `env.local` — per-variable values rendered as Java declarations:
+  - numeric/boolean with `boxed: true` → wrapper decls (`Integer x = 100;`,
+    `Short y = (short) 100;`, `Long l = ...L;` …); MIN int/long go through
+    `parseInt`/`parseLong` because no literal exists for them.
   - unboxed numeric/boolean → primitive decls; MIN int/long go through
     `parseInt`/`parseLong` because no literal exists for them.
   - `null` → `Object n = null;`.
   - `reference` → `java.lang.String` only (heap object), rendered as a literal
     (`isInterned`) or `new String(...)` (not interned).
-  - boxed values are **not supported** (`renderDecl` throws); mint wrappers inside the
-    expression instead, e.g. `(true ? 100 : null)`.
 - `output` — only `boolean`, numeric primitives, or `__str` (dereferenced String result).
   Reference results of other classes, and `null` results, are not assertable.
 - `error` — `'compile'` (javac rejects the code) or `'runtime'` (it compiles but the JVM
@@ -61,18 +62,20 @@ match `error` exactly: javac failures report `'compile'`, JVM failures `'runtime
    short-circuit that never runs but still type-checks, e.g. `true || (x == y)`.
 2. **Boxed identity is the real JVM's**: `==`/`!=` on wrappers is reference equality
    subject to autoboxing caches: Integer/Short/Long share −128..127, Character 0..127,
-   Byte the full range, Boolean two singletons, Float/Double none. So two equal cached
-   boxed results compare `==` true; equal out-of-cache (or float/double) values compare
-   false. Cross-wrapper-type `==`/`!=` (e.g. `Integer == Short`) and a wrapper vs an
-   unrelated reference class (e.g. `Integer == String`) are javac compile errors, while
-   the relational operators (`< <= > >=`) between mixed numeric wrappers unbox and are
-   valid. The Suite page interpreter must implement this cache/identity model to match.
+   Byte the full range, Boolean two singletons, Float/Double none. So two env boxed
+   locals of equal cached values compare `==` true; equal out-of-cache (or float/double)
+   values compare false; re-reading one variable compares true. Cross-wrapper-type
+   `==`/`!=` (e.g. `Integer == Short`) and a wrapper vs an unrelated reference class
+   (e.g. `Integer == String`) are javac compile errors, while the relational operators
+   (`< <= > >=`) between mixed numeric wrappers unbox and are valid. The Suite page
+   interpreter must implement this cache/identity model to match.
 3. **Env locals must not alias one non-interned heap String.** Rendering emits one
    `new String(...)` per local, so two locals pointing at the same heap object become
    distinct objects in Java — a wrong baseline for an identity test. (No current entry
    does this.)
-4. **Unrepresentable results:** raw `null`, `NaN`, `Infinity`, and `-0.0` as a direct
-   result cannot be asserted. Wrap them in comparisons or string concatenation instead.
+4. **Unrepresentable results:** raw `null`, `NaN`, `Infinity`, `-0.0` as a direct result,
+   and env boxed float/double `NaN`/`Infinity`, cannot be asserted. Wrap them in
+   comparisons or string concatenation instead.
 5. **Caching/formatting baseline is whatever the JDK does** (wrapper caches, shortest
    float/double printing via `Double.toString`), *not* the interpreter's model. A green
    run certifies expectations == real Java only; it says nothing about interpreter parity

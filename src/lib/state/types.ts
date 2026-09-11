@@ -90,49 +90,49 @@ export interface SuiteResult {
 export interface JavaBooleanValue {
   type: 'boolean'
   value: boolean
-  boxed?: boolean
+  boxed?: boolean | string
 }
 
 export interface JavaByteValue {
   type: 'byte'
   value: number // (-128..127)
-  boxed?: boolean
+  boxed?: boolean | string
 }
 
 export interface JavaShortValue {
   type: 'short'
   value: number // (-32768..32767)
-  boxed?: boolean
+  boxed?: boolean | string
 }
 
 export interface JavaCharValue {
   type: 'char'
   value: number // Unicode 16-bit code point (0..65535)
-  boxed?: boolean
+  boxed?: boolean | string
 }
 
 export interface JavaIntValue {
   type: 'int'
   value: number
-  boxed?: boolean
+  boxed?: boolean | string
 }
 
 export interface JavaFloatValue {
   type: 'float'
   value: number
-  boxed?: boolean
+  boxed?: boolean | string
 }
 
 export interface JavaDoubleValue {
   type: 'double'
   value: number
-  boxed?: boolean
+  boxed?: boolean | string
 }
 
 export interface JavaLongValue {
   type: 'long'
   value: string // from bigint
-  boxed?: boolean
+  boxed?: boolean | string
 }
 
 export interface JavaReferenceValue {

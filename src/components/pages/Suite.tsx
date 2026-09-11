@@ -67,6 +67,7 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
       // internal system error so it can never be mistaken for a matching runtime error.
       throw 'Interner Systemfehler: null ist als Ausgabe nicht darstellbar'
     }
+    // "auto unboxing"
     if (value.boxed) {
       delete value.boxed
     }

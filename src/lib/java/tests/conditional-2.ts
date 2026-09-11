@@ -434,6 +434,17 @@ export const conditional2: TestSuiteEntry[] = [
     code: `(true ? 1000 : false) == 1000`,
     error: 'compile',
   },
+  // Boxed locals: reading the same wrapper variable twice yields one object (== true),
+  // whereas a freshly boxed non-cached constant is a distinct object (== false). These
+  // need boxed values in the locals, which the harness supports via the `boxed` flag.
+  {
+    code: `(true ? n : false) == (true ? n : false)`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { n: { type: 'int', value: 1000, boxed: true } },
+      heap: {},
+    },
+  },
   {
     code: `(true ? 1000 : false) == (true ? 1000 : null)`,
     output: { type: 'boolean', value: false },
@@ -441,6 +452,14 @@ export const conditional2: TestSuiteEntry[] = [
   {
     code: `(true ? 100 : false) == (true ? 100 : null)`,
     output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? ch : false) == ch`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: { ch: { type: 'char', value: 1000, boxed: true } },
+      heap: {},
+    },
   },
   // ------------------------- conditional: cross-shape cache hits & unboxing paths -------------------------
   // Boxed results reached through different arm shapes (null / boolean / String on the other

@@ -8,7 +8,10 @@ import { evaluate, foldConstants } from '../../lib/java/evaluate'
 import type { JavaEnvironment } from '../../lib/state/types'
 
 const testEnv: JavaEnvironment = {
-  local: { zahl: { type: 'int', value: 42 } },
+  local: {
+    zahl: { type: 'int', value: 42 },
+    a: { type: 'int', value: 1000, boxed: true },
+  },
   heap: {},
 }
 

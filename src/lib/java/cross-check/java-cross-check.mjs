@@ -44,9 +44,30 @@ function renderDecls(entry) {
 
 function renderDecl(name, value, heap) {
   if (value.boxed) {
-    throw new Error(
-      `env value ${name} is boxed; the cross-check harness no longer supports boxed values in the env`,
-    )
+    switch (value.type) {
+      case 'byte':
+        return `Byte ${name} = (byte) ${value.value};`
+      case 'short':
+        return `Short ${name} = (short) ${value.value};`
+      case 'int':
+        return value.value === -2147483648
+          ? `Integer ${name} = Integer.parseInt("-2147483648");`
+          : `Integer ${name} = ${value.value};`
+      case 'long':
+        return value.value === '-9223372036854775808'
+          ? `Long ${name} = Long.parseLong("-9223372036854775808");`
+          : `Long ${name} = ${value.value}L;`
+      case 'char':
+        return `Character ${name} = (char) ${value.value};`
+      case 'float':
+        return `Float ${name} = ${value.value}f;`
+      case 'double':
+        return `Double ${name} = ${value.value};`
+      case 'boolean':
+        return `Boolean ${name} = ${value.value ? 'true' : 'false'};`
+      default:
+        throw new Error(`cannot render boxed env value of type ${value.type}`)
+    }
   }
   switch (value.type) {
     case 'byte':
