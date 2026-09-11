@@ -62,6 +62,15 @@ export function cst2ast(node: CstNode): AstNode {
     return { kind: 'string-literal', value: parseStringLiteral(node) }
   } else if (node.name == 'null') {
     return { kind: 'literal', value: { type: 'null', value: null } }
+  } else if (node.name == 'MethodInvocation') {
+    const owner = cst2ast(node.children[0])
+    const name = node.children[2].text
+    const argList = node.children[3].children
+    const args = []
+    for (let i = 1; i < argList.length; i += 2) {
+      args.push(cst2ast(argList[i]))
+    }
+    return { kind: 'invoke', owner, name, args }
   } else if (node.name == 'CastExpression') {
     const [, typeNode, , operandNode] = node.children
     const type = typeNode.text
@@ -122,7 +131,7 @@ export function cst2ast(node: CstNode): AstNode {
       right: cst2ast(node.children[4]),
     }
   }
-  throw 'Interner Systemfehler: nicht unterstützter Ausdruck'
+  throw 'Interner Systemfehler: nicht unterstützter Ausdruck, ' + node.name
 }
 
 const radixPrefix = {
@@ -366,7 +375,10 @@ function parseCharacterLiteral(node: CstNode): JavaCharValue {
   }
   const decoded = unescape(raw.slice(1, -1))
   if (decoded.length != 1) {
-    throw conversionError(node, 'Zeichenliteral muss genau ein Zeichen enthalten')
+    throw conversionError(
+      node,
+      'Zeichenliteral muss genau ein Zeichen enthalten',
+    )
   }
   return { type: 'char', value: decoded.charCodeAt(0) }
 }

@@ -269,6 +269,13 @@ export interface ConditionalOperatorAstNode {
   right: AstNode
 }
 
+export interface MethodInvocationAstNode {
+  kind: 'invoke'
+  owner: AstNode
+  name: string
+  args: AstNode[]
+}
+
 export type AstNode =
   | LiteralAstNode
   | LiteralStringAstNode
@@ -277,6 +284,7 @@ export type AstNode =
   | BinaryExpressionAstNode
   | IdentifierAstNode
   | ConditionalOperatorAstNode
+  | MethodInvocationAstNode
 
 // ----------------------------
 
@@ -294,6 +302,7 @@ export type AstNode =
 export type TypedNode<T extends JavaValue> =
   | TypedIdentifierNode
   | TypedConditionalOperatorNode
+  | TypedMethodInvocationNode
   | (T extends JavaAllowedLiteralValue ? TypedLiteralNode<T> : never)
   | (T extends JavaNumericPrimitiveValue
       ? TypedNumericCastNode<T> | TypedConditionalOperatorNumericCastNode
@@ -543,6 +552,12 @@ export interface TypedConditionalOperatorNumericCastNode {
   boxResult?: true
   objectify?: true
   castTo?: 'byte' | 'short' | 'char' | 'int' | 'long' | 'float' | 'double'
+}
+
+export interface TypedMethodInvocationNode {
+  kind: 'invoke'
+  args: TypedNode<JavaValue>[]
+  handler: (args: JavaValue[]) => JavaValue
 }
 
 export type TypecheckResult =

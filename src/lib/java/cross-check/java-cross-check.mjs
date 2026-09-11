@@ -42,6 +42,14 @@ function renderDecls(entry) {
   return lines.join('\n')
 }
 
+// An integral JS number stringifies without a decimal point, but a double/float literal
+// assigned to a *wrapper* needs one (`Double d = 100;` is a compile error). Emit a
+// decimal point so boxed floating point declarations are valid Java.
+function javaFloatingLiteral(v) {
+  const s = String(v)
+  return /[.eE]/.test(s) ? s : s + '.0'
+}
+
 function renderDecl(name, value, heap) {
   if (value.boxed) {
     switch (value.type) {
@@ -60,9 +68,9 @@ function renderDecl(name, value, heap) {
       case 'char':
         return `Character ${name} = (char) ${value.value};`
       case 'float':
-        return `Float ${name} = ${value.value}f;`
+        return `Float ${name} = ${javaFloatingLiteral(value.value)}f;`
       case 'double':
-        return `Double ${name} = ${value.value};`
+        return `Double ${name} = ${javaFloatingLiteral(value.value)};`
       case 'boolean':
         return `Boolean ${name} = ${value.value ? 'true' : 'false'};`
       default:

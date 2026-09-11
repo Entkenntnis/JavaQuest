@@ -30,12 +30,6 @@ function fold(
   scratch: JavaEnvironment,
 ): TypedNode<JavaValue> {
   switch (node.kind) {
-    case 'literal':
-    case 'string-literal':
-      return node
-    case 'identifier':
-      // never constant
-      return node
     case 'cast':
     case 'unary': {
       return collapse(
@@ -65,6 +59,8 @@ function fold(
         } as TypedNode<JavaValue>,
         scratch,
       )
+    default:
+      return node
   }
 }
 
@@ -103,7 +99,6 @@ function isConstantSubtree(node: TypedNode<JavaValue>): boolean {
   switch (node.kind) {
     case 'literal':
     case 'string-literal':
-    case 'identifier':
       return isConstant(node)
     case 'cast':
     case 'unary':
@@ -118,6 +113,8 @@ function isConstantSubtree(node: TypedNode<JavaValue>): boolean {
         !node.boxResult &&
         !node.objectify
       )
+    default:
+      return false
   }
 }
 
@@ -395,24 +392,21 @@ function evaluate_internal(
         case '|b':
         case '&b':
         case '^b': {
-          const left = evaluate<JavaBooleanValue>(node.left, env)
-          const right = evaluate<JavaBooleanValue>(node.right, env)
+          const left = unboxBoolean(evaluate(node.left, env))
+          const right = unboxBoolean(evaluate(node.right, env))
 
           let result = false
           if (node.op == '|b') {
-            if (left.value || right.value) {
+            if (left || right) {
               result = true
             }
           }
           if (node.op == '&b') {
-            if (left.value && right.value) {
+            if (left && right) {
               result = true
             }
           }
-          if (
-            node.op == '^b' &&
-            ((left.value && !right.value) || (!left.value && right.value))
-          ) {
+          if (node.op == '^b' && ((left && !right) || (!left && right))) {
             result = true
           }
           return { type: 'boolean', value: result }
@@ -467,7 +461,7 @@ function evaluate_internal(
         }
         const obj = env.heap[inner.ref]
         if (obj.class == typeToWrapper[node.type]) {
-          return inner
+          return obj.value
         }
         throw new Error(
           `ClassCastException: ${obj.class} kann nicht in ${typeToWrapper[node.type]} konvertiert werden`,
@@ -483,8 +477,18 @@ function evaluate_internal(
       const value = env.local[node.name]
       if ('boxed' in value && value.boxed === true) {
         value.boxed = node.name
+        if (typeof value.boxed === 'string' && !(value.boxed in env.heap)) {
+          env.heap[value.boxed] = {
+            class: typeToWrapper[value.type],
+            value: { ...value, boxed: undefined },
+            isWrapper: true,
+          }
+        }
       }
       return value
+    }
+    case 'invoke': {
+      throw 'TOD'
     }
     case 'ternary': {
       const cond = unboxBoolean(evaluate(node.condition, env))

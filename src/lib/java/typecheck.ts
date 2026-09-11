@@ -44,6 +44,7 @@ import type {
   JavaBooleanValue,
   TypedUnboxCastNode,
 } from '../state/types'
+import { classMetaData } from './classmeta'
 import { foldConstants, typeToWrapper } from './evaluate'
 
 export function typecheck(
@@ -162,6 +163,24 @@ function typecheck_internal(
         `Ungültiger Operandentyp ${displayType(type, data)} für unären Operator "${node.op}"`,
       )
     }
+    case 'invoke':
+      // hm, what do I have to do here actually? I mean, I need to gather all information and
+      const [type, inner, data] = typecheck_internal(node.owner, env)
+      if (type != 'reference' || data.kind != 'class') {
+        throw 'Interner Systemfehler: Unterstützung bezieht sich erstmal nur auf Referenzen'
+      }
+      const clName = data.name
+      const methodMeta = classMetaData[clName].methods.find(
+        (el) => el.name == node.name,
+      )
+      if (!methodMeta) {
+        throw 'Interner Systemfehler: Methode nicht gefunden'
+      }
+      // Verify Argument List
+      if (methodMeta.sig.params.length != node.args.length) {
+        throw 'interner Systemfehler: Parameter nicht passend'
+      }
+      throw `TODO: ${clName} ${node.name}`
     case 'cast': {
       const [type, inner, data] = typecheck_internal(node.operand, env)
 
