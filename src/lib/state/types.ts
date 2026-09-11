@@ -561,7 +561,7 @@ export interface TypedMethodInvocationNode {
   owner: TypedNode<JavaValue>
   args: TypedNode<JavaValue>[]
   handler: (
-    owern: JavaValue,
+    owern: JavaReferenceValue,
     args: JavaValue[],
     env: JavaEnvironment,
   ) => JavaValue
@@ -660,7 +660,7 @@ export interface MethodMetaData {
   name: string
   sig: MethodSig
   handler: (
-    owern: JavaValue,
+    owern: JavaReferenceValue,
     args: JavaValue[],
     env: JavaEnvironment,
   ) => JavaValue

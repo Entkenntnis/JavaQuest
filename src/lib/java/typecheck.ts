@@ -185,6 +185,11 @@ function typecheck_internal(
         className = typeToWrapper[type]
       }
 
+      if (type == 'null') {
+        // assume Object
+        className = 'java.lang.Object'
+      }
+
       if (!className) {
         // javac: "int kann nicht dereferenziert werden" / "<Null> kann nicht dereferenziert werden"
         throw new Error(

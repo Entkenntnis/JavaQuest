@@ -391,7 +391,12 @@ function evaluate_internal(
       return value
     }
     case 'invoke': {
-      const owner = evaluate(node.owner, env)
+      let owner = evaluate(node.owner, env)
+      if ('boxed' in owner && typeof owner.boxed === 'string') {
+        owner = { type: 'reference', ref: owner.boxed }
+      }
+      if (owner.type != 'reference')
+        throw new Error('npe or internal error? no primitive expected here')
       const args = node.args.map((arg) => evaluate(arg, env))
       return node.handler(owner, args, env)
     }
