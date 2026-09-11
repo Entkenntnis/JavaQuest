@@ -184,30 +184,18 @@ export const boxedComparisons: TestSuiteEntry[] = [
     },
   },
   // ------------------------- boxed vs null -------------------------
-  // A wrapper variable compared against null is a reference comparison (never unboxed).
+  // A wrapper value compared against null is a reference comparison (never unboxed).
   {
-    code: `(true ? 100 : null) == n`,
+    code: `(true ? 100 : null) == null`,
     output: { type: 'boolean', value: false },
-    env: {
-      local: { n: { type: 'null', value: null } },
-      heap: {},
-    },
   },
   {
-    code: `(true ? 100 : null) != n`,
+    code: `(true ? 100 : null) != null`,
     output: { type: 'boolean', value: true },
-    env: {
-      local: { n: { type: 'null', value: null } },
-      heap: {},
-    },
   },
   {
-    code: `n == n`,
+    code: `null == null`,
     output: { type: 'boolean', value: true },
-    env: {
-      local: { n: { type: 'null', value: null } },
-      heap: {},
-    },
   },
   // ------------------------- == / != across different wrapper types: compile-time errors -------------------------
   // Two boxed operands of *different* wrapper classes are reference-typed but not mutually

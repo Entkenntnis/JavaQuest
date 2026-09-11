@@ -560,7 +560,11 @@ export interface TypedMethodInvocationNode {
   kind: 'invoke'
   owner: TypedNode<JavaValue>
   args: TypedNode<JavaValue>[]
-  handler: (args: JavaValue[]) => JavaValue
+  handler: (
+    owern: JavaValue,
+    args: JavaValue[],
+    env: JavaEnvironment,
+  ) => JavaValue
 }
 
 export type TypecheckResult =
@@ -655,6 +659,11 @@ export interface FieldMetaData {
 export interface MethodMetaData {
   name: string
   sig: MethodSig
+  handler: (
+    owern: JavaValue,
+    args: JavaValue[],
+    env: JavaEnvironment,
+  ) => JavaValue
 }
 
 export interface MethodSig {

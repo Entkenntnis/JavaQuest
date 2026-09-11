@@ -47,6 +47,7 @@ import type {
 import { foldConstants } from './fold'
 import {
   findMethod,
+  hasMethodNamed,
   isIdentityOrWideningCast,
   typeDataEquals,
   typeToWrapper,
@@ -170,15 +171,12 @@ function typecheck_internal(
     }
     case 'invoke':
       const [type, inner, data] = typecheck_internal(node.owner, env)
-      // if (type != 'reference' || data.kind != 'class') {
-      //   throw 'Interner Systemfehler: Unterstützung bezieht sich erstmal nur auf Referenzen'
-      // }
 
       let className
-      // first job: unbox end resolve to class name
+      // first job: unbox and resolve to class name
       if (type == 'reference') {
         if (data.kind == 'array') {
-          throw 'TODO'
+          throw 'Interner Systemfehler: Methodenaufruf auf Arrays wird noch nicht unterstützt'
         }
         className = data.name
       }
@@ -188,7 +186,10 @@ function typecheck_internal(
       }
 
       if (!className) {
-        throw 'class not found' // make prettier
+        // javac: "int kann nicht dereferenziert werden" / "<Null> kann nicht dereferenziert werden"
+        throw new Error(
+          `${displayType(type, data)} kann nicht dereferenziert werden`,
+        )
       }
 
       // now, extract the arg structure
@@ -199,7 +200,8 @@ function typecheck_internal(
         const [type, inner, data] = typecheck_internal(arg, env)
         args.push(inner)
         if (type == 'null') {
-          throw 'cannot infer type' // make prettier
+          argTypes.push({ kind: 'class', name: 'java.lang.Object' })
+          continue
         }
         if (type == 'reference') {
           argTypes.push(data)
@@ -215,27 +217,33 @@ function typecheck_internal(
       const methodMeta = findMethod(className, node.name, argTypes)
 
       if (!methodMeta) {
-        throw 'method not found'
+        // javac: "Symbol nicht gefunden: Methode foo()" vs
+        //        "Methode equals in Klasse String kann nicht auf die angegebenen Typen angewendet werden"
+        if (hasMethodNamed(className, node.name)) {
+          throw new Error(
+            `Methode ${node.name} in Klasse ${className} kann nicht auf die angegebenen Typen angewendet werden`,
+          )
+        }
+        throw new Error(`Symbol nicht gefunden: Methode ${node.name}`)
       }
 
       const ret = methodMeta.sig.ret
 
       if (ret.kind == 'void') {
-        throw 'value expected'
+        throw new Error(
+          'Inkompatible Typen: void kann nicht als Wert verwendet werden',
+        )
       }
 
       if (ret.kind == 'array') {
-        throw 'TODO'
+        throw 'Interner Systemfehler: Methoden mit Array-Rückgabetyp werden noch nicht unterstützt'
       }
 
       const tn: TypedMethodInvocationNode = {
         kind: 'invoke',
         args,
         owner: inner,
-        handler: () => {
-          alert('todo')
-          throw 'test'
-        },
+        handler: methodMeta.handler,
       }
 
       if (ret.kind == 'primitive') {

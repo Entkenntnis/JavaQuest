@@ -216,12 +216,8 @@ export const boxedStrings: TestSuiteEntry[] = [
     },
   },
   {
-    code: `"" + n`,
+    code: `"" + null`,
     output: { type: '__str', value: 'null' },
-    env: {
-      local: { n: { type: 'null', value: null } },
-      heap: {},
-    },
   },
   // ------------------------- concatenation builds a fresh, non-interned String -------------------------
   {

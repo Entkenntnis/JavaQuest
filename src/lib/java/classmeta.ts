@@ -13,6 +13,9 @@ export const classMetaData: Record<string, ClassMetaData> = {
           params: [{ kind: 'class', name: 'java.lang.Object' }],
           ret: { kind: 'primitive', prim: 'boolean' },
         },
+        handler: (owner, args, env) => {
+          throw 'TODO HANDLER Object.equals'
+        },
       },
       {
         name: 'hashCode',
@@ -20,12 +23,18 @@ export const classMetaData: Record<string, ClassMetaData> = {
           params: [],
           ret: { kind: 'primitive', prim: 'int' },
         },
+        handler: (owner, args, env) => {
+          throw 'TODO HANDLER Object.hashCode'
+        },
       },
       {
         name: 'toString',
         sig: {
           params: [],
           ret: { kind: 'class', name: 'java.lang.String' },
+        },
+        handler: (owner, args, env) => {
+          throw 'TODO HANDLER Object.toString'
         },
       },
     ],
@@ -41,6 +50,21 @@ export const classMetaData: Record<string, ClassMetaData> = {
         sig: {
           params: [{ kind: 'class', name: 'java.lang.Object' }],
           ret: { kind: 'primitive', prim: 'boolean' },
+        },
+        handler: (owner, args, env) => {
+          const other = args[0]
+          if (other.type != 'reference' || owner.type != 'reference') {
+            return { type: 'boolean', value: false }
+          }
+          const obj = env.heap[other.ref]
+          const own = env.heap[owner.ref]
+          if (
+            obj.class != 'java.lang.String' ||
+            own.class != 'java.lang.String'
+          ) {
+            return { type: 'boolean', value: false }
+          }
+          return { type: 'boolean', value: obj.value == own.value }
         },
       },
     ],
@@ -71,7 +95,18 @@ export const classMetaData: Record<string, ClassMetaData> = {
     superClass: 'java.lang.Object',
     interfaces: [],
     fields: [],
-    methods: [],
+    methods: [
+      {
+        name: 'equals',
+        sig: {
+          params: [{ kind: 'class', name: 'java.lang.Object' }],
+          ret: { kind: 'primitive', prim: 'boolean' },
+        },
+        handler: (owner, args, env) => {
+          throw 'TODO HANDLER Integer.equals'
+        },
+      },
+    ],
   },
   'java.lang.Long': {
     name: 'java.lang.Long',

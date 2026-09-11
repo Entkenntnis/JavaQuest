@@ -376,20 +376,24 @@ function evaluate_internal(
     }
     case 'identifier': {
       const value = env.local[node.name]
-      if ('boxed' in value && value.boxed === true) {
-        value.boxed = node.name
-        if (typeof value.boxed === 'string' && !(value.boxed in env.heap)) {
-          env.heap[value.boxed] = {
+      if ('boxed' in value) {
+        if (typeof value.boxed !== 'string') {
+          // we need to create heap entry
+          const ref = boxCacheRef(value) ?? freshHeapRef(env)
+          env.heap[ref] = {
             class: typeToWrapper[value.type],
             value: { ...value, boxed: undefined },
             isWrapper: true,
           }
+          value.boxed = ref
         }
       }
       return value
     }
     case 'invoke': {
-      throw 'invoke runtime TODO implementation'
+      const owner = evaluate(node.owner, env)
+      const args = node.args.map((arg) => evaluate(arg, env))
+      return node.handler(owner, args, env)
     }
     case 'ternary': {
       const cond = unboxBoolean(evaluate(node.condition, env))

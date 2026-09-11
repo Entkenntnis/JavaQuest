@@ -65,10 +65,10 @@ export function cst2ast(node: CstNode): AstNode {
   } else if (node.name == 'MethodInvocation') {
     const owner = cst2ast(node.children[0])
     const name = node.children[2].text
-    const argList = node.children[3].children
     const args = []
-    for (let i = 1; i < argList.length; i += 2) {
-      args.push(cst2ast(argList[i]))
+    for (const child of node.children[3].children) {
+      if (child.name == '(' || child.name == ')' || child.name == ',') continue
+      args.push(cst2ast(child))
     }
     return { kind: 'invoke', owner, name, args }
   } else if (node.name == 'CastExpression') {

@@ -19,7 +19,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `a == a`,
     output: { type: 'boolean', value: true },
     env: {
-      local: { a: { type: 'byte', value: 100, boxed: 'box_cache_byte_100' } },
+      local: { a: { type: 'byte', value: 100, boxed: true } },
       heap: {},
     },
   },
@@ -51,7 +51,9 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `a == a`,
     output: { type: 'boolean', value: true },
     env: {
-      local: { a: { type: 'boolean', value: true, boxed: 'box_cache_boolean_true' } },
+      local: {
+        a: { type: 'boolean', value: true, boxed: true },
+      },
       heap: {},
     },
   },
@@ -82,8 +84,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: {
-        a: { type: 'int', value: 0, boxed: 'box_cache_int_0' },
-        b: { type: 'int', value: 0, boxed: 'box_cache_int_0' },
+        a: { type: 'int', value: 0, boxed: true },
+        b: { type: 'int', value: 0, boxed: true },
       },
       heap: {},
     },
@@ -93,8 +95,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: {
-        a: { type: 'int', value: 100, boxed: 'box_cache_int_100' },
-        b: { type: 'int', value: 100, boxed: 'box_cache_int_100' },
+        a: { type: 'int', value: 100, boxed: true },
+        b: { type: 'int', value: 100, boxed: true },
       },
       heap: {},
     },
@@ -104,8 +106,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: {
-        a: { type: 'int', value: 127, boxed: 'box_cache_int_127' },
-        b: { type: 'int', value: 127, boxed: 'box_cache_int_127' },
+        a: { type: 'int', value: 127, boxed: true },
+        b: { type: 'int', value: 127, boxed: true },
       },
       heap: {},
     },
@@ -115,8 +117,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: {
-        a: { type: 'int', value: -128, boxed: 'box_cache_int_-128' },
-        b: { type: 'int', value: -128, boxed: 'box_cache_int_-128' },
+        a: { type: 'int', value: -128, boxed: true },
+        b: { type: 'int', value: -128, boxed: true },
       },
       heap: {},
     },
@@ -159,8 +161,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: false },
     env: {
       local: {
-        a: { type: 'int', value: 100, boxed: 'box_cache_int_100' },
-        b: { type: 'int', value: 101, boxed: 'box_cache_int_101' },
+        a: { type: 'int', value: 100, boxed: true },
+        b: { type: 'int', value: 101, boxed: true },
       },
       heap: {},
     },
@@ -170,7 +172,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: false },
     env: {
       local: {
-        a: { type: 'int', value: 100, boxed: 'box_cache_int_100' },
+        a: { type: 'int', value: 100, boxed: true },
         b: { type: 'int', value: 1000, boxed: true },
       },
       heap: {},
@@ -181,8 +183,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: false },
     env: {
       local: {
-        a: { type: 'int', value: 100, boxed: 'box_cache_int_100' },
-        b: { type: 'int', value: 100, boxed: 'box_cache_int_100' },
+        a: { type: 'int', value: 100, boxed: true },
+        b: { type: 'int', value: 100, boxed: true },
       },
       heap: {},
     },
@@ -204,8 +206,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: {
-        a: { type: 'short', value: 100, boxed: 'box_cache_short_100' },
-        b: { type: 'short', value: 100, boxed: 'box_cache_short_100' },
+        a: { type: 'short', value: 100, boxed: true },
+        b: { type: 'short', value: 100, boxed: true },
       },
       heap: {},
     },
@@ -238,8 +240,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: {
-        a: { type: 'byte', value: 100, boxed: 'box_cache_byte_100' },
-        b: { type: 'byte', value: 100, boxed: 'box_cache_byte_100' },
+        a: { type: 'byte', value: 100, boxed: true },
+        b: { type: 'byte', value: 100, boxed: true },
       },
       heap: {},
     },
@@ -249,8 +251,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: {
-        a: { type: 'byte', value: -100, boxed: 'box_cache_byte_-100' },
-        b: { type: 'byte', value: -100, boxed: 'box_cache_byte_-100' },
+        a: { type: 'byte', value: -100, boxed: true },
+        b: { type: 'byte', value: -100, boxed: true },
       },
       heap: {},
     },
@@ -260,8 +262,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: false },
     env: {
       local: {
-        a: { type: 'byte', value: 100, boxed: 'box_cache_byte_100' },
-        b: { type: 'byte', value: -100, boxed: 'box_cache_byte_-100' },
+        a: { type: 'byte', value: 100, boxed: true },
+        b: { type: 'byte', value: -100, boxed: true },
       },
       heap: {},
     },
@@ -272,8 +274,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: {
-        a: { type: 'long', value: '100', boxed: 'box_cache_long_100' },
-        b: { type: 'long', value: '100', boxed: 'box_cache_long_100' },
+        a: { type: 'long', value: '100', boxed: true },
+        b: { type: 'long', value: '100', boxed: true },
       },
       heap: {},
     },
@@ -306,8 +308,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: {
-        a: { type: 'char', value: 100, boxed: 'box_cache_char_100' },
-        b: { type: 'char', value: 100, boxed: 'box_cache_char_100' },
+        a: { type: 'char', value: 100, boxed: true },
+        b: { type: 'char', value: 100, boxed: true },
       },
       heap: {},
     },
@@ -317,8 +319,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: {
-        a: { type: 'char', value: 127, boxed: 'box_cache_char_127' },
-        b: { type: 'char', value: 127, boxed: 'box_cache_char_127' },
+        a: { type: 'char', value: 127, boxed: true },
+        b: { type: 'char', value: 127, boxed: true },
       },
       heap: {},
     },
@@ -351,8 +353,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: {
-        a: { type: 'boolean', value: true, boxed: 'box_cache_boolean_true' },
-        b: { type: 'boolean', value: true, boxed: 'box_cache_boolean_true' },
+        a: { type: 'boolean', value: true, boxed: true },
+        b: { type: 'boolean', value: true, boxed: true },
       },
       heap: {},
     },
@@ -362,8 +364,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: {
-        a: { type: 'boolean', value: false, boxed: 'box_cache_boolean_false' },
-        b: { type: 'boolean', value: false, boxed: 'box_cache_boolean_false' },
+        a: { type: 'boolean', value: false, boxed: true },
+        b: { type: 'boolean', value: false, boxed: true },
       },
       heap: {},
     },
@@ -373,8 +375,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: false },
     env: {
       local: {
-        a: { type: 'boolean', value: true, boxed: 'box_cache_boolean_true' },
-        b: { type: 'boolean', value: false, boxed: 'box_cache_boolean_false' },
+        a: { type: 'boolean', value: true, boxed: true },
+        b: { type: 'boolean', value: false, boxed: true },
       },
       heap: {},
     },
@@ -410,7 +412,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `a == (true ? 100 : null)`,
     output: { type: 'boolean', value: true },
     env: {
-      local: { a: { type: 'int', value: 100, boxed: 'box_cache_int_100' } },
+      local: { a: { type: 'int', value: 100, boxed: true } },
       heap: {},
     },
   },
@@ -426,7 +428,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `(true ? 100 : null) == a`,
     output: { type: 'boolean', value: true },
     env: {
-      local: { a: { type: 'int', value: 100, boxed: 'box_cache_int_100' } },
+      local: { a: { type: 'int', value: 100, boxed: true } },
       heap: {},
     },
   },
@@ -450,7 +452,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `a != (true ? 100 : null)`,
     output: { type: 'boolean', value: false },
     env: {
-      local: { a: { type: 'int', value: 100, boxed: 'box_cache_int_100' } },
+      local: { a: { type: 'int', value: 100, boxed: true } },
       heap: {},
     },
   },
@@ -460,7 +462,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `a == (true ? 100 : "x")`,
     output: { type: 'boolean', value: true },
     env: {
-      local: { a: { type: 'int', value: 100, boxed: 'box_cache_int_100' } },
+      local: { a: { type: 'int', value: 100, boxed: true } },
       heap: {},
     },
   },
@@ -520,7 +522,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `a == 100`,
     output: { type: 'boolean', value: true },
     env: {
-      local: { a: { type: 'int', value: 100, boxed: 'box_cache_int_100' } },
+      local: { a: { type: 'int', value: 100, boxed: true } },
       heap: {},
     },
   },
@@ -571,7 +573,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `a < 200`,
     output: { type: 'boolean', value: true },
     env: {
-      local: { a: { type: 'int', value: 100, boxed: 'box_cache_int_100' } },
+      local: { a: { type: 'int', value: 100, boxed: true } },
       heap: {},
     },
   },
@@ -582,7 +584,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     env: {
       local: {
         a: { type: 'int', value: 1000, boxed: true },
-        b: { type: 'int', value: 5, boxed: 'box_cache_int_5' },
+        b: { type: 'int', value: 5, boxed: true },
       },
       heap: {},
     },
@@ -609,7 +611,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     env: {
       local: {
         a: { type: 'int', value: 1000, boxed: true },
-        b: { type: 'int', value: 3, boxed: 'box_cache_int_3' },
+        b: { type: 'int', value: 3, boxed: true },
       },
       heap: {},
     },
@@ -620,7 +622,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `a == null`,
     output: { type: 'boolean', value: false },
     env: {
-      local: { a: { type: 'int', value: 100, boxed: 'box_cache_int_100' } },
+      local: { a: { type: 'int', value: 100, boxed: true } },
       heap: {},
     },
   },
@@ -628,29 +630,23 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `a != null`,
     output: { type: 'boolean', value: true },
     env: {
-      local: { a: { type: 'int', value: 100, boxed: 'box_cache_int_100' } },
+      local: { a: { type: 'int', value: 100, boxed: true } },
       heap: {},
     },
   },
   {
-    code: `a == n`,
+    code: `a == null`,
     output: { type: 'boolean', value: false },
     env: {
-      local: {
-        a: { type: 'int', value: 100, boxed: 'box_cache_int_100' },
-        n: { type: 'null', value: null },
-      },
+      local: { a: { type: 'int', value: 100, boxed: true } },
       heap: {},
     },
   },
   {
-    code: `a != n`,
+    code: `a != null`,
     output: { type: 'boolean', value: true },
     env: {
-      local: {
-        a: { type: 'int', value: 100, boxed: 'box_cache_int_100' },
-        n: { type: 'null', value: null },
-      },
+      local: { a: { type: 'int', value: 100, boxed: true } },
       heap: {},
     },
   },
@@ -662,8 +658,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: {
-        a: { type: 'int', value: 100, boxed: 'box_cache_int_100' },
-        b: { type: 'short', value: 100, boxed: 'box_cache_short_100' },
+        a: { type: 'int', value: 100, boxed: true },
+        b: { type: 'short', value: 100, boxed: true },
       },
       heap: {},
     },
@@ -673,8 +669,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: {
-        a: { type: 'int', value: 100, boxed: 'box_cache_int_100' },
-        b: { type: 'long', value: '100', boxed: 'box_cache_long_100' },
+        a: { type: 'int', value: 100, boxed: true },
+        b: { type: 'long', value: '100', boxed: true },
       },
       heap: {},
     },
@@ -684,7 +680,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: {
-        a: { type: 'int', value: 100, boxed: 'box_cache_int_100' },
+        a: { type: 'int', value: 100, boxed: true },
         b: { type: 'double', value: 100, boxed: true },
       },
       heap: {},
@@ -695,7 +691,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: {
-        a: { type: 'int', value: 100, boxed: 'box_cache_int_100' },
+        a: { type: 'int', value: 100, boxed: true },
         b: { type: 'float', value: 100, boxed: true },
       },
       heap: {},
@@ -706,8 +702,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: {
-        a: { type: 'char', value: 100, boxed: 'box_cache_char_100' },
-        b: { type: 'byte', value: 100, boxed: 'box_cache_byte_100' },
+        a: { type: 'char', value: 100, boxed: true },
+        b: { type: 'byte', value: 100, boxed: true },
       },
       heap: {},
     },
@@ -717,8 +713,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: {
-        a: { type: 'short', value: 100, boxed: 'box_cache_short_100' },
-        b: { type: 'byte', value: 100, boxed: 'box_cache_byte_100' },
+        a: { type: 'short', value: 100, boxed: true },
+        b: { type: 'byte', value: 100, boxed: true },
       },
       heap: {},
     },
@@ -728,8 +724,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: {
-        a: { type: 'boolean', value: true, boxed: 'box_cache_boolean_true' },
-        b: { type: 'int', value: 1, boxed: 'box_cache_int_1' },
+        a: { type: 'boolean', value: true, boxed: true },
+        b: { type: 'int', value: 1, boxed: true },
       },
       heap: {},
     },
@@ -739,8 +735,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: {
-        a: { type: 'int', value: 100, boxed: 'box_cache_int_100' },
-        b: { type: 'short', value: 100, boxed: 'box_cache_short_100' },
+        a: { type: 'int', value: 100, boxed: true },
+        b: { type: 'short', value: 100, boxed: true },
       },
       heap: {},
     },
@@ -751,7 +747,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: {
-        a: { type: 'int', value: 100, boxed: 'box_cache_int_100' },
+        a: { type: 'int', value: 100, boxed: true },
         s: { type: 'reference', ref: 'heap0' },
       },
       heap: {
@@ -768,7 +764,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     env: {
       local: {
         a: { type: 'int', value: 1000, boxed: true },
-        b: { type: 'int', value: 5, boxed: 'box_cache_int_5' },
+        b: { type: 'int', value: 5, boxed: true },
       },
       heap: {},
     },
@@ -779,7 +775,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     env: {
       local: {
         a: { type: 'int', value: 1000, boxed: true },
-        b: { type: 'int', value: 5, boxed: 'box_cache_int_5' },
+        b: { type: 'int', value: 5, boxed: true },
       },
       heap: {},
     },
@@ -790,7 +786,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     env: {
       local: {
         a: { type: 'int', value: 1000, boxed: true },
-        b: { type: 'int', value: 5, boxed: 'box_cache_int_5' },
+        b: { type: 'int', value: 5, boxed: true },
       },
       heap: {},
     },
@@ -801,7 +797,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     env: {
       local: {
         a: { type: 'int', value: 1000, boxed: true },
-        b: { type: 'int', value: 5, boxed: 'box_cache_int_5' },
+        b: { type: 'int', value: 5, boxed: true },
       },
       heap: {},
     },
@@ -815,7 +811,7 @@ export const boxedLocals: TestSuiteEntry[] = [
       local: {
         b: { type: 'boolean', value: true },
         n: { type: 'int', value: 1000, boxed: true },
-        m: { type: 'int', value: 5, boxed: 'box_cache_int_5' },
+        m: { type: 'int', value: 5, boxed: true },
       },
       heap: {},
     },
@@ -827,7 +823,7 @@ export const boxedLocals: TestSuiteEntry[] = [
       local: {
         b: { type: 'boolean', value: false },
         n: { type: 'int', value: 1000, boxed: true },
-        m: { type: 'int', value: 5, boxed: 'box_cache_int_5' },
+        m: { type: 'int', value: 5, boxed: true },
       },
       heap: {},
     },
@@ -839,7 +835,7 @@ export const boxedLocals: TestSuiteEntry[] = [
       local: {
         b: { type: 'boolean', value: true },
         n: { type: 'int', value: 1000, boxed: true },
-        m: { type: 'int', value: 5, boxed: 'box_cache_int_5' },
+        m: { type: 'int', value: 5, boxed: true },
       },
       heap: {},
     },
@@ -851,7 +847,7 @@ export const boxedLocals: TestSuiteEntry[] = [
       local: {
         b: { type: 'boolean', value: false },
         n: { type: 'int', value: 1000, boxed: true },
-        m: { type: 'int', value: 5, boxed: 'box_cache_int_5' },
+        m: { type: 'int', value: 5, boxed: true },
       },
       heap: {},
     },
@@ -863,7 +859,9 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `a ? 1 : 2`,
     output: { type: 'int', value: 1 },
     env: {
-      local: { a: { type: 'boolean', value: true, boxed: 'box_cache_boolean_true' } },
+      local: {
+        a: { type: 'boolean', value: true, boxed: true },
+      },
       heap: {},
     },
   },
@@ -871,7 +869,9 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `a ? 1 : 2`,
     output: { type: 'int', value: 2 },
     env: {
-      local: { a: { type: 'boolean', value: false, boxed: 'box_cache_boolean_false' } },
+      local: {
+        a: { type: 'boolean', value: false, boxed: true },
+      },
       heap: {},
     },
   },
@@ -879,7 +879,9 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `!a`,
     output: { type: 'boolean', value: false },
     env: {
-      local: { a: { type: 'boolean', value: true, boxed: 'box_cache_boolean_true' } },
+      local: {
+        a: { type: 'boolean', value: true, boxed: true },
+      },
       heap: {},
     },
   },
@@ -888,8 +890,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: false },
     env: {
       local: {
-        a: { type: 'boolean', value: true, boxed: 'box_cache_boolean_true' },
-        b: { type: 'boolean', value: false, boxed: 'box_cache_boolean_false' },
+        a: { type: 'boolean', value: true, boxed: true },
+        b: { type: 'boolean', value: false, boxed: true },
       },
       heap: {},
     },
@@ -899,8 +901,8 @@ export const boxedLocals: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: {
-        a: { type: 'boolean', value: false, boxed: 'box_cache_boolean_false' },
-        b: { type: 'boolean', value: true, boxed: 'box_cache_boolean_true' },
+        a: { type: 'boolean', value: false, boxed: true },
+        b: { type: 'boolean', value: true, boxed: true },
       },
       heap: {},
     },
@@ -909,7 +911,9 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `a == true`,
     output: { type: 'boolean', value: true },
     env: {
-      local: { a: { type: 'boolean', value: true, boxed: 'box_cache_boolean_true' } },
+      local: {
+        a: { type: 'boolean', value: true, boxed: true },
+      },
       heap: {},
     },
   },
@@ -917,7 +921,9 @@ export const boxedLocals: TestSuiteEntry[] = [
     code: `a == false`,
     output: { type: 'boolean', value: false },
     env: {
-      local: { a: { type: 'boolean', value: true, boxed: 'box_cache_boolean_true' } },
+      local: {
+        a: { type: 'boolean', value: true, boxed: true },
+      },
       heap: {},
     },
   },
@@ -937,7 +943,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     env: {
       local: {
         a: { type: 'int', value: 1000, boxed: true },
-        b: { type: 'int', value: 5, boxed: 'box_cache_int_5' },
+        b: { type: 'int', value: 5, boxed: true },
       },
       heap: {},
     },
@@ -948,7 +954,7 @@ export const boxedLocals: TestSuiteEntry[] = [
     env: {
       local: {
         a: { type: 'int', value: 1000, boxed: true },
-        b: { type: 'int', value: 5, boxed: 'box_cache_int_5' },
+        b: { type: 'int', value: 5, boxed: true },
       },
       heap: {},
     },

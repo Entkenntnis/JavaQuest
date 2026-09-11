@@ -91,9 +91,12 @@ function classChain(className: string): string[] {
   let current: string | null = className
   while (current) {
     if (seen.has(current)) {
-      throw 'Interner Systemfehler: should not happen'
+      throw `Interner Systemfehler: Zyklische Vererbung bei Klasse "${current}"`
     }
     seen.add(current)
+    if (!classMetaData[current]) {
+      throw `Interner Systemfehler: Klasse "${current}" nicht gefunden`
+    }
     chain.push(current)
     current = classMetaData[current].superClass
   }
@@ -109,7 +112,7 @@ export function isSubtype(sub: string, sup: string): boolean {
     if (!name || seen.has(name)) continue
     seen.add(name)
     const meta = classMetaData[name]
-    if (!meta) throw 'internal error'
+    if (!meta) throw `Interner Systemfehler: Klasse "${name}" nicht gefunden`
     if (meta.superClass) {
       if (meta.superClass == sup) return true
       stack.push(meta.superClass)
@@ -162,7 +165,7 @@ export function findMethod(
   const candidates: MethodMetaData[] = []
   for (const current of classChain(className)) {
     const meta = classMetaData[current]
-    if (!meta) throw 'Interner Systemfehler: should not happen'
+    if (!meta) throw `Interner Systemfehler: Klasse "${current}" nicht gefunden`
     for (const method of meta.methods) {
       if (method.name != name) continue
       if (method.sig.params.length != argTypes.length) continue
@@ -183,4 +186,18 @@ export function findMethod(
   }
 
   return undefined
+}
+
+// Whether any method with this name exists in the class hierarchy, regardless of
+// its parameter list. Used to tell "unknown method" apart from "no applicable
+// overload" for javac-style error messages.
+export function hasMethodNamed(className: string, name: string): boolean {
+  for (const current of classChain(className)) {
+    const meta = classMetaData[current]
+    if (!meta) throw `Interner Systemfehler: Klasse "${current}" nicht gefunden`
+    for (const method of meta.methods) {
+      if (method.name == name) return true
+    }
+  }
+  return false
 }
