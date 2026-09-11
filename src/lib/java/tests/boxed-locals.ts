@@ -9,6 +9,9 @@ export const boxedLocals: TestSuiteEntry[] = [
   // directly against real Java -- unlike the ternary trick, a variable can be read twice
   // and still denote the *same* object. These entries deliberately mix cached and
   // non-cached values, every wrapper type, and both operand orders.
+  // For values the JVM caches, `boxed` carries the interpreter's generated heap name
+  // (`box_cache_<type>_<value>`) so the local shares that cache entry; non-cached values
+  // keep `boxed: true` and are identified by the variable itself.
   // ------------------------- re-reading one wrapper local: stable identity -------------------------
   // One wrapper local denotes one object, so two reads compare identical for every wrapper
   // type -- the cache is irrelevant here, even for values it does not hold.

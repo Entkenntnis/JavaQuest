@@ -481,7 +481,7 @@ function evaluate_internal(
     }
     case 'identifier': {
       const value = env.local[node.name]
-      if ('boxed' in value) {
+      if ('boxed' in value && value.boxed === true) {
         value.boxed = node.name
       }
       return value
