@@ -214,9 +214,6 @@ function buildEqualsHandler(className: JavaWrapperObject['class']) {
     const own = env.heap[owner.ref]
     if (own.class != className) throw 'internal error'
     let other = args[0]
-    if ('boxed' in other && typeof other.boxed === 'string') {
-      other = { type: 'reference', ref: other.boxed }
-    }
     if (other.type != 'reference') {
       return { type: 'boolean', value: false }
     }
