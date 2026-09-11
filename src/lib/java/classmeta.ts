@@ -19,7 +19,7 @@ export const classMetaData: Record<string, ClassMetaData> = {
           params: [{ kind: 'class', name: 'java.lang.Object' }],
           ret: { kind: 'primitive', prim: 'boolean' },
         },
-        handler: (owner, args, env) => {
+        handler: (_owner, _args, _env) => {
           throw 'TODO HANDLER Object.equals'
         },
       },
@@ -29,7 +29,7 @@ export const classMetaData: Record<string, ClassMetaData> = {
           params: [],
           ret: { kind: 'primitive', prim: 'int' },
         },
-        handler: (owner, args, env) => {
+        handler: (_owner, _args, _env) => {
           throw 'TODO HANDLER Object.hashCode'
         },
       },
@@ -39,7 +39,7 @@ export const classMetaData: Record<string, ClassMetaData> = {
           params: [],
           ret: { kind: 'class', name: 'java.lang.String' },
         },
-        handler: (owner, args, env) => {
+        handler: (_owner, _args, _env) => {
           throw 'TODO HANDLER Object.toString'
         },
       },
@@ -199,7 +199,7 @@ export const classMetaData: Record<string, ClassMetaData> = {
           params: [{ kind: 'class', name: 'java.lang.Object' }],
           ret: { kind: 'primitive', prim: 'boolean' },
         },
-        handler: buildEqualsHandler('java.lang.Integer'),
+        handler: buildEqualsHandler('java.lang.Boolean'),
       },
     ],
   },
