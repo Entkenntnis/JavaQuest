@@ -2,6 +2,7 @@ import { CodeSnippet } from '../helper/CodeSnippet'
 import { useCore } from '../../lib/state/core'
 import { questsData } from '../../lib/content/quests-data'
 import { InputBar } from '../helper/InputBar'
+import clsx from 'clsx'
 
 export function Quest() {
   const core = useCore()
@@ -20,7 +21,14 @@ export function Quest() {
         </div>
       </div>
 
-      <div className="shrink-0 h-[150px] bg-gray-500   p-2">
+      <div
+        className={clsx(
+          'shrink-0 h-[150px] p-2',
+          core.ws.ui.questState === undefined && 'bg-gray-500',
+          core.ws.ui.questState === 'success' && 'bg-green-500',
+          core.ws.ui.questState === 'fail' && 'bg-red-500',
+        )}
+      >
         <pre
           className="w-full h-full bg-gray-200 rounded overflow-auto px-2"
           id="quest-output"

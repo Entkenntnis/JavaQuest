@@ -45,6 +45,7 @@ export function InputBar() {
             onChange={(e) => {
               core.mutateWs((ws) => {
                 ws.ui.questInput = e.target.value
+                ws.ui.questState = undefined
               })
             }}
             maxLength={1024}

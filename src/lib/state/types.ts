@@ -18,6 +18,7 @@ interface Ui {
 
   questInput: string
   questOutput: string
+  questState?: 'success' | 'fail'
 }
 
 interface Quest {

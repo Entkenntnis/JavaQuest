@@ -49,17 +49,27 @@ export function check(core: Core) {
   println(
     `Überprüfe ${quest.checker.data.length} Testfälle für die Eingabe \`${core.ws.ui.questInput}\` ...`,
   )
+  const list = quest.checker.data.slice()
+  list.sort(() => (Math.random() >= 0.5 ? 1 : -1))
 
-  for (const el of quest.checker.data) {
+  for (const el of list) {
     const refOutput = runTestcase(el, quest.checker.reference)
     const testOutput = runTestcase(el, core.ws.ui.questInput)
     // println(refOutput)
     // println(testOutput)
     if (refOutput != testOutput) {
-      println(testOutput)
-      println('FAIL')
+      println(`Testeingabe: ${el}`)
+      println(`IST: ${testOutput}`)
+      println(`SOLL: ${refOutput}`)
+      println('> Leider nicht richtig.')
+      core.mutateWs((ws) => {
+        ws.ui.questState = 'fail'
+      })
       return
     }
   }
   println('ERFOLG')
+  core.mutateWs((ws) => {
+    ws.ui.questState = 'success'
+  })
 }
