@@ -3,7 +3,6 @@ import type { TestSuiteEntry } from '../../state/types'
 export const boxedComparisons: TestSuiteEntry[] = [
   // ==================== BOXED WRAPPER COMPARISONS (== / != / < etc.) ====================
   // Boxed values are wrapper objects (Integer, Short, ...). == / != between two reference
-  // operands compares *identity* (JLS 15.21.3) subject to the autoboxing caches of
   // operands compares *identity* (JLS 15.21.3) subject to the autoboxing caches of valueOf():
   // Integer/Short/Long share the -128..127 instances, Character the 0..127 ones, Byte the
   // whole range, Boolean two singletons, Float/Double none. So two equal boxed results compare
