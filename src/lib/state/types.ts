@@ -190,6 +190,8 @@ export type JavaValue =
   | JavaReferenceValue
   | JavaNullValue
 
+export type Prim = (JavaNumericPrimitiveValue | JavaBooleanValue)['type']
+
 export interface CstNode {
   name: string
   from: number
@@ -401,7 +403,7 @@ export interface TypedBooleanCastNode {
 
 export interface TypedUnboxCastNode {
   kind: 'cast'
-  type: (JavaNumericPrimitiveValue | JavaBooleanValue)['type']
+  type: Prim
   isUnboxing: true
   operand: TypedNode<JavaReferenceValue | JavaNullValue>
 }
@@ -556,6 +558,7 @@ export interface TypedConditionalOperatorNumericCastNode {
 
 export interface TypedMethodInvocationNode {
   kind: 'invoke'
+  owner: TypedNode<JavaValue>
   args: TypedNode<JavaValue>[]
   handler: (args: JavaValue[]) => JavaValue
 }
@@ -575,6 +578,8 @@ export type TypecheckResult =
       ClassType | ArrayType,
     ]
   | [type: 'null', node: TypedNode<JavaNullValue>]
+
+export type TypeData = TypecheckResult[2]
 
 // ------- Environment Stuff -------
 
@@ -614,7 +619,7 @@ export interface JavaObject {
 
 export interface PrimitiveType {
   kind: 'primitive'
-  prim: (JavaNumericPrimitiveValue | JavaBooleanValue)['type']
+  prim: Prim
 }
 
 export interface ClassType {
@@ -635,7 +640,7 @@ export type Type = PrimitiveType | ClassType | ArrayType
 
 export interface ClassMetaData {
   name: string
-  superClass?: string | null
+  superClass: string | null
   interfaces: string[]
 
   fields: FieldMetaData[]

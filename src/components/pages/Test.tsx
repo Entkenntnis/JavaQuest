@@ -4,8 +4,9 @@ import { parser } from '../../lib/java/lezer/parser'
 import { useCore } from '../../lib/state/core'
 import { checkForParseErrors, cst2ast } from '../../lib/java/cst2ast'
 import { typecheck } from '../../lib/java/typecheck'
-import { evaluate, foldConstants } from '../../lib/java/evaluate'
+import { evaluate } from '../../lib/java/evaluate'
 import type { JavaEnvironment } from '../../lib/state/types'
+import { foldConstants } from '../../lib/java/fold'
 
 const testEnv: JavaEnvironment = {
   local: {

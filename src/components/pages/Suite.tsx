@@ -11,9 +11,10 @@ import { Text } from '@codemirror/state'
 import { cursorToCstNode } from '../../lib/java/helper/cst'
 import { checkForParseErrors, cst2ast } from '../../lib/java/cst2ast'
 import clsx from 'clsx'
-import { evaluate, foldConstants } from '../../lib/java/evaluate'
+import { evaluate } from '../../lib/java/evaluate'
 import { typecheck } from '../../lib/java/typecheck'
 import { useCore } from '../../lib/state/core'
+import { foldConstants } from '../../lib/java/fold'
 
 function toHarnessError(e: unknown, phase: TestErrorPhase): TestHarnessError {
   const raw = e instanceof Error ? e.message : String(e)

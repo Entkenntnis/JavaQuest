@@ -40,12 +40,17 @@ import type {
   TypedConditionalOperatorNode,
   TypedConditionalOperatorNumericCastNode,
   TypedBoxedReferenceEqualsNode,
-  JavaNumericPrimitiveValue,
-  JavaBooleanValue,
   TypedUnboxCastNode,
+  Type,
+  TypedMethodInvocationNode,
 } from '../state/types'
-import { classMetaData } from './classmeta'
-import { foldConstants, typeToWrapper } from './evaluate'
+import { foldConstants } from './fold'
+import {
+  findMethod,
+  isIdentityOrWideningCast,
+  typeDataEquals,
+  typeToWrapper,
+} from './helper/typing'
 
 export function typecheck(
   node: AstNode,
@@ -164,23 +169,80 @@ function typecheck_internal(
       )
     }
     case 'invoke':
-      // hm, what do I have to do here actually? I mean, I need to gather all information and
       const [type, inner, data] = typecheck_internal(node.owner, env)
-      if (type != 'reference' || data.kind != 'class') {
-        throw 'Interner Systemfehler: Unterstützung bezieht sich erstmal nur auf Referenzen'
+      // if (type != 'reference' || data.kind != 'class') {
+      //   throw 'Interner Systemfehler: Unterstützung bezieht sich erstmal nur auf Referenzen'
+      // }
+
+      let className
+      // first job: unbox end resolve to class name
+      if (type == 'reference') {
+        if (data.kind == 'array') {
+          throw 'TODO'
+        }
+        className = data.name
       }
-      const clName = data.name
-      const methodMeta = classMetaData[clName].methods.find(
-        (el) => el.name == node.name,
-      )
+      // and the special case of boxed values
+      if (data && 'boxed' in data && type != 'null' && type != 'reference') {
+        className = typeToWrapper[type]
+      }
+
+      if (!className) {
+        throw 'class not found' // make prettier
+      }
+
+      // now, extract the arg structure
+      const argTypes: Type[] = []
+      const args: TypedNode<JavaValue>[] = []
+
+      for (const arg of node.args) {
+        const [type, inner, data] = typecheck_internal(arg, env)
+        args.push(inner)
+        if (type == 'null') {
+          throw 'cannot infer type' // make prettier
+        }
+        if (type == 'reference') {
+          argTypes.push(data)
+        } else if (data && data.boxed) {
+          argTypes.push({ kind: 'class', name: typeToWrapper[type] })
+        } else {
+          // primitive
+          argTypes.push({ kind: 'primitive', prim: type })
+        }
+      }
+
+      // find matching method
+      const methodMeta = findMethod(className, node.name, argTypes)
+
       if (!methodMeta) {
-        throw 'Interner Systemfehler: Methode nicht gefunden'
+        throw 'method not found'
       }
-      // Verify Argument List
-      if (methodMeta.sig.params.length != node.args.length) {
-        throw 'interner Systemfehler: Parameter nicht passend'
+
+      const ret = methodMeta.sig.ret
+
+      if (ret.kind == 'void') {
+        throw 'value expected'
       }
-      throw `TODO: ${clName} ${node.name}`
+
+      if (ret.kind == 'array') {
+        throw 'TODO'
+      }
+
+      const tn: TypedMethodInvocationNode = {
+        kind: 'invoke',
+        args,
+        owner: inner,
+        handler: () => {
+          alert('todo')
+          throw 'test'
+        },
+      }
+
+      if (ret.kind == 'primitive') {
+        return [ret.prim, tn]
+      }
+
+      return ['reference', tn, { kind: 'class', name: ret.name }]
     case 'cast': {
       const [type, inner, data] = typecheck_internal(node.operand, env)
 
@@ -616,7 +678,7 @@ function typecheck_internal(
       }
 
       // 1. same type, also data payload data (boxed, reference name)
-      if (typeL == typeR && JSON.stringify(dataL) == JSON.stringify(dataR)) {
+      if (typeL == typeR && typeDataEquals(dataL, dataR)) {
         switch (typeL) {
           case 'reference':
             return [typeL, tn, dataL]
@@ -839,36 +901,4 @@ function constructLiteralNodeResult(node: LiteralAstNode): TypecheckResult {
     case 'null':
       return ['null', typedLiteral(node.value)]
   }
-}
-
-function isIdentityOrWideningCast(
-  from: JavaValue['type'],
-  to: (JavaNumericPrimitiveValue | JavaBooleanValue)['type'],
-): boolean {
-  if (from == 'boolean' && to == 'boolean') {
-    return true
-  }
-  if (from == 'byte' && to != 'boolean' && to != 'char') return true
-
-  if (from == 'short' && to != 'boolean' && to != 'char' && to != 'byte')
-    return true
-
-  if (from == 'char' && to != 'boolean' && to != 'short' && to != 'byte')
-    return true
-
-  if (
-    from == 'int' &&
-    (to == 'int' || to == 'long' || to == 'float' || to == 'double')
-  )
-    return true
-
-  if (from == 'long' && (to == 'long' || to == 'float' || to == 'double'))
-    return true
-
-  if (from == 'float' && (to == 'float' || to == 'double')) return true
-
-  if (from == 'double' && to == 'double') return true
-
-  // re
-  return false
 }

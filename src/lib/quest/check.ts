@@ -6,7 +6,8 @@ import type { Core } from '../state/core'
 import { checkForParseErrors, cst2ast } from '../java/cst2ast'
 import { typecheck } from '../java/typecheck'
 import type { JavaEnvironment } from '../state/types'
-import { evaluate, foldConstants } from '../java/evaluate'
+import { evaluate } from '../java/evaluate'
+import { foldConstants } from '../java/fold'
 
 export function check(core: Core) {
   const quest = questsData[core.ws.quest.id]

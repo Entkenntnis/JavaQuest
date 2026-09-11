@@ -15,108 +15,9 @@ import {
   type JavaReferenceValue,
   type JavaShortValue,
   type JavaValue,
-  type JavaWrapperObject,
   type TypedNode,
 } from '../state/types'
-
-export function foldConstants(
-  node: TypedNode<JavaValue>,
-): TypedNode<JavaValue> {
-  return fold(node, { local: {}, heap: {} })
-}
-
-function fold(
-  node: TypedNode<JavaValue>,
-  scratch: JavaEnvironment,
-): TypedNode<JavaValue> {
-  switch (node.kind) {
-    case 'cast':
-    case 'unary': {
-      return collapse(
-        {
-          ...node,
-          operand: fold(node.operand, scratch),
-        } as TypedNode<JavaValue>,
-        scratch,
-      )
-    }
-    case 'binary':
-      return collapse(
-        {
-          ...node,
-          left: fold(node.left, scratch),
-          right: fold(node.right, scratch),
-        } as TypedNode<JavaValue>,
-        scratch,
-      )
-    case 'ternary':
-      return collapse(
-        {
-          ...node,
-          condition: fold(node.condition, scratch),
-          left: fold(node.left, scratch),
-          right: fold(node.right, scratch),
-        } as TypedNode<JavaValue>,
-        scratch,
-      )
-    default:
-      return node
-  }
-}
-
-function collapse(
-  rebuilt: TypedNode<JavaValue>,
-  scratch: JavaEnvironment,
-): TypedNode<JavaValue> {
-  if (!isConstantSubtree(rebuilt)) return rebuilt
-
-  let value: JavaValue
-  try {
-    value = evaluate(rebuilt, scratch)
-  } catch {
-    return rebuilt
-  }
-
-  if (value.type == 'reference') {
-    const obj = scratch.heap[value.ref]
-    if (obj.class != 'java.lang.String') {
-      return rebuilt
-    }
-    return { kind: 'string-literal', value: obj.value }
-  }
-
-  return { kind: 'literal', value } as TypedNode<JavaValue>
-}
-
-function isConstant(node: TypedNode<JavaValue>) {
-  return (
-    (node.kind == 'literal' && node.value.type != 'null') ||
-    node.kind == 'string-literal'
-  )
-}
-
-function isConstantSubtree(node: TypedNode<JavaValue>): boolean {
-  switch (node.kind) {
-    case 'literal':
-    case 'string-literal':
-      return isConstant(node)
-    case 'cast':
-    case 'unary':
-      return isConstant(node.operand)
-    case 'binary':
-      return isConstant(node.left) && isConstant(node.right)
-    case 'ternary':
-      return (
-        isConstant(node.condition) &&
-        isConstant(node.left) &&
-        isConstant(node.right) &&
-        !node.boxResult &&
-        !node.objectify
-      )
-    default:
-      return false
-  }
-}
+import { typeToWrapper } from './helper/typing'
 
 export function evaluate<T extends JavaValue>(
   node: TypedNode<T>,
@@ -488,7 +389,7 @@ function evaluate_internal(
       return value
     }
     case 'invoke': {
-      throw 'TOD'
+      throw 'invoke runtime TODO implementation'
     }
     case 'ternary': {
       const cond = unboxBoolean(evaluate(node.condition, env))
@@ -521,20 +422,6 @@ function evaluate_internal(
       return raw
     }
   }
-}
-
-export const typeToWrapper: Record<
-  (JavaNumericPrimitiveValue | JavaBooleanValue)['type'],
-  JavaWrapperObject['class']
-> = {
-  byte: 'java.lang.Byte',
-  short: 'java.lang.Short',
-  char: 'java.lang.Character',
-  int: 'java.lang.Integer',
-  long: 'java.lang.Long',
-  float: 'java.lang.Float',
-  double: 'java.lang.Double',
-  boolean: 'java.lang.Boolean',
 }
 
 // The JVM's autoboxing caches: Integer/Short/Long share the -128..127 instances,
@@ -767,7 +654,6 @@ function javaValueToString(val: JavaValue, env: JavaEnvironment): string {
     case 'double':
       return printDouble(val.value)
     case 'reference':
-      // TODO: if new methods arrive, find the toString method and invoke it
       const obj = env.heap[val.ref]
       if (obj.class == 'java.lang.String') {
         return obj.value
@@ -775,6 +661,7 @@ function javaValueToString(val: JavaValue, env: JavaEnvironment): string {
       if ('isWrapper' in obj) {
         return javaValueToString(obj.value, env)
       }
+      // TODO: if new methods arrive, find the toString method and invoke it
       return '?OBJ?'
     case 'null':
       return 'null'
