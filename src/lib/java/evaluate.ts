@@ -421,7 +421,6 @@ function evaluate_internal(
         node.name,
         node.resolvedSignature.params,
       )!.handler
-      // TODO: find OVERRIDDEN
       return handler(owner, args, env)
     }
     case 'ternary': {

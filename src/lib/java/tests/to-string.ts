@@ -352,6 +352,186 @@ export const toStringCases: TestSuiteEntry[] = [
     env: { local: { a: { type: 'int', value: 1000, boxed: true } }, heap: {} },
     output: { type: 'boolean', value: false },
   },
+  // ------------------------- toString vs equals: the String boundary erases the wrapper class -------------------------
+  // toString() always produces a java.lang.String, so two *different* wrapper types whose
+  // values print identically yield equal Strings, even though their own equals() is
+  // class-sensitive and false. Integer 1000 vs Long 1000:
+  {
+    code: `a.toString().equals(l.toString())`,
+    env: {
+      local: {
+        a: { type: 'int', value: 1000, boxed: true },
+        l: { type: 'long', value: '1000', boxed: true },
+      },
+      heap: {},
+    },
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `a.equals(l)`,
+    env: {
+      local: {
+        a: { type: 'int', value: 1000, boxed: true },
+        l: { type: 'long', value: '1000', boxed: true },
+      },
+      heap: {},
+    },
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `l.equals(a)`,
+    env: {
+      local: {
+        a: { type: 'int', value: 1000, boxed: true },
+        l: { type: 'long', value: '1000', boxed: true },
+      },
+      heap: {},
+    },
+    output: { type: 'boolean', value: false },
+  },
+  // Float 1.5 vs Double 1.5: same text, different wrapper.
+  {
+    code: `f.toString().equals(d.toString())`,
+    env: {
+      local: {
+        f: { type: 'float', value: 1.5, boxed: true },
+        d: { type: 'double', value: 1.5, boxed: true },
+      },
+      heap: {},
+    },
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `f.equals(d)`,
+    env: {
+      local: {
+        f: { type: 'float', value: 1.5, boxed: true },
+        d: { type: 'double', value: 1.5, boxed: true },
+      },
+      heap: {},
+    },
+    output: { type: 'boolean', value: false },
+  },
+  // Byte 100 vs Short 100.
+  {
+    code: `by.toString().equals(sh.toString())`,
+    env: {
+      local: {
+        by: { type: 'byte', value: 100, boxed: true },
+        sh: { type: 'short', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `by.equals(sh)`,
+    env: {
+      local: {
+        by: { type: 'byte', value: 100, boxed: true },
+        sh: { type: 'short', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+    output: { type: 'boolean', value: false },
+  },
+  // Same bridge for a ternary that boxes to Integer vs Long.
+  {
+    code: `(true ? 1000 : null).toString().equals((true ? 1000L : null).toString())`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? 1000 : null).equals(true ? 1000L : null)`,
+    output: { type: 'boolean', value: false },
+  },
+  // Character and Boolean only bridge through their textual form: the wrapper equals a
+  // String never holds, the toString() of the wrapper equals the same String always does.
+  {
+    code: `c.toString().equals("a")`,
+    env: { local: { c: { type: 'char', value: 97, boxed: true } }, heap: {} },
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `"a".equals(c.toString())`,
+    env: { local: { c: { type: 'char', value: 97, boxed: true } }, heap: {} },
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `b.toString().equals("true")`,
+    env: {
+      local: { b: { type: 'boolean', value: true, boxed: true } },
+      heap: {},
+    },
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `b.equals("true")`,
+    env: {
+      local: { b: { type: 'boolean', value: true, boxed: true } },
+      heap: {},
+    },
+    output: { type: 'boolean', value: false },
+  },
+  // A String and a wrapper with matching text: the toString bridge is symmetric, the
+  // wrapper equals is not. `s.toString()` is the identity, so it behaves like `s`.
+  {
+    code: `a.toString().equals(s)`,
+    env: {
+      local: {
+        a: { type: 'int', value: 1000, boxed: true },
+        s: { type: 'reference', ref: 'heap0' },
+      },
+      heap: { heap0: { class: 'java.lang.String', value: '1000' } },
+    },
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `s.equals(a.toString())`,
+    env: {
+      local: {
+        a: { type: 'int', value: 1000, boxed: true },
+        s: { type: 'reference', ref: 'heap0' },
+      },
+      heap: { heap0: { class: 'java.lang.String', value: '1000' } },
+    },
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `s.toString().equals(a)`,
+    env: {
+      local: {
+        a: { type: 'int', value: 1000, boxed: true },
+        s: { type: 'reference', ref: 'heap0' },
+      },
+      heap: { heap0: { class: 'java.lang.String', value: '1000' } },
+    },
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `a.equals(s)`,
+    env: {
+      local: {
+        a: { type: 'int', value: 1000, boxed: true },
+        s: { type: 'reference', ref: 'heap0' },
+      },
+      heap: { heap0: { class: 'java.lang.String', value: '1000' } },
+    },
+    output: { type: 'boolean', value: false },
+  },
+  // Signed zero and NaN: toString/equals preserve the sign / the bit pattern, unlike
+  // numeric ==. -0.0 prints "-0.0" and is not equal to "0.0"; NaN prints "NaN".
+  {
+    code: `(true ? -0.0 : null).toString().equals("-0.0")`,
+    output: { type: 'boolean', value: true },
+  },
+  {
+    code: `(true ? -0.0 : null).toString().equals("0.0")`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `(true ? 0.0 / 0.0 : null).toString().equals("NaN")`,
+    output: { type: 'boolean', value: true },
+  },
   // ------------------------- error phases -------------------------
   // toString takes no arguments. (`a.toString(1)` is *not* an error in Java: it resolves
   // the static Integer.toString(int) through the instance. Static methods are out of scope
