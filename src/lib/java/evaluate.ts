@@ -1,5 +1,3 @@
-import { printDouble } from './helper/floating/double'
-import { printFloat } from './helper/floating/float'
 import {
   type JavaBooleanValue,
   type JavaByteValue,
@@ -18,7 +16,13 @@ import {
   type Type,
   type TypedNode,
 } from '../state/types'
-import { typeToWrapper } from './helper/typing'
+import { findMethod, typeToWrapper } from './helper/typing'
+import {
+  primitiveValueIntoHeap,
+  boxCacheRef,
+  freshHeapRef,
+} from './helper/heap'
+import { javaValueToString } from './helper/print'
 
 export function evaluate<T extends JavaValue>(
   node: TypedNode<T>,
@@ -405,9 +409,20 @@ function evaluate_internal(
       if (owner.type != 'reference')
         throw new Error('npe or internal error? no primitive expected here')
       const args = node.args.map((arg, i) =>
-        convertArgument(evaluate(arg, env), node.paramTypes[i], env),
+        convertArgument(
+          evaluate(arg, env),
+          node.resolvedSignature.params[i],
+          env,
+        ),
       )
-      return node.handler(owner, args, env)
+      const obj = env.heap[owner.ref]
+      let handler = findMethod(
+        obj.class,
+        node.name,
+        node.resolvedSignature.params,
+      )!.handler
+      // TODO: find OVERRIDDEN
+      return handler(owner, args, env)
     }
     case 'ternary': {
       const cond = unboxBoolean(evaluate(node.condition, env))
@@ -442,50 +457,6 @@ function evaluate_internal(
   }
 }
 
-// The JVM's autoboxing caches: Integer/Short/Long share the -128..127 instances,
-// Character the 0..127 ones, Byte the whole range and Boolean two singletons; Float and
-// Double are never cached. The returned name is the single source of truth for the heap
-// entry of a cached wrapper, shared by autoboxing and by boxed env locals.
-function boxCacheRef(
-  raw: JavaNumericPrimitiveValue | JavaBooleanValue,
-): string | null {
-  if (raw.type == 'boolean') {
-    return `box_cache_boolean_${raw.value}`
-  }
-  if (raw.type == 'byte') {
-    return `box_cache_byte_${raw.value}`
-  }
-  if (raw.type == 'short' && raw.value >= -128 && raw.value <= 127) {
-    return `box_cache_short_${raw.value}`
-  }
-  if (raw.type == 'char' && raw.value <= 127) {
-    return `box_cache_char_${raw.value}`
-  }
-  if (raw.type == 'int' && raw.value >= -128 && raw.value <= 127) {
-    return `box_cache_int_${raw.value}`
-  }
-  if (raw.type == 'long') {
-    const v = BigInt(raw.value)
-    if (v >= -128 && v <= 127) {
-      return `box_cache_long_${raw.value}`
-    }
-  }
-  return null
-}
-
-function primitiveValueIntoHeap(
-  raw: JavaNumericPrimitiveValue | JavaBooleanValue,
-  env: JavaEnvironment,
-): JavaReferenceValue {
-  const ref = boxCacheRef(raw) ?? freshHeapRef(env)
-  env.heap[ref] = {
-    class: typeToWrapper[raw.type],
-    value: { ...raw, boxed: undefined },
-    isWrapper: true,
-  }
-  return { type: 'reference', ref }
-}
-
 function compareR(
   left: JavaReferenceValue | JavaNullValue,
   right: JavaReferenceValue | JavaNullValue,
@@ -502,14 +473,6 @@ function compareR(
     type: 'boolean',
     value: negate ? !raw : raw,
   }
-}
-
-function freshHeapRef(env: JavaEnvironment) {
-  let i = 0
-  while (`heap${i}` in env.heap) {
-    i++
-  }
-  return `heap${i}`
 }
 
 function isSmallInt(
@@ -696,34 +659,4 @@ function binaryNumericPromotion(
     return ['long', toLong(left), toLong(right)]
   }
   return ['int', toInt(left), toInt(right)]
-}
-
-function javaValueToString(val: JavaValue, env: JavaEnvironment): string {
-  switch (val.type) {
-    case 'boolean':
-      return val.value ? 'true' : 'false'
-    case 'byte':
-    case 'short':
-    case 'int':
-    case 'long':
-      return val.value.toString()
-    case 'char':
-      return String.fromCodePoint(val.value)
-    case 'float':
-      return printFloat(val.value)
-    case 'double':
-      return printDouble(val.value)
-    case 'reference':
-      const obj = env.heap[val.ref]
-      if (obj.class == 'java.lang.String') {
-        return obj.value
-      }
-      if ('isWrapper' in obj) {
-        return javaValueToString(obj.value, env)
-      }
-      // TODO: if new methods arrive, find the toString method and invoke it
-      return '?OBJ?'
-    case 'null':
-      return 'null'
-  }
 }

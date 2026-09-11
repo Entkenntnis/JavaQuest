@@ -246,10 +246,10 @@ function typecheck_internal(
 
       const tn: TypedMethodInvocationNode = {
         kind: 'invoke',
+        name: methodMeta.name,
         args,
-        paramTypes: methodMeta.sig.params,
+        resolvedSignature: methodMeta.sig,
         owner: inner,
-        handler: methodMeta.handler,
       }
 
       if (ret.kind == 'primitive') {

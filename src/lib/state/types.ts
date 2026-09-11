@@ -559,14 +559,10 @@ export interface TypedConditionalOperatorNumericCastNode {
 
 export interface TypedMethodInvocationNode {
   kind: 'invoke'
+  name: string
   owner: TypedNode<JavaValue>
   args: TypedNode<JavaValue>[]
-  paramTypes: Type[]
-  handler: (
-    owern: JavaReferenceValue,
-    args: JavaValue[],
-    env: JavaEnvironment,
-  ) => JavaValue
+  resolvedSignature: MethodSig
 }
 
 export type TypecheckResult =

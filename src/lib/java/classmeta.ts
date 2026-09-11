@@ -4,7 +4,10 @@ import type {
   JavaReferenceValue,
   JavaValue,
   JavaWrapperObject,
+  MethodMetaData,
 } from '../state/types'
+import { freshHeapRef } from './helper/heap'
+import { javaValueToString } from './helper/print'
 
 export const classMetaData: Record<string, ClassMetaData> = {
   'java.lang.Object': {
@@ -21,16 +24,6 @@ export const classMetaData: Record<string, ClassMetaData> = {
         },
         handler: (_owner, _args, _env) => {
           throw 'TODO HANDLER Object.equals'
-        },
-      },
-      {
-        name: 'hashCode',
-        sig: {
-          params: [],
-          ret: { kind: 'primitive', prim: 'int' },
-        },
-        handler: (_owner, _args, _env) => {
-          throw 'TODO HANDLER Object.hashCode'
         },
       },
       {
@@ -73,10 +66,31 @@ export const classMetaData: Record<string, ClassMetaData> = {
           return { type: 'boolean', value: obj.value == own.value }
         },
       },
+      {
+        name: 'toString',
+        sig: {
+          params: [],
+          ret: { kind: 'class', name: 'java.lang.String' },
+        },
+        handler: (owner, _args, _env) => {
+          return owner
+        },
+      },
     ],
   },
-  'java.lang.Byte': {
-    name: 'java.lang.Byte',
+  'java.lang.Byte': buildWrapper('java.lang.Byte'),
+  'java.lang.Short': buildWrapper('java.lang.Short'),
+  'java.lang.Character': buildWrapper('java.lang.Character'),
+  'java.lang.Integer': buildWrapper('java.lang.Integer'),
+  'java.lang.Long': buildWrapper('java.lang.Long'),
+  'java.lang.Float': buildWrapper('java.lang.Float'),
+  'java.lang.Double': buildWrapper('java.lang.Double'),
+  'java.lang.Boolean': buildWrapper('java.lang.Boolean'),
+}
+
+function buildWrapper(className: JavaWrapperObject['class']): ClassMetaData {
+  return {
+    name: className,
     superClass: 'java.lang.Object',
     interfaces: [],
     fields: [],
@@ -87,122 +101,11 @@ export const classMetaData: Record<string, ClassMetaData> = {
           params: [{ kind: 'class', name: 'java.lang.Object' }],
           ret: { kind: 'primitive', prim: 'boolean' },
         },
-        handler: buildEqualsHandler('java.lang.Byte'),
+        handler: buildEqualsHandler(className),
       },
+      buildToStringHandler(className),
     ],
-  },
-  'java.lang.Short': {
-    name: 'java.lang.Short',
-    superClass: 'java.lang.Object',
-    interfaces: [],
-    fields: [],
-    methods: [
-      {
-        name: 'equals',
-        sig: {
-          params: [{ kind: 'class', name: 'java.lang.Object' }],
-          ret: { kind: 'primitive', prim: 'boolean' },
-        },
-        handler: buildEqualsHandler('java.lang.Short'),
-      },
-    ],
-  },
-  'java.lang.Character': {
-    name: 'java.lang.Character',
-    superClass: 'java.lang.Object',
-    interfaces: [],
-    fields: [],
-    methods: [
-      {
-        name: 'equals',
-        sig: {
-          params: [{ kind: 'class', name: 'java.lang.Object' }],
-          ret: { kind: 'primitive', prim: 'boolean' },
-        },
-        handler: buildEqualsHandler('java.lang.Character'),
-      },
-    ],
-  },
-  'java.lang.Integer': {
-    name: 'java.lang.Integer',
-    superClass: 'java.lang.Object',
-    interfaces: [],
-    fields: [],
-    methods: [
-      {
-        name: 'equals',
-        sig: {
-          params: [{ kind: 'class', name: 'java.lang.Object' }],
-          ret: { kind: 'primitive', prim: 'boolean' },
-        },
-        handler: buildEqualsHandler('java.lang.Integer'),
-      },
-    ],
-  },
-  'java.lang.Long': {
-    name: 'java.lang.Long',
-    superClass: 'java.lang.Object',
-    interfaces: [],
-    fields: [],
-    methods: [
-      {
-        name: 'equals',
-        sig: {
-          params: [{ kind: 'class', name: 'java.lang.Object' }],
-          ret: { kind: 'primitive', prim: 'boolean' },
-        },
-        handler: buildEqualsHandler('java.lang.Long'),
-      },
-    ],
-  },
-  'java.lang.Float': {
-    name: 'java.lang.Float',
-    superClass: 'java.lang.Object',
-    interfaces: [],
-    fields: [],
-    methods: [
-      {
-        name: 'equals',
-        sig: {
-          params: [{ kind: 'class', name: 'java.lang.Object' }],
-          ret: { kind: 'primitive', prim: 'boolean' },
-        },
-        handler: buildEqualsHandler('java.lang.Float'),
-      },
-    ],
-  },
-  'java.lang.Double': {
-    name: 'java.lang.Double',
-    superClass: 'java.lang.Object',
-    interfaces: [],
-    fields: [],
-    methods: [
-      {
-        name: 'equals',
-        sig: {
-          params: [{ kind: 'class', name: 'java.lang.Object' }],
-          ret: { kind: 'primitive', prim: 'boolean' },
-        },
-        handler: buildEqualsHandler('java.lang.Double'),
-      },
-    ],
-  },
-  'java.lang.Boolean': {
-    name: 'java.lang.Boolean',
-    superClass: 'java.lang.Object',
-    interfaces: [],
-    fields: [],
-    methods: [
-      {
-        name: 'equals',
-        sig: {
-          params: [{ kind: 'class', name: 'java.lang.Object' }],
-          ret: { kind: 'primitive', prim: 'boolean' },
-        },
-        handler: buildEqualsHandler('java.lang.Boolean'),
-      },
-    ],
-  },
+  }
 }
 
 function buildEqualsHandler(className: JavaWrapperObject['class']) {
@@ -225,5 +128,29 @@ function buildEqualsHandler(className: JavaWrapperObject['class']) {
       type: 'boolean',
       value: Object.is(obj.value.value, own.value.value),
     }
+  }
+}
+
+function buildToStringHandler(
+  className: JavaWrapperObject['class'],
+): MethodMetaData {
+  return {
+    name: 'toString',
+    sig: {
+      params: [],
+      ret: { kind: 'class', name: 'java.lang.String' },
+    },
+    handler: (owner, _args, env) => {
+      const ref = freshHeapRef(env)
+      const obj = env.heap[owner.ref]
+      if (obj.class == className) {
+        env.heap[ref] = {
+          class: 'java.lang.String',
+          value: javaValueToString(obj.value, env),
+        }
+        return { type: 'reference', ref }
+      }
+      throw 'bad: ' + JSON.stringify(owner) + JSON.stringify(obj)
+    },
   }
 }
