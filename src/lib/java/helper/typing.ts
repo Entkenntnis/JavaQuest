@@ -51,6 +51,17 @@ export const typeToWrapper: Record<Prim, JavaWrapperObject['class']> = {
   boolean: 'java.lang.Boolean',
 }
 
+const wrapperToPrim: Record<string, Prim> = {
+  'java.lang.Byte': 'byte',
+  'java.lang.Short': 'short',
+  'java.lang.Character': 'char',
+  'java.lang.Integer': 'int',
+  'java.lang.Long': 'long',
+  'java.lang.Float': 'float',
+  'java.lang.Double': 'double',
+  'java.lang.Boolean': 'boolean',
+}
+
 export function typeDataEquals(a: TypeData, b: TypeData) {
   if (!a || !b) return a == b
   const aHasKind = 'kind' in a
@@ -130,6 +141,12 @@ export function isAssignable(target: Type, source: Type): boolean {
   if (target.kind == 'primitive') {
     if (source.kind == 'primitive') {
       return isIdentityOrWideningCast(source.prim, target.prim)
+    }
+    if (source.kind == 'class') {
+      const unboxed = wrapperToPrim[source.name]
+      return (
+        unboxed != undefined && isIdentityOrWideningCast(unboxed, target.prim)
+      )
     }
     return false
   }
