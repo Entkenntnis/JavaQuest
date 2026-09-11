@@ -302,6 +302,9 @@ export type TypedNode<T extends JavaValue> =
   | (T extends JavaReferenceValue
       ? TypedLiteralStringNode | TypedStringConcatNodeL | TypedStringConcatNodeR
       : never)
+  | (T extends JavaNumericPrimitiveValue | JavaBooleanValue
+      ? TypedUnboxCastNode
+      : never)
   | (T extends JavaIntValue
       ? TypedUnaryPlusMinusNodeS | TypedComplementNodeS | TypedNumericArithNodeS
       : never)
@@ -385,6 +388,13 @@ export interface TypedBooleanCastNode {
   kind: 'cast'
   type: 'boolean'
   operand: TypedNode<JavaBooleanValue>
+}
+
+export interface TypedUnboxCastNode {
+  kind: 'cast'
+  type: (JavaNumericPrimitiveValue | JavaBooleanValue)['type']
+  isUnboxing: true
+  operand: TypedNode<JavaReferenceValue | JavaNullValue>
 }
 
 // ----- BINARY OPS
@@ -544,7 +554,11 @@ export type TypecheckResult =
   | [type: 'long', node: TypedNode<JavaLongValue>, { boxed?: true }?]
   | [type: 'float', node: TypedNode<JavaFloatValue>, { boxed?: true }?]
   | [type: 'double', node: TypedNode<JavaDoubleValue>, { boxed?: true }?]
-  | [type: 'reference', node: TypedNode<JavaReferenceValue>, { name: string }]
+  | [
+      type: 'reference',
+      node: TypedNode<JavaReferenceValue>,
+      ClassType | ArrayType,
+    ]
   | [type: 'null', node: TypedNode<JavaNullValue>]
 
 // ------- Environment Stuff -------
@@ -554,7 +568,10 @@ export interface JavaEnvironment {
   heap: Record<string, JavaHeapObject>
 }
 
-export type JavaHeapObject = JavaStringHeapObject | JavaObject
+export type JavaHeapObject =
+  | JavaStringHeapObject
+  | JavaObject
+  | JavaWrapperObject
 
 export interface JavaStringHeapObject {
   class: 'java.lang.String'
@@ -562,7 +579,65 @@ export interface JavaStringHeapObject {
   isInterned?: boolean
 }
 
+export interface JavaWrapperObject {
+  class:
+    | 'java.lang.Byte'
+    | 'java.lang.Short'
+    | 'java.lang.Character'
+    | 'java.lang.Integer'
+    | 'java.lang.Long'
+    | 'java.lang.Float'
+    | 'java.lang.Double'
+    | 'java.lang.Boolean'
+  value: JavaNumericPrimitiveValue | JavaBooleanValue
+  isWrapper: true
+}
+
 export interface JavaObject {
   class: 'java.lang.Object'
-  __hack_from_objectify_boxing?: JavaNumericPrimitiveValue | JavaBooleanValue
+}
+
+export interface PrimitiveType {
+  kind: 'primitive'
+  prim: (JavaNumericPrimitiveValue | JavaBooleanValue)['type']
+}
+
+export interface ClassType {
+  kind: 'class'
+  name: string
+}
+
+export interface VoidType {
+  kind: 'void'
+}
+
+export interface ArrayType {
+  kind: 'array'
+  elem: Type
+}
+
+export type Type = PrimitiveType | ClassType | ArrayType
+
+export interface ClassMetaData {
+  name: string
+  superClass?: string | null
+  interfaces: string[]
+
+  fields: FieldMetaData[]
+  methods: MethodMetaData[]
+}
+
+export interface FieldMetaData {
+  name: string
+  type: Type
+}
+
+export interface MethodMetaData {
+  name: string
+  sig: MethodSig
+}
+
+export interface MethodSig {
+  params: Type[]
+  ret: Type | VoidType
 }

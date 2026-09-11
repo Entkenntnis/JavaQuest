@@ -55,8 +55,8 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
         }
       }
       // auto unboxing, like in cross check harness
-      if (obj.class == 'java.lang.Object' && obj.__hack_from_objectify_boxing) {
-        return { value: obj.__hack_from_objectify_boxing }
+      if ('isWrapper' in obj) {
+        return { value: obj.value }
       }
     }
     if (value.type == 'reference') {

@@ -42,8 +42,9 @@ import type {
   TypedBoxedReferenceEqualsNode,
   JavaNumericPrimitiveValue,
   JavaBooleanValue,
+  TypedUnboxCastNode,
 } from '../state/types'
-import { foldConstants } from './evaluate'
+import { foldConstants, typeToWrapper } from './evaluate'
 
 export function typecheck(
   node: AstNode,
@@ -79,7 +80,7 @@ function typecheck_internal(
       return [
         'reference',
         { kind: 'string-literal', value: node.value },
-        { name: 'java.lang.String' },
+        { kind: 'class', name: 'java.lang.String' },
       ]
     }
     case 'unary': {
@@ -185,10 +186,24 @@ function typecheck_internal(
           `Inkompatible Typen: ${displayType(type, data)} kann nicht in boolean konvertiert werden`,
         )
       }
-      if (type == 'null' || type == 'boolean' || type == 'reference') {
+      if (type == 'null' || type == 'boolean') {
         throw new Error(
           `Inkompatible Typen: ${displayType(type, data)} kann nicht in ${node.type} konvertiert werden`,
         )
+      }
+      if (type == 'reference') {
+        if (data.kind == 'class' && data.name == 'java.lang.String') {
+          throw new Error(
+            `Inkompatible Typen: java.lang.String kann nicht in ${typeToWrapper[node.type]} konvertiert werden`,
+          )
+        }
+        const tn: TypedUnboxCastNode = {
+          kind: 'cast',
+          type: node.type,
+          isUnboxing: true,
+          operand: inner,
+        }
+        return [node.type, tn]
       }
       if (node.type == 'byte') {
         const tn: TypedNumericCastNode<JavaByteValue> = {
@@ -265,6 +280,17 @@ function typecheck_internal(
         if (isBoxL && isBoxR) {
           if (typeL != typeR) {
             throw new Error(`Inkompatible Typen: ${typeL} und ${typeR}`)
+          }
+        }
+        if (isBoxL != isBoxR) {
+          const refData = isBoxL ? dataR : dataL
+          if (
+            refData &&
+            'name' in refData &&
+            refData.name != 'java.lang.Object'
+          ) {
+            // eventuell in Zukunft an dieser Stelle eine noch ausführlichere Meldung
+            throw new Error(`Inkompatible Typen bei Vergleich`)
           }
         }
         const tn: TypedBoxedReferenceEqualsNode = {
@@ -394,6 +420,7 @@ function typecheck_internal(
 
       if (
         typeL == 'reference' &&
+        dataL.kind == 'class' &&
         dataL.name == 'java.lang.String' &&
         node.op == '+'
       ) {
@@ -403,11 +430,12 @@ function typecheck_internal(
           left: innerL,
           right: innerR,
         }
-        return ['reference', tn, { name: 'java.lang.String' }]
+        return ['reference', tn, { kind: 'class', name: 'java.lang.String' }]
       }
 
       if (
         typeR == 'reference' &&
+        dataR.kind == 'class' &&
         dataR.name == 'java.lang.String' &&
         node.op == '+'
       ) {
@@ -417,7 +445,7 @@ function typecheck_internal(
           left: innerL,
           right: innerR,
         }
-        return ['reference', tn, { name: 'java.lang.String' }]
+        return ['reference', tn, { kind: 'class', name: 'java.lang.String' }]
       }
 
       if (
@@ -541,7 +569,11 @@ function typecheck_internal(
         throw new Error(`Symbol nicht gefunden: Variable "${node.name}"`)
       }
       if (value.type == 'reference') {
-        return ['reference', node, { name: env.heap[value.ref].class }]
+        return [
+          'reference',
+          node,
+          { kind: 'class', name: env.heap[value.ref].class },
+        ]
       }
       if (value.type != 'null' && value.boxed) {
         return [value.type, node, { boxed: true }]
@@ -755,7 +787,7 @@ function typecheck_internal(
 
       // 7. General Types -> currently just fall back to Object
       tn.objectify = true
-      return ['reference', tn, { name: 'java.lang.Object' }]
+      return ['reference', tn, { kind: 'class', name: 'java.lang.Object' }]
     }
   }
 }

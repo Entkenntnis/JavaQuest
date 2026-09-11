@@ -15,6 +15,7 @@ import {
   type JavaReferenceValue,
   type JavaShortValue,
   type JavaValue,
+  type JavaWrapperObject,
   type TypedNode,
 } from '../state/types'
 
@@ -451,7 +452,19 @@ function evaluate_internal(
       }
     }
     case 'cast': {
-      if (node.type == 'boolean') {
+      if ('isUnboxing' in node) {
+        const inner = evaluate(node.operand, env)
+        if (inner.type == 'null') {
+          throw new Error('NullPointerException beim Entpacken von null')
+        }
+        const obj = env.heap[inner.ref]
+        if (obj.class == typeToWrapper[node.type]) {
+          return inner
+        }
+        throw new Error(
+          `ClassCastException: ${obj.class} kann nicht in ${typeToWrapper[node.type]} konvertiert werden`,
+        )
+      } else if (node.type == 'boolean') {
         return evaluate(node.operand, env)
       } else {
         const inner = evaluate(node.operand, env)
@@ -490,6 +503,20 @@ function evaluate_internal(
   }
 }
 
+export const typeToWrapper: Record<
+  (JavaNumericPrimitiveValue | JavaBooleanValue)['type'],
+  JavaWrapperObject['class']
+> = {
+  byte: 'java.lang.Byte',
+  short: 'java.lang.Short',
+  char: 'java.lang.Character',
+  int: 'java.lang.Integer',
+  long: 'java.lang.Long',
+  float: 'java.lang.Float',
+  double: 'java.lang.Double',
+  boolean: 'java.lang.Boolean',
+}
+
 function primitiveValueIntoHeap(
   raw: JavaNumericPrimitiveValue | JavaBooleanValue,
   env: JavaEnvironment,
@@ -522,8 +549,9 @@ function primitiveValueIntoHeap(
   }
 
   env.heap[ref] = {
-    class: 'java.lang.Object',
-    __hack_from_objectify_boxing: raw,
+    class: typeToWrapper[raw.type],
+    value: raw,
+    isWrapper: true,
   }
   return { type: 'reference', ref }
 }
@@ -720,8 +748,8 @@ function javaValueToString(val: JavaValue, env: JavaEnvironment): string {
       if (obj.class == 'java.lang.String') {
         return obj.value
       }
-      if (obj.__hack_from_objectify_boxing) {
-        return javaValueToString(obj.__hack_from_objectify_boxing, env)
+      if ('isWrapper' in obj) {
+        return javaValueToString(obj.value, env)
       }
       return '?OBJ?'
     case 'null':

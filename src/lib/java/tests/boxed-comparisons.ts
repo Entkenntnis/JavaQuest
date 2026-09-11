@@ -11,23 +11,6 @@ export const boxedComparisons: TestSuiteEntry[] = [
   // Feeding wrappers in through env.boxed makes the harness render one wrapper
   // declaration per local; every expectation below is whatever real Java produces.
   // ------------------------- boxed == boxed: identity & wrapper caches -------------------------
-  // Reading the same wrapper variable twice yields one object -- also for a non-cached value.
-  // {
-    // code: `a == a`,
-    // output: { type: 'boolean', value: true },
-    // env: {
-      // local: { a: { type: 'int', value: 1000, boxed: true } },
-      // heap: {},
-    // },
-  // },
-  // {
-    // code: `a == a`,
-    // output: { type: 'boolean', value: true },
-    // env: {
-      // local: { a: { type: 'double', value: 1.5, boxed: true } },
-      // heap: {},
-    // },
-  // },
   // Integer cache -128..127: equal cached values share one object ...
   {
     code: `(true ? 100 : null) == (true ? 100 : null)`,
@@ -125,14 +108,6 @@ export const boxedComparisons: TestSuiteEntry[] = [
     code: `(true ? 1000 : null) != (true ? 1000 : null)`,
     output: { type: 'boolean', value: true },
   },
-  // {
-    // code: `a != a`,
-    // output: { type: 'boolean', value: false },
-    // env: {
-      // local: { a: { type: 'int', value: 1000, boxed: true } },
-      // heap: {},
-    // },
-  // },
   // ------------------------- boxed vs primitive & literals: unboxing -------------------------
   // One boxed and one primitive operand make == a *numeric* equality (JLS 15.21.1): the
   // wrapper is unboxed, then binary numeric promotion applies across any width.
