@@ -19,7 +19,7 @@ export function Overview() {
           <FaIcon icon={faJava} className="text-[50px] text-pink-700" />
         </div>
         <h1 className="mb-6 text-3xl pl-4 mx-4 pt-8 border-b-2 border-pink-500 pb-3">
-          Java LogiQuest
+          JavaQuest "Alles Logisch"
         </h1>
         <p className="italic text-center mb-20">
           Entdecke die Logik der Programmierung
@@ -28,7 +28,7 @@ export function Overview() {
           return (
             <div key={i} className="mt-28 border-b border-gray-200 pb-6">
               <h2 className="px-4 text-2xl">
-                <FaIcon icon={faCircleDot} className="text-pink-400 mr-3" />
+                <FaIcon icon={faCircleDot} className="text-orange-500 mr-3" />
                 Kapitel {i + 1}: {chapter.title}
               </h2>
               <details className="ml-5 pl-4 mr-5 pr-2 mt-6 pb-2 pt-1 border-gray-400 border rounded-lg">

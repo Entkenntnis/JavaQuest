@@ -284,4 +284,28 @@ class Wochenende {
       },
     },
   },
+
+  100: {
+    id: 100,
+    title: 'Hauptstadt',
+    code: `
+class Hauptstadt
+    void vonDeutschlandIst(String stadt) {
+        if (___placeholder___) {
+            System.out.println("richtig!");
+        } else {
+            System.out.println("falsch...");
+        }
+    }
+}
+
+    `.trim(),
+    checker: {
+      reference: '',
+      data: [],
+      driver() {
+        return 'x'
+      },
+    },
+  },
 }
