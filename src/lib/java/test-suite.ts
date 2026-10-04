@@ -23,6 +23,11 @@ import { methodInvocation } from './tests/method-invocation.ts'
 import { equalsSubtle } from './tests/equals-subtle.ts'
 import { toStringCases } from './tests/to-string.ts'
 import { regressionAndErrors } from './tests/regression-and-errors.ts'
+import { assignmentBasic } from './tests/assignment-basic.ts'
+import { compoundAssignment } from './tests/compound-assignment.ts'
+import { bitwiseShiftAssignment } from './tests/bitwise-shift-assignment.ts'
+import { incrementDecrement } from './tests/increment-decrement.ts'
+import { assignmentBoxed } from './tests/assignment-boxed.ts'
 
 export const testSuite: TestSuiteEntry[] = [
   ...literals,
@@ -49,4 +54,9 @@ export const testSuite: TestSuiteEntry[] = [
   ...equalsSubtle,
   ...toStringCases,
   ...regressionAndErrors,
+  ...assignmentBasic,
+  ...compoundAssignment,
+  ...bitwiseShiftAssignment,
+  ...incrementDecrement,
+  ...assignmentBoxed,
 ]
