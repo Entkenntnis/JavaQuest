@@ -116,6 +116,12 @@ function evaluate_internal(
         }
       }
     }
+    case 'update': {
+      throw 'TODO UPDATE EVAL'
+    }
+    case 'assign': {
+      throw 'TODO ASSIGN EVAL'
+    }
     case 'binary': {
       switch (node.op) {
         case '&&': {

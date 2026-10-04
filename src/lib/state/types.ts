@@ -336,9 +336,13 @@ export type TypedNode<T extends JavaValue> =
   | TypedIdentifierNode
   | TypedConditionalOperatorNode
   | TypedMethodInvocationNode
+  | TypedAssignNode
   | (T extends JavaAllowedLiteralValue ? TypedLiteralNode<T> : never)
   | (T extends JavaNumericPrimitiveValue
-      ? TypedNumericCastNode<T> | TypedConditionalOperatorNumericCastNode
+      ?
+          | TypedNumericCastNode<T>
+          | TypedConditionalOperatorNumericCastNode
+          | UpdateExpression
       : never)
   | (T extends JavaLongFloatDoubleValue ? TypedUnaryPlusMinusNodeB<T> : never)
   | (T extends JavaReferenceValue
@@ -593,6 +597,13 @@ export interface TypedMethodInvocationNode {
   owner: TypedNode<JavaValue>
   args: TypedNode<JavaValue>[]
   resolvedSignature: MethodSig
+}
+
+export interface TypedAssignNode {
+  kind: 'assign'
+  identifer: string
+  op: AssignOp
+  value: TypedNode<JavaValue>
 }
 
 export type TypecheckResult =

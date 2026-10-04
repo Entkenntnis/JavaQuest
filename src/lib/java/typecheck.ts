@@ -675,6 +675,12 @@ function typecheck_internal(
       }
       return [value.type, node]
     }
+    case 'update': {
+      throw 'TODO UPDATE'
+    }
+    case 'assign': {
+      throw 'TODO ASSIGN'
+    }
     case 'ternary': {
       const [condT, condV] = typecheck_internal(node.condition, env)
       if (condT != 'boolean') {
