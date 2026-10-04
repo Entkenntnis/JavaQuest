@@ -1,8 +1,8 @@
 @precedence {
+  update @left
   unaryPlus @left
-  cast
-  // update @left
   negate @left
+  cast
   times @left
   plus @left
   shift @left
@@ -15,7 +15,7 @@
   or @left
   ternary @right
   // valuePair
-  // assign @right
+  assign @right
   // array @right
   // new @right
   // else @right
@@ -36,12 +36,12 @@ literal {
 }
 
 expression {
-  // AssignmentExpression |
+  AssignmentExpression |
   BinaryExpression |
   InstanceofExpression |
   // LambdaExpression |
   TernaryExpression |
-  // UpdateExpression |
+  UpdateExpression |
   baseExpression |
   UnaryExpression |
   CastExpression
@@ -49,6 +49,11 @@ expression {
 
 CastExpression {
   "(" type ")" !cast expression
+}
+
+AssignmentExpression {
+  // (Identifier | FieldAccess | ArrayAccess)
+  Identifier !assign (AssignOp | "=") expression
 }
 
 BinaryExpression {
@@ -75,6 +80,11 @@ TernaryExpression {
 UnaryExpression {
   op<Arith, "+" | "-"> !unaryPlus expression |
   (op<Logic, "!"> | op<Bit, "~">) !negate expression
+}
+
+UpdateExpression {
+  expression !update op<Update, "--" | "++"> |
+  op<Update, "--" | "++"> !update expression
 }
 
 
@@ -171,6 +181,10 @@ commaSep<expr> { (expr ("," expr)*)? }
 
   capitalIdentifier { $[A-Z] identifierChar* }
 
+  AssignOp {
+    ("+" | "-" | "*" | "/" | "&" | "|" | "^" | "%" | "<<" | ">>" ">"?) "="
+  }
+
   op[@name={name} "Op"]<name, body> { body }
 
   times[@name=ArithOp] { "*" | "/" | "%" }
@@ -182,6 +196,8 @@ commaSep<expr> { (expr ("," expr)*)? }
   blockCommentAfterStar { "/" | "*" blockCommentAfterStar | ![/*] blockCommentRest }
 
   @precedence { BlockComment, times }
+
+  "="[@name=AssignOp]
 
   "{" "}" "(" ")" "[" "]" "." "," ";" ":"
 }

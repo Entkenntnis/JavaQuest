@@ -279,6 +279,34 @@ export interface MethodInvocationAstNode {
   args: AstNode[]
 }
 
+export type AssignOp =
+  | '='
+  | '+='
+  | '-='
+  | '*='
+  | '/='
+  | '%='
+  | '&='
+  | '|='
+  | '^='
+  | '<<='
+  | '>>='
+  | '>>>='
+
+export interface AssignmentExpression {
+  kind: 'assign'
+  identifier: string
+  op: AssignOp
+  value: AstNode
+}
+
+export interface UpdateExpression {
+  kind: 'update'
+  identifier: string
+  op: '++' | '--'
+  prefix: boolean
+}
+
 export type AstNode =
   | LiteralAstNode
   | LiteralStringAstNode
@@ -288,6 +316,8 @@ export type AstNode =
   | IdentifierAstNode
   | ConditionalOperatorAstNode
   | MethodInvocationAstNode
+  | AssignmentExpression
+  | UpdateExpression
 
 // ----------------------------
 

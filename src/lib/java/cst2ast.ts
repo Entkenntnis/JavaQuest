@@ -130,6 +130,41 @@ export function cst2ast(node: CstNode): AstNode {
       left: cst2ast(node.children[2]),
       right: cst2ast(node.children[4]),
     }
+  } else if (node.name == 'AssignmentExpression') {
+    const [id, opNode, val] = node.children
+    const op = opNode.text
+    if (
+      op != '=' &&
+      op != '-=' &&
+      op != '+=' &&
+      op != '*=' &&
+      op != '/=' &&
+      op != '%=' &&
+      op != '&=' &&
+      op != '|=' &&
+      op != '^=' &&
+      op != '<<=' &&
+      op != '>>=' &&
+      op != '>>>='
+    ) {
+      throw conversionError(node, 'Nicht unterstützter Operator')
+    }
+    return {
+      kind: 'assign',
+      identifier: id.text,
+      op,
+      value: cst2ast(val),
+    }
+  } else if (node.name == 'UpdateExpression') {
+    const opNode = node.children.find((c) => c.text == '++' || c.text == '--')
+    const target = node.children.find((c) => c.name == 'Identifier')
+    if (!target) throw conversionError(node, 'Ungültiges Inkrementziel')
+    return {
+      kind: 'update',
+      identifier: target.text,
+      op: opNode?.text as '++' | '--',
+      prefix: node.children[0] == opNode,
+    }
   }
   throw 'Interner Systemfehler: nicht unterstützter Ausdruck, ' + node.name
 }
