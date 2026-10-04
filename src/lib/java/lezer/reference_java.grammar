@@ -1,8 +1,8 @@
 @precedence {
-  unaryPlus @left
-  cast
   update @left
+  unaryPlus @left
   negate @left
+  cast
   times @left
   plus @left
   shift @left

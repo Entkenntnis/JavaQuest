@@ -601,7 +601,7 @@ export interface TypedMethodInvocationNode {
 
 export interface TypedAssignNode {
   kind: 'assign'
-  identifer: string
+  identifier: string
   op: AssignOp
   value: TypedNode<JavaValue>
 }
