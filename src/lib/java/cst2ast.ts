@@ -113,7 +113,10 @@ export function cst2ast(node: CstNode): AstNode {
       operator != '>=' &&
       operator != '<='
     ) {
-      throw conversionError(node, 'Nicht unterstützter Operator')
+      throw conversionError(
+        node,
+        `Operator "${operator}" wird noch nicht unterstützt`,
+      )
     }
     return {
       kind: 'binary',
@@ -147,7 +150,10 @@ export function cst2ast(node: CstNode): AstNode {
       op != '>>=' &&
       op != '>>>='
     ) {
-      throw conversionError(node, 'Nicht unterstützter Operator')
+      throw conversionError(
+        node,
+        `Operator "${op}" wird noch nicht unterstützt`,
+      )
     }
     return {
       kind: 'assign',
@@ -406,13 +412,16 @@ function unescape(text: string): string {
 function parseCharacterLiteral(node: CstNode): JavaCharValue {
   const raw = node.text
   if (raw.length < 2 || raw[0] != "'" || raw[raw.length - 1] != "'") {
-    throw conversionError(node, 'Ungültiges Zeichenliteral')
+    throw conversionError(node, 'Nicht geschlossenes Zeichenliteral')
   }
   const decoded = unescape(raw.slice(1, -1))
+  if (decoded.length == 0) {
+    throw conversionError(node, 'Leeres Zeichenliteral')
+  }
   if (decoded.length != 1) {
     throw conversionError(
       node,
-      'Zeichenliteral muss genau ein Zeichen enthalten',
+      'Zeichenliteral enthält mehrere UTF-16-Codeeinheiten',
     )
   }
   return { type: 'char', value: decoded.charCodeAt(0) }
@@ -421,7 +430,7 @@ function parseCharacterLiteral(node: CstNode): JavaCharValue {
 function parseStringLiteral(node: CstNode): string {
   const raw = node.text
   if (raw.length < 2 || raw[0] != '"' || raw[raw.length - 1] != '"') {
-    throw conversionError(node, 'Ungültiges Zeichenkettenliteral')
+    throw conversionError(node, 'Nicht abgeschlossene Zeichenfolge')
   }
   return unescape(raw.slice(1, -1))
 }

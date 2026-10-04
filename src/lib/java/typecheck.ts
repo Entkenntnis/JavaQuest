@@ -51,6 +51,7 @@ import {
   findMethod,
   hasMethodNamed,
   isIdentityOrWideningCast,
+  javaTypeName,
   typeDataEquals,
   typeToWrapper,
 } from './helper/typing'
@@ -153,7 +154,7 @@ function typecheck_internal(
         }
       }
       throw new Error(
-        `Ungültiger Operandentyp ${displayType(type, data)} für unären Operator "${node.op}"`,
+        `Ungültiger Operandentyp ${javaTypeName(type, data)} für unären Operator "${node.op}"`,
       )
     }
     case 'invoke':
@@ -180,7 +181,7 @@ function typecheck_internal(
       if (!className) {
         // javac: "int kann nicht dereferenziert werden" / "<Null> kann nicht dereferenziert werden"
         throw new Error(
-          `${displayType(type, data)} kann nicht dereferenziert werden`,
+          `${javaTypeName(type, data)} kann nicht dereferenziert werden`,
         )
       }
 
@@ -213,18 +214,16 @@ function typecheck_internal(
         //        "Methode equals in Klasse String kann nicht auf die angegebenen Typen angewendet werden"
         if (hasMethodNamed(className, node.name)) {
           throw new Error(
-            `Methode ${node.name} in Klasse ${className} kann nicht auf die angegebenen Typen angewendet werden`,
+            `Methode ${node.name} in Klasse ${className} kann nicht auf die angegebenen Typen angewendet werden.`,
           )
         }
-        throw new Error(`Symbol nicht gefunden: Methode ${node.name}`)
+        throw new Error(`Symbol nicht gefunden: Methode ${node.name}()`)
       }
 
       const ret = methodMeta.sig.ret
 
       if (ret.kind == 'void') {
-        throw new Error(
-          'Inkompatible Typen: void kann nicht als Wert verwendet werden',
-        )
+        throw new Error('"void"-Typ hier nicht zulässig')
       }
 
       if (ret.kind == 'array') {
@@ -250,7 +249,7 @@ function typecheck_internal(
       if (data && 'boxed' in data && data.boxed) {
         if (!isIdentityOrWideningCast(type, node.type)) {
           throw new Error(
-            `Inkompatible Typen: ${displayType(type, data)} kann nicht in ${node.type} konvertiert werden`,
+            `Inkompatible Typen: ${javaTypeName(type, data)} kann nicht in ${node.type} konvertiert werden`,
           )
         }
       }
@@ -279,12 +278,12 @@ function typecheck_internal(
           return ['boolean', tn]
         }
         throw new Error(
-          `Inkompatible Typen: ${displayType(type, data)} kann nicht in boolean konvertiert werden`,
+          `Inkompatible Typen: ${javaTypeName(type, data)} kann nicht in boolean konvertiert werden`,
         )
       }
       if (type == 'null' || type == 'boolean') {
         throw new Error(
-          `Inkompatible Typen: ${displayType(type, data)} kann nicht in ${node.type} konvertiert werden`,
+          `Inkompatible Typen: ${javaTypeName(type, data)} kann nicht in ${node.type} konvertiert werden`,
         )
       }
       if (node.type == 'byte') {
@@ -361,7 +360,9 @@ function typecheck_internal(
         // type check!
         if (isBoxL && isBoxR) {
           if (typeL != typeR) {
-            throw new Error(`Inkompatible Typen: ${typeL} und ${typeR}`)
+            throw new Error(
+              `Inkompatible Typen: ${javaTypeName(typeL, dataL)} und ${javaTypeName(typeR, dataR)}`,
+            )
           }
         }
         if (isBoxL != isBoxR) {
@@ -371,8 +372,9 @@ function typecheck_internal(
             'name' in refData &&
             refData.name != 'java.lang.Object'
           ) {
-            // eventuell in Zukunft an dieser Stelle eine noch ausführlichere Meldung
-            throw new Error(`Inkompatible Typen bei Vergleich`)
+            throw new Error(
+              `Inkompatible Typen: ${javaTypeName(typeL, dataL)} und ${javaTypeName(typeR, dataR)}`,
+            )
           }
         }
         const tn: TypedBoxedReferenceEqualsNode = {
@@ -642,7 +644,7 @@ function typecheck_internal(
       // <--- insert open stuff here
 
       throw new Error(
-        `Ungültige Operandentypen für binären Operator "${node.op}": ${displayType(typeL, dataL)} und ${displayType(typeR, dataR)}`,
+        `Ungültige Operandentypen für binären Operator "${node.op}": ${javaTypeName(typeL, dataL)} und ${javaTypeName(typeR, dataR)}`,
       )
     }
     case 'identifier': {
@@ -669,7 +671,7 @@ function typecheck_internal(
         const result = typecheck_internal(node.value, env)
 
         if (!isThisAssignmentValid(slot, result)) {
-          throw new Error('inkompatible types')
+          throw new Error('Inkompatible Typen')
         }
 
         const tn: TypedAssignNode = {
@@ -684,9 +686,11 @@ function typecheck_internal(
       throw 'Interner Systemfehler: TODO ASSIGN TYPECHECK'
     }
     case 'ternary': {
-      const [condT, condV] = typecheck_internal(node.condition, env)
+      const [condT, condV, condData] = typecheck_internal(node.condition, env)
       if (condT != 'boolean') {
-        throw new Error('Inkompatible Typen: Bedingung muss boolean sein')
+        throw new Error(
+          `Inkompatible Typen: ${javaTypeName(condT, condData)} kann nicht in boolean konvertiert werden`,
+        )
       }
 
       const [typeL, innerL, dataL] = typecheck_internal(node.left, env)
@@ -925,25 +929,10 @@ function constructLiteralNodeResult(node: LiteralAstNode): TypecheckResult {
   }
 }
 
-// For error messages: show the Java class for reference types instead of the
-// internal "reference" tag.
-function displayType(type: string, data: unknown): string {
-  if (type == 'null') return '<Null>'
-  if (
-    type == 'reference' &&
-    data != null &&
-    typeof data == 'object' &&
-    'name' in data
-  ) {
-    return (data as { name: string }).name
-  }
-  return type
-}
-
 function lookupLocal(name: string, env: JavaEnvironment): JavaValue {
   const value = env.local[name]
   if (!value) {
-    throw new Error(`Symbol nicht gefunden: Variable "${name}"`)
+    throw new Error(`Symbol nicht gefunden: Variable ${name}`)
   }
   return value
 }
@@ -970,8 +959,8 @@ function resultIsSameTypeAsSlot(
 }
 
 function isThisAssignmentValid(
-  target: JavaValue,
-  result: TypecheckResult,
+  _target: JavaValue,
+  _result: TypecheckResult,
 ): boolean {
   return true
 }

@@ -85,7 +85,9 @@ function evaluate_internal(
             env,
           )
           if (inner.type == 'null') {
-            throw new Error('NullPointerException beim Entpacken von null')
+            throw new Error(
+              'java.lang.NullPointerException: Entpacken von null',
+            )
           }
           if (isSmallInt(inner)) {
             return toInt(inner)
@@ -99,7 +101,9 @@ function evaluate_internal(
             env,
           )
           if (inner.type == 'null') {
-            throw new Error('NullPointerException beim Entpacken von null')
+            throw new Error(
+              'java.lang.NullPointerException: Entpacken von null',
+            )
           }
           if (isSmallInt(inner)) {
             return toInt({ type: 'int', value: -inner.value })
@@ -124,7 +128,9 @@ function evaluate_internal(
             env,
           )
           if (inner.type == 'null') {
-            throw new Error('NullPointerException beim Entpacken von null')
+            throw new Error(
+              'java.lang.NullPointerException: Entpacken von null',
+            )
           }
           return convertTo(inner.type == 'long' ? 'long' : 'int', {
             type: 'long',
@@ -179,7 +185,9 @@ function evaluate_internal(
             env,
           )
           if (innerLeft.value === null || innerRight.value === null) {
-            throw new Error('NullPointerException beim Entpacken von null')
+            throw new Error(
+              'java.lang.NullPointerException: Entpacken von null',
+            )
           }
 
           const [promoType, left, right] = binaryNumericPromotion(
@@ -206,10 +214,10 @@ function evaluate_internal(
 
           if (isInteger) {
             if (node.op == '/' && BigInt(right.value) == 0n) {
-              throw new Error('Division durch Null')
+              throw new Error('java.lang.ArithmeticException: / durch Null')
             }
             if (node.op == '%' && BigInt(right.value) == 0n) {
-              throw new Error('Modulo durch Null')
+              throw new Error('java.lang.ArithmeticException: / durch Null')
             }
             return convertTo(left.type, {
               type: 'long',
@@ -247,7 +255,9 @@ function evaluate_internal(
           const innerLeft = evaluate(node.left, env)
           const innerRight = evaluate(node.right, env)
           if (innerLeft.value === null || innerRight.value === null) {
-            throw new Error('NullPointerException beim Entpacken von null')
+            throw new Error(
+              'java.lang.NullPointerException: Entpacken von null',
+            )
           }
 
           const [, left, right] = binaryNumericPromotion(innerLeft, innerRight)
@@ -356,7 +366,9 @@ function evaluate_internal(
           const innerLeft = evaluate(node.left, env)
           const innerRight = evaluate(node.right, env)
           if (innerLeft.value === null || innerRight.value === null) {
-            throw new Error('NullPointerException beim Entpacken von null')
+            throw new Error(
+              'java.lang.NullPointerException: Entpacken von null',
+            )
           }
           const [promoType, left, right] = binaryNumericPromotion(
             innerLeft,
@@ -395,14 +407,14 @@ function evaluate_internal(
       if ('isUnboxing' in node) {
         const inner = evaluate(node.operand, env)
         if (inner.type == 'null') {
-          throw new Error('NullPointerException beim Entpacken von null')
+          throw new Error('java.lang.NullPointerException: Entpacken von null')
         }
         const obj = env.heap[inner.ref]
         if (obj.class == typeToWrapper[node.type]) {
           return obj.value
         }
         throw new Error(
-          `ClassCastException: ${obj.class} kann nicht in ${typeToWrapper[node.type]} konvertiert werden`,
+          `java.lang.ClassCastException: Klasse ${obj.class} kann nicht in Klasse ${typeToWrapper[node.type]} umgewandelt werden`,
         )
       } else if (node.type == 'boolean') {
         return evaluate(node.operand, env)
@@ -438,8 +450,13 @@ function evaluate_internal(
           owner = primitiveValueIntoHeap(owner, env)
         }
       }
+      if (owner.type == 'null') {
+        throw new Error(
+          `java.lang.NullPointerException: Methode ${node.name} kann nicht aufgerufen werden, weil der Empfänger null ist`,
+        )
+      }
       if (owner.type != 'reference')
-        throw new Error('npe or internal error? no primitive expected here')
+        throw 'Interner Systemfehler: primitiver Empfänger unerwartet'
       const args = node.args.map((arg, i) =>
         convertArgument(
           evaluate(arg, env),
@@ -534,7 +551,7 @@ function isPrimitive(
 
 function unboxBoolean(val: JavaValue): boolean {
   if (val.type == 'null') {
-    throw new Error('NullPointerException beim Entpacken von null')
+    throw new Error('java.lang.NullPointerException: Entpacken von null')
   }
   if (!('value' in val) || typeof val.value !== 'boolean') {
     throw 'Interner Systemfehler: boolean erwartet'
@@ -560,7 +577,7 @@ function convertArgument(
     return primitiveValueIntoHeap(value, env)
   }
   if (value.type == 'null') {
-    throw new Error('NullPointerException beim Entpacken von null')
+    throw new Error('java.lang.NullPointerException: Entpacken von null')
   }
   const raw = value.type == 'reference' ? unboxWrapper(value, env) : value
   if (target.prim == 'boolean') {
@@ -578,7 +595,7 @@ function unboxWrapper(
   const obj = env.heap[value.ref]
   if (!('isWrapper' in obj)) {
     throw new Error(
-      `ClassCastException: ${obj.class} kann nicht entpackt werden`,
+      `java.lang.ClassCastException: ${obj.class} kann nicht in einen primitiven Typ entpackt werden`,
     )
   }
   return obj.value

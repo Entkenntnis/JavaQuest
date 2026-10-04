@@ -115,7 +115,8 @@ function buildEqualsHandler(className: JavaWrapperObject['class']) {
     env: JavaEnvironment,
   ): JavaValue => {
     const own = env.heap[owner.ref]
-    if (own.class != className) throw 'internal error'
+    if (own.class != className)
+      throw 'Interner Systemfehler: unerwartete Wrapper-Klasse'
     let other = args[0]
     if (other.type != 'reference') {
       return { type: 'boolean', value: false }
@@ -150,7 +151,7 @@ function buildToStringHandler(
         }
         return { type: 'reference', ref }
       }
-      throw 'bad: ' + JSON.stringify(owner) + JSON.stringify(obj)
+      throw 'Interner Systemfehler: ungültiger toString-Empfänger'
     },
   }
 }

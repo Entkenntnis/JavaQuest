@@ -51,6 +51,30 @@ export const typeToWrapper: Record<Prim, JavaWrapperObject['class']> = {
   boolean: 'java.lang.Boolean',
 }
 
+// For error messages: show the Java type a value would have, instead of the
+// internal tag. Reference types report their class, boxed primitives their
+// wrapper class, and null the compiler's <Null> pseudo-type.
+export function javaTypeName(type: string, data?: unknown): string {
+  if (type == 'null') return '<Null>'
+  if (
+    type == 'reference' &&
+    data != null &&
+    typeof data == 'object' &&
+    'name' in data
+  ) {
+    return (data as { name: string }).name
+  }
+  if (
+    data != null &&
+    typeof data == 'object' &&
+    'boxed' in data &&
+    (data as { boxed?: unknown }).boxed
+  ) {
+    return typeToWrapper[type as Prim] ?? type
+  }
+  return type
+}
+
 const wrapperToPrim: Record<string, Prim> = {
   'java.lang.Byte': 'byte',
   'java.lang.Short': 'short',
