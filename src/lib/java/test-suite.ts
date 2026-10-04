@@ -28,6 +28,7 @@ import { compoundAssignment } from './tests/compound-assignment.ts'
 import { bitwiseShiftAssignment } from './tests/bitwise-shift-assignment.ts'
 import { incrementDecrement } from './tests/increment-decrement.ts'
 import { assignmentBoxed } from './tests/assignment-boxed.ts'
+import { assignmentEdgeCases } from './tests/assignment-edge-cases.ts'
 
 export const testSuite: TestSuiteEntry[] = [
   ...literals,
@@ -59,4 +60,5 @@ export const testSuite: TestSuiteEntry[] = [
   ...bitwiseShiftAssignment,
   ...incrementDecrement,
   ...assignmentBoxed,
+  ...assignmentEdgeCases,
 ]

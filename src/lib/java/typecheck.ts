@@ -612,7 +612,8 @@ function typecheck_internal(
           node.op == '&' ||
           node.op == '^'
         ) {
-          if (typeL == 'long') {
+          const isShift = node.op == '<<' || node.op == '>>' || node.op == '>>>'
+          if (typeL == 'long' || (!isShift && typeR == 'long')) {
             const tn: TypedBitwiseNode = {
               kind: 'binary',
               op: node.op,
@@ -726,10 +727,6 @@ function typecheck_internal(
       }
 
       return resultIsSameTypeAsSlot(slot, tn, env)
-
-      // -> assignment operators
-
-      throw 'Interner Systemfehler: TODO ASSIGN TYPECHECK'
     }
     case 'ternary': {
       const [condT, condV, condData] = typecheck_internal(node.condition, env)

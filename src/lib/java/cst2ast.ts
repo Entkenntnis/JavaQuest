@@ -134,10 +134,11 @@ export function cst2ast(node: CstNode): AstNode {
       right: cst2ast(node.children[4]),
     }
   } else if (node.name == 'AssignmentExpression') {
-    const [id, opNode, val] = node.children
-    if (id.name != 'Identifier') {
+    const [LHS, opNode, val] = node.children
+    const identifier = resolveVarName(LHS)
+    if (!identifier) {
       throw conversionError(
-        id,
+        LHS,
         'Unerwarteter Ausdruck: linke Seite der Zuweisung muss eine Variable sein',
       )
     }
@@ -163,22 +164,32 @@ export function cst2ast(node: CstNode): AstNode {
     }
     return {
       kind: 'assign',
-      identifier: id.text,
+      identifier,
       op,
       value: cst2ast(val),
     }
   } else if (node.name == 'UpdateExpression') {
     const opNode = node.children.find((c) => c.text == '++' || c.text == '--')
-    const target = node.children.find((c) => c.name == 'Identifier')
-    if (!target) throw conversionError(node, 'Ungültiges Inkrementziel')
+    const target = node.children.find((c) => c != opNode)
+    const identifier = target && resolveVarName(target)
+    if (!identifier) {
+      throw conversionError(node, `Ungültiges Inkrementziel`)
+    }
     return {
       kind: 'update',
-      identifier: target.text,
+      identifier,
       op: opNode?.text as '++' | '--',
       prefix: node.children[0] == opNode,
     }
   }
   throw 'Interner Systemfehler: nicht unterstützter Ausdruck, ' + node.name
+}
+
+function resolveVarName(node: CstNode): string | undefined {
+  while (node.name == 'ParenthesizedExpression') {
+    node = node.children[1]
+  }
+  return node.name == 'Identifier' ? node.text : undefined
 }
 
 const radixPrefix = {
