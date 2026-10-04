@@ -135,6 +135,12 @@ export function cst2ast(node: CstNode): AstNode {
     }
   } else if (node.name == 'AssignmentExpression') {
     const [id, opNode, val] = node.children
+    if (id.name != 'Identifier') {
+      throw conversionError(
+        id,
+        'Unerwarteter Ausdruck: linke Seite der Zuweisung muss eine Variable sein',
+      )
+    }
     const op = opNode.text
     if (
       op != '=' &&

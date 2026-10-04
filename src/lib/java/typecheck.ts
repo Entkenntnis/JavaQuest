@@ -50,8 +50,11 @@ import { foldConstants } from './fold'
 import {
   findMethod,
   hasMethodNamed,
+  isAssignable,
   isIdentityOrWideningCast,
   javaTypeName,
+  resultToType,
+  toType,
   typeDataEquals,
   typeToWrapper,
 } from './helper/typing'
@@ -662,6 +665,9 @@ function typecheck_internal(
       return [value.type, node]
     }
     case 'update': {
+      // how much to do here? if it's numeric, than I can just kinda say it's ok,
+      // so this should be easier and more straight forward
+
       throw 'Interner Systemfehler: TODO UPDATE TYPECHECK'
     }
     case 'assign': {
@@ -670,9 +676,7 @@ function typecheck_internal(
       if (node.op == '=') {
         const result = typecheck_internal(node.value, env)
 
-        if (!isThisAssignmentValid(slot, result)) {
-          throw new Error('Inkompatible Typen')
-        }
+        checkValidityOfAssignment(slot, result, env)
 
         const tn: TypedAssignNode = {
           kind: 'assign',
@@ -682,6 +686,8 @@ function typecheck_internal(
         }
         return resultIsSameTypeAsSlot(slot, tn, env)
       }
+
+      // -> assignment operators
 
       throw 'Interner Systemfehler: TODO ASSIGN TYPECHECK'
     }
@@ -893,6 +899,7 @@ function typecheck_internal(
       }
 
       // 7. General Types -> currently just fall back to Object
+      // Later on, one would find the greatest common intersection class (LUB)
       tn.objectify = true
       return ['reference', tn, { kind: 'class', name: 'java.lang.Object' }]
     }
@@ -958,9 +965,66 @@ function resultIsSameTypeAsSlot(
   return [slot.type, node]
 }
 
-function isThisAssignmentValid(
-  _target: JavaValue,
-  _result: TypecheckResult,
+function canConstantNarrow(
+  target: JavaValue,
+  srcType: TypecheckResult[0],
+  node: TypedNode<JavaValue>,
 ): boolean {
-  return true
+  const dst = target.type
+  if (dst != 'byte' && dst != 'short' && dst != 'char') {
+    return false
+  }
+  if (
+    srcType != 'byte' &&
+    srcType != 'short' &&
+    srcType != 'char' &&
+    srcType != 'int'
+  ) {
+    return false
+  }
+  const folded = foldConstants(node)
+  if (folded.kind != 'literal') {
+    return false
+  }
+  const v = folded.value.value
+  if (typeof v != 'number') return false
+  if (dst == 'byte') return v >= -128 && v <= 127
+  if (dst == 'short') return v >= -32768 && v <= 32767
+  return v >= 0 && v <= 65535
+}
+
+function checkValidityOfAssignment(
+  target: JavaValue,
+  result: TypecheckResult,
+  env: JavaEnvironment,
+) {
+  if (result[0] == 'null') {
+    if (target.type == 'reference') return
+    if (target.type != 'null' && target.boxed) return
+    throw assignmentError(target, result, env)
+  }
+  const targetT = toType(target, env)
+  const sourceT = resultToType(result)
+  if (isAssignable(targetT, sourceT)) {
+    return
+  }
+  if (canConstantNarrow(target, result[0], result[1])) {
+    return
+  }
+  throw assignmentError(target, result, env)
+}
+
+function assignmentError(
+  target: JavaValue,
+  result: TypecheckResult,
+  env: JavaEnvironment,
+) {
+  const [srcType, , srcData] = result
+  const dstName =
+    target.type == 'reference'
+      ? env.heap[target.ref].class
+      : javaTypeName(target.type, target)
+  return new Error(
+    `Inkompatible Typen: ${javaTypeName(srcType, srcData)} kann nicht in ${dstName} konvertiert werden`,
+  )
 }

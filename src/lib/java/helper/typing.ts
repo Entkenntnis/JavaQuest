@@ -1,9 +1,11 @@
 import type {
+  JavaEnvironment,
   JavaValue,
   JavaWrapperObject,
   MethodMetaData,
   Prim,
   Type,
+  TypecheckResult,
   TypeData,
 } from '../../state/types'
 import { classMetaData } from '../classmeta'
@@ -224,4 +226,31 @@ export function hasMethodNamed(className: string, name: string): boolean {
     }
   }
   return false
+}
+
+export function toType(value: JavaValue, env: JavaEnvironment): Type {
+  if (value.type == 'reference') {
+    return { kind: 'class', name: env.heap[value.ref].class }
+  }
+  if (value.type == 'null') {
+    throw 'Interner Systemfehler: weiß nicht, kein Typ'
+  }
+  if (value.boxed) {
+    return { kind: 'class', name: typeToWrapper[value.type] }
+  }
+  return { kind: 'primitive', prim: value.type }
+}
+
+export function resultToType(result: TypecheckResult): Type {
+  const [type, , data] = result
+  if (type == 'reference') {
+    return data
+  }
+  if (type == 'null') {
+    throw 'Interner Systemfehler: weiß nicht, kein Typ'
+  }
+  if (data && 'boxed' in data && data.boxed) {
+    return { kind: 'class', name: typeToWrapper[type] }
+  }
+  return { kind: 'primitive', prim: type }
 }

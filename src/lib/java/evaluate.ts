@@ -144,10 +144,25 @@ function evaluate_internal(
     }
     case 'assign': {
       if (node.op == '=') {
-        let value = evaluate(node.value, env)
         const slot = env.local[node.identifier]
-        if (isPrimitive(slot) && slot.type != 'boolean') {
-          value = convertTo(slot.type, value as any) // TODO: types?
+        let value = evaluate(node.value, env)
+
+        const slotIsWrapper = 'boxed' in slot && !!slot.boxed
+        const valueIsWrapper = 'boxed' in value && !!value.boxed
+
+        if (
+          isPrimitive(slot) &&
+          isPrimitive(value) &&
+          !(slotIsWrapper && valueIsWrapper)
+        ) {
+          // don't rebox values, right? so this code should be skipped
+          // if value and slot are both wrappers
+          if (slot.type != 'boolean' && value.type != 'boolean') {
+            value = convertTo(slot.type, value)
+          }
+          if (slotIsWrapper) {
+            value.boxed = true
+          }
         }
         env.local[node.identifier] = value
         return value

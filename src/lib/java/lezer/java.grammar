@@ -53,7 +53,7 @@ CastExpression {
 
 AssignmentExpression {
   // (Identifier | FieldAccess | ArrayAccess)
-  Identifier !assign (AssignOp | "=") expression
+  expression !assign (AssignOp | "=") expression
 }
 
 BinaryExpression {
