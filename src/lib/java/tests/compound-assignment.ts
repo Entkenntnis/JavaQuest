@@ -111,6 +111,16 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: 'float', value: 3 },
     env: { local: { a: { type: 'float', value: 1.5 } }, heap: {} },
   },
+  {
+    code: `a += 1.5`,
+    output: { type: 'float', value: 3 },
+    env: { local: { a: { type: 'float', value: 1.5 } }, heap: {} },
+  },
+  {
+    code: `a += 1.5f`,
+    output: { type: 'double', value: 3 },
+    env: { local: { a: { type: 'double', value: 1.5 } }, heap: {} },
+  },
   // ------------------------- implicit narrowing of the LHS cast -------------------------
   {
     code: `a += 1.5`,

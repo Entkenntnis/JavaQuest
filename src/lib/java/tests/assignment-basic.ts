@@ -279,6 +279,16 @@ export const assignmentBasic: TestSuiteEntry[] = [
     env: { local: { a: { type: 'int', value: 0 } }, heap: {} },
   },
   {
+    code: `a = null`,
+    error: 'compile',
+    env: { local: { a: { type: 'int', value: 0 } }, heap: {} },
+  },
+  {
+    code: `a = null`,
+    error: 'compile',
+    env: { local: { a: { type: 'boolean', value: false } }, heap: {} },
+  },
+  {
     code: `a = (char)65`,
     output: { type: 'int', value: 65 },
     env: { local: { a: { type: 'int', value: 0 } }, heap: {} },
@@ -411,6 +421,16 @@ export const assignmentBasic: TestSuiteEntry[] = [
     code: `(a = 3) + a`,
     output: { type: 'int', value: 6 },
     env: { local: { a: { type: 'int', value: 0 } }, heap: {} },
+  },
+  {
+    code: `(a = 5) + 1`,
+    output: { type: 'long', value: '6' },
+    env: { local: { a: { type: 'long', value: '0' } }, heap: {} },
+  },
+  {
+    code: `(a = 5L) + 1`,
+    output: { type: 'long', value: '6' },
+    env: { local: { a: { type: 'long', value: '0' } }, heap: {} },
   },
   {
     code: `a = (b = 3) + b`,
@@ -751,6 +771,39 @@ export const assignmentBasic: TestSuiteEntry[] = [
     env: {
       local: {
         a: { type: 'int', value: 0, boxed: true },
+        b: { type: 'long', value: '5', boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a = b`,
+    output: { type: 'long', value: '5' },
+    env: {
+      local: {
+        a: { type: 'long', value: '0' },
+        b: { type: 'int', value: 5, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a = b`,
+    output: { type: 'double', value: 5 },
+    env: {
+      local: {
+        a: { type: 'double', value: 0 },
+        b: { type: 'int', value: 5, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `a = b`,
+    output: { type: 'double', value: 5 },
+    env: {
+      local: {
+        a: { type: 'double', value: 0 },
         b: { type: 'long', value: '5', boxed: true },
       },
       heap: {},

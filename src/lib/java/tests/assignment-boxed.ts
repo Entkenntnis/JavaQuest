@@ -356,6 +356,36 @@ export const assignmentBoxed: TestSuiteEntry[] = [
     output: { type: 'boolean', value: false },
     env: { local: { a: { type: 'int', value: 0, boxed: true } }, heap: {} },
   },
+  // ------------------------- einfache Zuweisung zwischen Wrapper-Variablen -------------------------
+  // `a = b` bei zwei Wrapper-Variablen kopiert die Referenz; es wird nicht neu geboxt. Darum
+  // sind beide Schreibweisen identisch -- auch fuer Werte ausserhalb des Cache.
+  {
+    code: `(a = b) == b`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        a: { type: 'int', value: 0, boxed: true },
+        b: { type: 'int', value: 1000, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `(a = b) == b`,
+    output: { type: 'boolean', value: true },
+    env: {
+      local: {
+        a: { type: 'int', value: 0, boxed: true },
+        b: { type: 'int', value: 100, boxed: true },
+      },
+      heap: {},
+    },
+  },
+  {
+    code: `(a = null) == null`,
+    output: { type: 'boolean', value: true },
+    env: { local: { a: { type: 'int', value: 7, boxed: true } }, heap: {} },
+  },
   // ------------------------- re-boxing through ++/-- -------------------------
   {
     code: `(a = 100) == (a++)`,
@@ -458,6 +488,16 @@ export const assignmentBoxed: TestSuiteEntry[] = [
     code: `a += 1`,
     output: { type: 'int', value: 101 },
     env: { local: { a: { type: 'int', value: 100, boxed: true } }, heap: {} },
+  },
+  {
+    code: `(a = 1000) + 1`,
+    output: { type: 'int', value: 1001 },
+    env: { local: { a: { type: 'int', value: 0, boxed: true } }, heap: {} },
+  },
+  {
+    code: `(a = 5L) + 1`,
+    output: { type: 'long', value: '6' },
+    env: { local: { a: { type: 'long', value: '0', boxed: true } }, heap: {} },
   },
   {
     code: `a = 100L`,
