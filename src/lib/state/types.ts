@@ -337,12 +337,10 @@ export type TypedNode<T extends JavaValue> =
   | TypedConditionalOperatorNode
   | TypedMethodInvocationNode
   | TypedAssignNode
+  | TypedUpdateNode // <-- we would be more strict, but this would make types later on unbearable difficult
   | (T extends JavaAllowedLiteralValue ? TypedLiteralNode<T> : never)
   | (T extends JavaNumericPrimitiveValue
-      ?
-          | TypedNumericCastNode<T>
-          | TypedConditionalOperatorNumericCastNode
-          | UpdateExpression
+      ? TypedNumericCastNode<T> | TypedConditionalOperatorNumericCastNode
       : never)
   | (T extends JavaLongFloatDoubleValue ? TypedUnaryPlusMinusNodeB<T> : never)
   | (T extends JavaReferenceValue
@@ -605,6 +603,8 @@ export interface TypedAssignNode {
   op: AssignOp
   value: TypedNode<JavaValue>
 }
+
+export type TypedUpdateNode = UpdateExpression
 
 export type TypecheckResult =
   | [type: 'boolean', node: TypedNode<JavaBooleanValue>, { boxed?: true }?]

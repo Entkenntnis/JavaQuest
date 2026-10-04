@@ -43,6 +43,8 @@ import type {
   TypedUnboxCastNode,
   Type,
   TypedMethodInvocationNode,
+  TypedAssignNode,
+  TypedUpdateNode,
 } from '../state/types'
 import { foldConstants } from './fold'
 import {
@@ -58,21 +60,6 @@ export function typecheck(
   env: JavaEnvironment,
 ): TypedNode<JavaValue> {
   return typecheck_internal(node, env)[1]
-}
-
-// For error messages: show the Java class for reference types instead of the
-// internal "reference" tag.
-function displayType(type: string, data: unknown): string {
-  if (type == 'null') return '<Null>'
-  if (
-    type == 'reference' &&
-    data != null &&
-    typeof data == 'object' &&
-    'name' in data
-  ) {
-    return (data as { name: string }).name
-  }
-  return type
 }
 
 function typecheck_internal(
@@ -659,10 +646,7 @@ function typecheck_internal(
       )
     }
     case 'identifier': {
-      const value = env.local[node.name]
-      if (!value) {
-        throw new Error(`Symbol nicht gefunden: Variable "${node.name}"`)
-      }
+      const value = lookupLocal(node.name, env)
       if (value.type == 'reference') {
         return [
           'reference',
@@ -676,10 +660,28 @@ function typecheck_internal(
       return [value.type, node]
     }
     case 'update': {
-      throw 'TODO UPDATE'
+      throw 'Interner Systemfehler: TODO UPDATE TYPECHECK'
     }
     case 'assign': {
-      throw 'TODO ASSIGN'
+      const slot = lookupLocal(node.identifier, env)
+
+      if (node.op == '=') {
+        const result = typecheck_internal(node.value, env)
+
+        if (!isThisAssignmentValid(slot, result)) {
+          throw new Error('inkompatible types')
+        }
+
+        const tn: TypedAssignNode = {
+          kind: 'assign',
+          identifier: node.identifier,
+          op: '=',
+          value: result[1],
+        }
+        return resultIsSameTypeAsSlot(slot, tn, env)
+      }
+
+      throw 'Interner Systemfehler: TODO ASSIGN TYPECHECK'
     }
     case 'ternary': {
       const [condT, condV] = typecheck_internal(node.condition, env)
@@ -921,4 +923,55 @@ function constructLiteralNodeResult(node: LiteralAstNode): TypecheckResult {
     case 'null':
       return ['null', typedLiteral(node.value)]
   }
+}
+
+// For error messages: show the Java class for reference types instead of the
+// internal "reference" tag.
+function displayType(type: string, data: unknown): string {
+  if (type == 'null') return '<Null>'
+  if (
+    type == 'reference' &&
+    data != null &&
+    typeof data == 'object' &&
+    'name' in data
+  ) {
+    return (data as { name: string }).name
+  }
+  return type
+}
+
+function lookupLocal(name: string, env: JavaEnvironment): JavaValue {
+  const value = env.local[name]
+  if (!value) {
+    throw new Error(`Symbol nicht gefunden: Variable "${name}"`)
+  }
+  return value
+}
+
+function resultIsSameTypeAsSlot(
+  slot: JavaValue,
+  node: TypedAssignNode | TypedUpdateNode,
+  env: JavaEnvironment,
+): TypecheckResult {
+  if (slot.type == 'reference') {
+    return [
+      'reference',
+      node,
+      { kind: 'class', name: env.heap[slot.ref].class },
+    ]
+  }
+  if (slot.type == 'null') {
+    return ['null', node]
+  }
+  if (slot.boxed) {
+    return [slot.type, node, { boxed: true }]
+  }
+  return [slot.type, node]
+}
+
+function isThisAssignmentValid(
+  target: JavaValue,
+  result: TypecheckResult,
+): boolean {
+  return true
 }

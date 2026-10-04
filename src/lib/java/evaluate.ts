@@ -31,6 +31,23 @@ export function evaluate<T extends JavaValue>(
   return evaluate_internal(node, env) as T
 }
 
+function loadValueEnsuringBox(name: string, env: JavaEnvironment): JavaValue {
+  const value = env.local[name]
+  if ('boxed' in value) {
+    if (typeof value.boxed !== 'string') {
+      // we need to create heap entry
+      const ref = boxCacheRef(value) ?? freshHeapRef(env)
+      env.heap[ref] = {
+        class: typeToWrapper[value.type],
+        value: { ...value, boxed: undefined },
+        isWrapper: true,
+      }
+      value.boxed = ref
+    }
+  }
+  return value
+}
+
 function evaluate_internal(
   node: TypedNode<JavaValue>,
   env: JavaEnvironment,
@@ -117,10 +134,19 @@ function evaluate_internal(
       }
     }
     case 'update': {
-      throw 'TODO UPDATE EVAL'
+      throw 'Interner Systemfehler: TODO UPDATE EVAL'
     }
     case 'assign': {
-      throw 'TODO ASSIGN EVAL'
+      if (node.op == '=') {
+        let value = evaluate(node.value, env)
+        const slot = env.local[node.identifier]
+        if (isPrimitive(slot) && slot.type != 'boolean') {
+          value = convertTo(slot.type, value as any) // TODO: types?
+        }
+        env.local[node.identifier] = value
+        return value
+      }
+      throw 'Interner Systemfehler: TODO ASSIGN EVAL'
     }
     case 'binary': {
       switch (node.op) {
@@ -399,7 +425,7 @@ function evaluate_internal(
           value.boxed = ref
         }
       }
-      return value
+      return loadValueEnsuringBox(node.name, env)
     }
     case 'invoke': {
       let owner = evaluate(node.owner, env)
