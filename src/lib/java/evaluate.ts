@@ -16,7 +16,7 @@ import {
   type Type,
   type TypedNode,
 } from '../state/types'
-import { findMethod, typeToWrapper } from './helper/typing'
+import { findMethod, isPrimitive, typeToWrapper } from './helper/typing'
 import {
   primitiveValueIntoHeap,
   boxCacheRef,
@@ -140,7 +140,26 @@ function evaluate_internal(
       }
     }
     case 'update': {
-      throw 'Interner Systemfehler: TODO UPDATE EVAL'
+      const old = loadValueEnsuringBox(
+        node.identifier,
+        env,
+      ) as JavaNumericPrimitiveValue
+
+      const one: JavaIntValue = { type: 'int', value: 1 }
+      const [promo, oldPromoted] = binaryNumericPromotion(old, one)
+      const delta = node.op == '++' ? 1 : -1
+      const raw: JavaNumericPrimitiveValue =
+        promo == 'int' || promo == 'long'
+          ? {
+              type: 'long',
+              value: (BigInt(oldPromoted.value) + BigInt(delta)).toString(),
+            }
+          : { type: 'double', value: oldPromoted.value + delta }
+      const next = convertTo(old.type, raw)
+      const stored =
+        'boxed' in old && old.boxed ? { ...next, boxed: true } : next
+      env.local[node.identifier] = stored
+      return node.prefix ? stored : old
     }
     case 'assign': {
       if (node.op == '=') {
@@ -546,21 +565,6 @@ function isSmallInt(
     val.type == 'short' ||
     val.type == 'char' ||
     val.type == 'int'
-  )
-}
-
-function isPrimitive(
-  val: JavaValue,
-): val is JavaNumericPrimitiveValue | JavaBooleanValue {
-  return (
-    val.type == 'byte' ||
-    val.type == 'short' ||
-    val.type == 'char' ||
-    val.type == 'int' ||
-    val.type == 'long' ||
-    val.type == 'float' ||
-    val.type == 'double' ||
-    val.type == 'boolean'
   )
 }
 

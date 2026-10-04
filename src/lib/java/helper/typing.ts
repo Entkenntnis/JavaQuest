@@ -1,5 +1,7 @@
 import type {
+  JavaBooleanValue,
   JavaEnvironment,
+  JavaNumericPrimitiveValue,
   JavaValue,
   JavaWrapperObject,
   MethodMetaData,
@@ -253,4 +255,19 @@ export function resultToType(result: TypecheckResult): Type {
     return { kind: 'class', name: typeToWrapper[type] }
   }
   return { kind: 'primitive', prim: type }
+}
+
+export function isPrimitive(
+  val: JavaValue,
+): val is JavaNumericPrimitiveValue | JavaBooleanValue {
+  return (
+    val.type == 'byte' ||
+    val.type == 'short' ||
+    val.type == 'char' ||
+    val.type == 'int' ||
+    val.type == 'long' ||
+    val.type == 'float' ||
+    val.type == 'double' ||
+    val.type == 'boolean'
+  )
 }

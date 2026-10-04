@@ -52,6 +52,7 @@ import {
   hasMethodNamed,
   isAssignable,
   isIdentityOrWideningCast,
+  isPrimitive,
   javaTypeName,
   resultToType,
   toType,
@@ -665,10 +666,13 @@ function typecheck_internal(
       return [value.type, node]
     }
     case 'update': {
-      // how much to do here? if it's numeric, than I can just kinda say it's ok,
-      // so this should be easier and more straight forward
-
-      throw 'Interner Systemfehler: TODO UPDATE TYPECHECK'
+      const slot = lookupLocal(node.identifier, env)
+      if (isPrimitive(slot) && slot.type != 'boolean') {
+        return resultIsSameTypeAsSlot(slot, node, env)
+      }
+      throw new Error(
+        `Ungültiger Operandentyp ${javaTypeName(slot.type, slot)} für "${node.op}"`,
+      )
     }
     case 'assign': {
       const slot = lookupLocal(node.identifier, env)
