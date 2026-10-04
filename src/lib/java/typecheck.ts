@@ -45,6 +45,7 @@ import type {
   TypedMethodInvocationNode,
   TypedAssignNode,
   TypedUpdateNode,
+  BinaryExpressionAstNode,
 } from '../state/types'
 import { foldConstants } from './fold'
 import {
@@ -690,6 +691,41 @@ function typecheck_internal(
         }
         return resultIsSameTypeAsSlot(slot, tn, env)
       }
+
+      const [opType, opNode, opData] = typecheck_internal(
+        {
+          kind: 'binary',
+          op: node.op.slice(0, -1) as BinaryExpressionAstNode['op'],
+          left: { kind: 'identifier', name: node.identifier },
+          right: node.value,
+        },
+        env,
+      )
+
+      const numeric =
+        opType != 'boolean' && opType != 'reference' && opType != 'null'
+      const valid =
+        slot.type == 'reference'
+          ? opType == 'reference'
+          : slot.type == 'boolean'
+            ? opType == 'boolean'
+            : numeric &&
+              (!('boxed' in slot) || !slot.boxed || opType == slot.type)
+
+      if (!valid) {
+        throw new Error(
+          `Ungültige Operandentypen für "${node.op}": ${javaTypeName(opType, opData)} und ${javaTypeName(slot.type, slot)}`,
+        )
+      }
+
+      const tn: TypedAssignNode = {
+        kind: 'assign',
+        identifier: node.identifier,
+        op: node.op,
+        value: opNode,
+      }
+
+      return resultIsSameTypeAsSlot(slot, tn, env)
 
       // -> assignment operators
 

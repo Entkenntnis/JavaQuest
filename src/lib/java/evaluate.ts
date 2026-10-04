@@ -162,31 +162,28 @@ function evaluate_internal(
       return node.prefix ? stored : old
     }
     case 'assign': {
-      if (node.op == '=') {
-        const slot = env.local[node.identifier]
-        let value = evaluate(node.value, env)
+      const slot = env.local[node.identifier]
+      let value = evaluate(node.value, env)
 
-        const slotIsWrapper = 'boxed' in slot && !!slot.boxed
-        const valueIsWrapper = 'boxed' in value && !!value.boxed
+      const slotIsWrapper = 'boxed' in slot && !!slot.boxed
+      const valueIsWrapper = 'boxed' in value && !!value.boxed
 
-        if (
-          isPrimitive(slot) &&
-          isPrimitive(value) &&
-          !(slotIsWrapper && valueIsWrapper)
-        ) {
-          // don't rebox values, right? so this code should be skipped
-          // if value and slot are both wrappers
-          if (slot.type != 'boolean' && value.type != 'boolean') {
-            value = convertTo(slot.type, value)
-          }
-          if (slotIsWrapper) {
-            value.boxed = true
-          }
+      if (
+        isPrimitive(slot) &&
+        isPrimitive(value) &&
+        !(slotIsWrapper && valueIsWrapper)
+      ) {
+        // don't rebox values, right? so this code should be skipped
+        // if value and slot are both wrappers
+        if (slot.type != 'boolean' && value.type != 'boolean') {
+          value = convertTo(slot.type, value)
         }
-        env.local[node.identifier] = value
-        return value
+        if (slotIsWrapper) {
+          value.boxed = true
+        }
       }
-      throw 'Interner Systemfehler: TODO ASSIGN EVAL'
+      env.local[node.identifier] = value
+      return value
     }
     case 'binary': {
       switch (node.op) {
