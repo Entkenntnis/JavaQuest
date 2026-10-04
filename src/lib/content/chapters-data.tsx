@@ -1,89 +1,156 @@
+import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons'
+import { FaIcon } from '../../components/helper/FaIcon'
 import type { ChapterData } from '../state/types'
-
+// Kontext: CS1 Lernumgebung für boolesche Ausdrücke
 export const chaptersData: ChapterData[] = [
   {
-    title: 'Zahlen vergleichen',
-    quests: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    title: 'Deine ersten Vergleiche',
+    quests: [1, 2, 3, 4, 5, 6],
     description: () => (
       <>
         <p>
-          Die grundlegenden Vergleichsoperatoren in JAVA sind <code>==</code>{' '}
-          (Gleichheit), <code>!=</code> (Ungleichheit) und <code>&lt;</code>,{' '}
-          <code>&gt;</code>, <code>&lt;=</code> und <code>&gt;=</code> für
-          Vergleiche.
+          Ein boolescher Ausdruck ist entweder wahr oder falsch. Einen solchen
+          Wahrheitswert erhältst du z.&#8239;B., wenn du zwei Zahlen
+          vergleichst. Bedingte Kontrollstrukturen nutzen diese Information, um
+          zu entscheiden, welche Anweisungen ausgeführt werden.
+        </p>
+        <p>
+          Die wichtigsten Vergleichsoperatoren in Java sind <code>==</code>
+          &nbsp;(Gleichheit), <code>!=</code>&nbsp;(Ungleichheit), sowie{' '}
+          <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code> und{' '}
+          <code>&gt;=</code> für kleiner/größer(-gleich).
+        </p>
+        <p>
+          Probiere die ersten Aufgaben aus! Erschließe aus dem Code, welcher
+          boolesche Ausdruck die <code>if</code>-Bedingung sinnvoll ergänzt.
         </p>
       </>
     ),
   },
   {
-    title: 'Hier kommt die Logik',
-    quests: [100],
+    title: 'Logik, yeah!',
+    quests: [7, 9], // TODO: Weitere Aufgaben, die alle Themen abdecken
     description: () => (
       <>
         <p>
-          Du kannst Operatoren mit <code>&amp;&amp;</code> (und) bzw.{' '}
-          <code>||</code> (oder) verknüpfen. Und <code>!</code> für NICHT.
-          Außerdem gibt es die Literale <code>true</code> und <code>false</code>{' '}
-          um auf direkte Bedingungen zuzugreifen. Und für besondere Anlässe gibt
-          es noch XOR <code>^</code>.
+          Einzelne Vergleiche lassen sich zu größeren Ausdrücken verbinden. Mit{' '}
+          <code>&amp;&amp;</code> (und) wird der Gesamtausdruck genau dann wahr,
+          wenn beide Seiten wahr sind. Mit <code>||</code> (oder) wird der
+          Gesamtausdruck genau dann wahr, wenn eine der Seiten (oder beide) wahr
+          sind.
+        </p>
+        <p>
+          Du kannst auch <code>true</code> und <code>false</code> direkt
+          verwenden. Einen Ausdruck kannst du mit <code>!</code> (nicht)
+          umkehren. Und für ExpertInnen: Mit <code>^</code> (xor) ist auch ein
+          entweder-oder möglich.
         </p>
       </>
     ),
   },
   {
-    title: 'Rechnen erlaubt',
-    quests: [100],
+    title: 'Taschenrechner erlaubt',
+    quests: [8], // TODO: mehr Aufgaben, vermeide problematische Gleitkomma-Vergleiche
     description: () => (
       <>
         <p>
-          Grundrechenarten sind über <code>+</code>, <code>-</code>,{' '}
-          <code>*</code>, <code>/</code> und <code>%</code> (modulo) verfügbar.
+          In booleschen Ausdrücken kannst du rechnen: <code>+</code>,{' '}
+          <code>-</code>, <code>*</code>, <code>/</code> stehen zur Verfügung,
+          außerdem kannst du mit dem Modulo-Operator <code>%</code> den Rest
+          einer Division ermitteln.
+        </p>
+        <p>
+          Falls du mehr brauchst: Die Java-Bibliothek enthält weitere nützliche
+          Funktionen wie <code>Math.sqrt(x)</code> (Quadratwurzel),{' '}
+          <code>Math.abs(x)</code> (Betrag) oder <code>Math.pow(b, e)</code>{' '}
+          (Potenz).
         </p>
       </>
     ),
   },
   {
-    title: 'Strings und ihre Methoden',
-    quests: [100],
+    title: 'Zeichenketten (Strings)',
+    quests: [100], // TODO: Aufgaben anlegen
     description: () => (
       <>
-        <p>Hi!</p>
+        <p>
+          Zeichenketten („Texte“) werden in Java als <code>String</code>{' '}
+          gespeichert. Diese haben als Objekte eine Besonderheit: Um zwei
+          Zeichenketten zu vergleichen, musst du die Methode{' '}
+          <code>str.equals(other)</code> aufrufen.
+        </p>
+        <p>
+          Außerdem gibt es weitere{' '}
+          <a
+            href="https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/String.html"
+            target="_blank"
+          >
+            hilfreiche Methoden{' '}
+            <FaIcon
+              icon={faExternalLinkAlt}
+              className="text-xs text-gray-500"
+            />
+          </a>
+          , wie <code>isEmpty()</code>, <code>length()</code>,{' '}
+          <code>contains(str)</code> oder <code>equalsIgnoreCase(other)</code>.
+        </p>
       </>
     ),
   },
   {
-    title: 'Umgang mit Felder (Arrays)',
+    title: 'Felder (Arrays)',
     quests: [100],
     description: () => (
       <>
-        <p>Hi!</p>
+        <p>
+          Im wesentlichen also Zugriff über Index <code>arr[i]</code> und die
+          Abfrage der Länge mit <code>arr.length</code>. Ansonsten weiß ich gar
+          nicht, was es da viel zu erzählen gibt. Arrays können von
+          verschiedenen Typen sein. Die Erzeugung von Arrays liegt nicht in
+          meinem Zuständigkeitsbereich.
+        </p>
       </>
     ),
   },
   {
-    title: 'OOP-sala',
+    title: 'OOP-ala',
     quests: [100],
     description: () => (
       <>
-        <p>Hi!</p>
+        <p>
+          Der wesentliche erste Punkt ist Umgang mit <code>null</code>, also
+          prüfen, ob null ist, das passiert häufiger. Daneben interessant könnte
+          der Zugriff auf lokale Variablen mit <code>this</code> sein. Auch der
+          Hinweis, dass natürlich innerhalb boolescher Ausdrücke auf alle
+          Methoden/Attribute der umliegenden Klasse zugegriffen werden kann.
+        </p>
       </>
     ),
   },
   {
-    title: 'Nützliche Tricks mit Datentypen',
+    title: 'Character, Epsilon und Co.',
     quests: [100],
     description: () => (
       <>
-        <p>Hi!</p>
+        <p>
+          Die Klasse Character bietet einige nützliche Funktionen, wie{' '}
+          <code>isDigit</code> oder so. Außerdem muss man für double-Vergleiche
+          das Muster <code>Math.abs(a-b) &lt;= eps</code> verwenden. Vielleicht
+          gibt es noch was nützliches? Arrays.equals könnte ich noch reinnehmen.
+        </p>
       </>
     ),
   },
   {
-    title: 'Noch ein paar Operatoren',
+    title: 'Nicht-binäre Operatoren',
     quests: [100],
     description: () => (
       <>
-        <p>Hi!</p>
+        <p>
+          Ternärer Operator <code>? :</code> für integriertes if-else. Außerdem
+          Inkrement/Dekrement um inline Daten zu verändern. Mit Hinweis, dass
+          man da aufpassen muss, dass man sich nicht ins Knie schießt.
+        </p>
       </>
     ),
   },
@@ -92,7 +159,10 @@ export const chaptersData: ChapterData[] = [
     quests: [100],
     description: () => (
       <>
-        <p>Hi!</p>
+        <p>
+          Kleiner Gruß, das man viel Spaß haben soll mit den vertiefenden
+          Aufgaben.
+        </p>
       </>
     ),
   },

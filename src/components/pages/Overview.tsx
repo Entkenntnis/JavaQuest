@@ -22,22 +22,28 @@ export function Overview() {
           JavaQuest "Alles Logisch"
         </h1>
         <p className="italic text-center mb-20">
-          Entdecke die Logik der Programmierung
+          Lerne boolesche Ausdrücke und ihre Anwendung kennen.
         </p>
         {chaptersData.map((chapter, i) => {
           return (
             <div key={i} className="mt-28 border-b border-gray-200 pb-6">
               <h2 className="px-4 text-2xl">
-                <FaIcon icon={faCircleDot} className="text-orange-500 mr-3" />
-                Kapitel {i + 1}: {chapter.title}
+                <FaIcon icon={faCircleDot} className="text-pink-500 mr-3" />
+                <span className="text-gray-500">Kapitel {i + 1}:</span>{' '}
+                {chapter.title}
               </h2>
-              <details className="ml-5 pl-4 mr-5 pr-2 mt-6 pb-2 pt-1 border-gray-400 border rounded-lg">
-                <summary className="select-none cursor-pointer">
-                  Beschreibung
-                </summary>
-                <div className="mt-4">{chapter.description()}</div>
-              </details>
-              <h3 className="px-6 mt-6 text-lg">Aufgaben</h3>
+              <div
+                className="
+                  ml-5 px-4 mr-5 mt-6 mb-4 pb-2 border-gray-400
+                  border rounded-lg [&>p]:mt-2
+                  [&_code]:text-orange-600
+                  [&_code]:whitespace-nowrap
+                  [&_a]:text-blue-500 [&_a]:hover:underline
+                "
+              >
+                {chapter.description()}
+              </div>
+              <h3 className="px-6 mt-6 text-lg hidden">Aufgaben</h3>
               {chapter.quests.map((q, j) => {
                 const quest = questsData[q]
                 return (
