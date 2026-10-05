@@ -9,9 +9,9 @@ import {
 // ==================== ARRAY IDENTITY / ALIASING ====================
 // Exercises the cross-check env renderer's aliasing support: locals that share one heap
 // entry are built once and aliased, so object identity and mutation-through-an-alias are
-// represented faithfully. Array references and index reads are implemented in the
-// interpreter; the write forms are still pending. Arrays are never outputs, so identity
-// is always observed via `==`/`!=`/reads. Each entry only carries the arrays it uses.
+// represented faithfully. Array references, index reads and the write forms are all
+// implemented in the interpreter. Arrays are never outputs, so identity is always
+// observed via `==`/`!=`/reads. Each entry only carries the arrays it uses.
 
 const shared = arrayObject('int', ints([1, 2, 3]))
 const arrA = arrayObject('int', ints([1, 2, 3]))

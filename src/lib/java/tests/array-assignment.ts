@@ -7,6 +7,7 @@ import {
   bytes,
   chars,
   doubles,
+  floats,
   ints,
   longs,
   shorts,
@@ -18,12 +19,11 @@ import {
 // back inside the same expression, which is valid because Java evaluates left to right.
 // NPE is triggered by nulling the array local and then indexing it in the same expression
 // (`(a = null)[1]`); note `(a = null) + a[1]` is *not* NPE, it is a `+` compile error.
-// Index reads are implemented; the *write* forms below (`a[i] = ...`, compound assignment
-// and `a[i]++`) are already parsed and typechecked (`cst2ast` and the typechecker accept an
-// `Identifier` or an index target), but the evaluator still rejects non-identifier targets,
-// so value entries here still fail on the Suite page and rely on cross-check for their
-// expected semantics. Entries whose store is rejected at compile time already agree in
-// phase and pass.
+// Index reads and the *write* forms below (`a[i] = ...`, compound assignment and `a[i]++`)
+// are implemented end to end: `cst2ast` and the typechecker accept an `Identifier` or an
+// index target, and the evaluator resolves the target location once and stores into it.
+// Every value entry here passes on the Suite page as well as against real Java; compile
+// errors are guarded behind `true || (...)` so typecheck still runs on the inner expression.
 
 const a = arrayObject('int', ints([1, 2, 3]))
 const b = arrayObject('int', ints([10, 20, 30, 40]))
@@ -34,6 +34,8 @@ const g = arrayObject('char', chars([97, 98, 99]))
 const h = arrayObject('byte', bytes([1, 2, 127]))
 const s = arrayObject('short', shorts([1, -2]))
 const a4 = arrayObject('int', ints([10, 20, 30, 40]))
+const fl = arrayObject('float', floats([1.5, 2.5]))
+const neg = arrayObject('int', ints([-8, 8, -1]))
 
 export const arrayAssignment: TestSuiteEntry[] = [
   // ------------------------- simple store & observable mutation -------------------------
@@ -215,4 +217,133 @@ export const arrayAssignment: TestSuiteEntry[] = [
     output: { type: 'int', value: 50 },
     env: arrayEnvWithLocals({ a4 }, { idx: { type: 'int', value: 1 } }),
   },
+  // ------------------------- compound operator coverage per component type -------------------------
+  { code: `a[2] %= 2`, output: { type: 'int', value: 1 }, env: arrayEnv({ a }) },
+  { code: `a[2] >>= 1`, output: { type: 'int', value: 1 }, env: arrayEnv({ a }) },
+  {
+    code: `neg[0] >>>= 1`,
+    output: { type: 'int', value: 2147483644 },
+    env: arrayEnv({ neg }),
+  },
+  { code: `neg[1] ^= 3`, output: { type: 'int', value: 11 }, env: arrayEnv({ neg }) },
+  { code: `neg[0] &= 15`, output: { type: 'int', value: 8 }, env: arrayEnv({ neg }) },
+  { code: `c[0] &= 255`, output: { type: 'long', value: '100' }, env: arrayEnv({ c }) },
+  { code: `c[0] |= 1`, output: { type: 'long', value: '101' }, env: arrayEnv({ c }) },
+  { code: `c[0] ^= 1`, output: { type: 'long', value: '101' }, env: arrayEnv({ c }) },
+  { code: `c[0] <<= 2`, output: { type: 'long', value: '400' }, env: arrayEnv({ c }) },
+  { code: `g[0] *= 2`, output: { type: 'char', value: 194 }, env: arrayEnv({ g }) },
+  { code: `s[0] -= 5`, output: { type: 'short', value: -4 }, env: arrayEnv({ s }) },
+  { code: `fl[0] *= 2`, output: { type: 'float', value: 3 }, env: arrayEnv({ fl }) },
+  { code: `f[1] %= 2`, output: { type: 'double', value: 0.5 }, env: arrayEnv({ f }) },
+  // ------------------------- update coverage per component type -------------------------
+  { code: `s[0]++`, output: { type: 'short', value: 1 }, env: arrayEnv({ s }) },
+  { code: `++s[1]`, output: { type: 'short', value: -1 }, env: arrayEnv({ s }) },
+  { code: `fl[0]++`, output: { type: 'float', value: 1.5 }, env: arrayEnv({ fl }) },
+  { code: `neg[2]--`, output: { type: 'int', value: -1 }, env: arrayEnv({ neg }) },
+  { code: `++h[2]`, output: { type: 'byte', value: -128 }, env: arrayEnv({ h }) },
+  // ------------------------- widening conversions on store -------------------------
+  { code: `a[0] = h[0]`, output: { type: 'int', value: 1 }, env: arrayEnv({ a, h }) },
+  { code: `a[1] = s[0]`, output: { type: 'int', value: 1 }, env: arrayEnv({ a, s }) },
+  { code: `c[1] = g[0]`, output: { type: 'long', value: '97' }, env: arrayEnv({ c, g }) },
+  {
+    code: `f[0] = fl[0]`,
+    output: { type: 'double', value: 1.5 },
+    env: arrayEnv({ f, fl }),
+  },
+  // ------------------------- constant narrowing on store -------------------------
+  { code: `g[0] = 66`, output: { type: 'char', value: 66 }, env: arrayEnv({ g }) },
+  { code: `g[1] = 65535`, output: { type: 'char', value: 65535 }, env: arrayEnv({ g }) },
+  { code: `h[0] = -128`, output: { type: 'byte', value: -128 }, env: arrayEnv({ h }) },
+  {
+    code: `s[1] = -32768`,
+    output: { type: 'short', value: -32768 },
+    env: arrayEnv({ s }),
+  },
+  {
+    code: `a[0] = -2147483648`,
+    output: { type: 'int', value: -2147483648 },
+    env: arrayEnv({ a }),
+  },
+  // ------------------------- chained assignment -------------------------
+  {
+    code: `a[0] = b[0] = 5`,
+    output: { type: 'int', value: 5 },
+    env: arrayEnv({ a, b }),
+  },
+  {
+    code: `a[0] += b[1] += 1`,
+    output: { type: 'int', value: 22 },
+    env: arrayEnv({ a, b }),
+  },
+  // ------------------------- boxed right-hand side is unboxed into the element -------------------------
+  {
+    code: `a[0] = bi`,
+    output: { type: 'int', value: 5 },
+    env: arrayEnvWithLocals({ a }, { bi: { type: 'int', value: 5, boxed: true } }),
+  },
+  {
+    code: `a[0] += bi`,
+    output: { type: 'int', value: 6 },
+    env: arrayEnvWithLocals({ a }, { bi: { type: 'int', value: 5, boxed: true } }),
+  },
+  // ------------------------- parenthesized target (parser unwraps) -------------------------
+  { code: `(a[0]) = 5`, output: { type: 'int', value: 5 }, env: arrayEnv({ a }) },
+  { code: `(a)[0] = 6`, output: { type: 'int', value: 6 }, env: arrayEnv({ a }) },
+  // ------------------------- target location and side effects -------------------------
+  {
+    code: `(a = b)[0] += 5`,
+    output: { type: 'int', value: 15 },
+    env: arrayEnv({ a, b }),
+  },
+  {
+    code: `a4[idx++]++`,
+    output: { type: 'int', value: 20 },
+    env: arrayEnvWithLocals({ a4 }, { idx: { type: 'int', value: 1 } }),
+  },
+  {
+    code: `++a4[idx--]`,
+    output: { type: 'int', value: 31 },
+    env: arrayEnvWithLocals({ a4 }, { idx: { type: 'int', value: 2 } }),
+  },
+  {
+    code: `a4[idx++] = a4[idx]`,
+    output: { type: 'int', value: 30 },
+    env: arrayEnvWithLocals({ a4 }, { idx: { type: 'int', value: 1 } }),
+  },
+  // ------------------------- the element is read before the right-hand side runs -------------------------
+  // JLS 15.26.2 saves the target value first, so a right-hand side that mutates the same
+  // element contributes the pre-mutation value to the operation.
+  {
+    code: `a[0] += (a[0] = 10)`,
+    output: { type: 'int', value: 11 },
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `a[0] *= a[0]++`,
+    output: { type: 'int', value: 1 },
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `a[a[0] = 2] += 5`,
+    output: { type: 'int', value: 8 },
+    env: arrayEnv({ a }),
+  },
+  // ------------------------- runtime errors on compound / update -------------------------
+  { code: `(a = null)[0] += 1`, error: 'runtime', env: arrayEnv({ a }) },
+  { code: `(a = null)[0]++`, error: 'runtime', env: arrayEnv({ a }) },
+  { code: `a[0] /= 0`, error: 'runtime', env: arrayEnv({ a }) },
+  { code: `a[0] %= 0`, error: 'runtime', env: arrayEnv({ a }) },
+  // ------------------------- compile errors on narrowing / operand types -------------------------
+  { code: `true || (a[0] = null)`, error: 'compile', env: arrayEnv({ a }) },
+  { code: `true || (a[0] = 1L)`, error: 'compile', env: arrayEnv({ a }) },
+  { code: `true || (a[0] = 1.0f)`, error: 'compile', env: arrayEnv({ a }) },
+  { code: `true || (h[0] = -129)`, error: 'compile', env: arrayEnv({ h }) },
+  { code: `true || (s[0] = 32768)`, error: 'compile', env: arrayEnv({ s }) },
+  { code: `true || (s[0] = -32769)`, error: 'compile', env: arrayEnv({ s }) },
+  { code: `true || (g[0] = -1)`, error: 'compile', env: arrayEnv({ g }) },
+  { code: `true || (g[0] = 65536)`, error: 'compile', env: arrayEnv({ g }) },
+  { code: `true || (d[0]++)`, error: 'compile', env: arrayEnv({ d }) },
+  { code: `true || (a[0] %= true)`, error: 'compile', env: arrayEnv({ a }) },
+  { code: `true || (d[0] %= true)`, error: 'compile', env: arrayEnv({ d }) },
+  { code: `true || (g[0] += true)`, error: 'compile', env: arrayEnv({ g }) },
 ]

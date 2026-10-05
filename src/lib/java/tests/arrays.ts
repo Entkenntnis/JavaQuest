@@ -13,9 +13,9 @@ import {
 } from './array-fixtures.ts'
 
 // ==================== ARRAY ACCESS ====================
-// The interpreter's grammar/evaluator do not understand `[...]` yet; these entries pin
-// the expected Java semantics through the cross-check harness, which builds the arrays
-// from `env.heap` and evaluates the expression as real Java. Every result is a primitive
+// The interpreter understands `[...]` reads and writes; these entries are evaluated both
+// by the interpreter and by the cross-check harness, which builds the arrays from
+// `env.heap` and evaluates the expression as real Java. Every result is a primitive
 // (arrays themselves are not valid outputs). Each entry only carries the arrays it uses.
 
 const a = arrayObject('int', ints([1, 2, 3]))
