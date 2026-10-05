@@ -46,6 +46,7 @@ import type {
   TypedAssignNode,
   TypedUpdateNode,
   BinaryExpressionAstNode,
+  TypedIndexNode,
 } from '../state/types'
 import { foldConstants } from './fold'
 import {
@@ -656,11 +657,11 @@ function typecheck_internal(
     case 'identifier': {
       const value = lookupLocal(node.name, env)
       if (value.type == 'reference') {
-        return [
-          'reference',
-          node,
-          { kind: 'class', name: env.heap[value.ref].class },
-        ]
+        const obj = env.heap[value.ref]
+        if ('isArray' in obj && obj.isArray) {
+          return ['reference', node, { kind: 'array', elem: obj.type }]
+        }
+        return ['reference', node, { kind: 'class', name: obj.class }]
       }
       if (value.type != 'null' && value.boxed) {
         return [value.type, node, { boxed: true }]
@@ -669,12 +670,46 @@ function typecheck_internal(
     }
     case 'update': {
       const slot = lookupLocal(node.identifier, env)
-      if (isPrimitive(slot) && slot.type != 'boolean') {
+      const slotType = toType(slot, env)
+      if (slotType.kind == 'primitive' && slotType.prim != 'boolean') {
         return resultIsSameTypeAsSlot(slot, node, env)
       }
       throw new Error(
         `Ungültiger Operandentyp ${javaTypeName(slot.type, slot)} für "${node.op}"`,
       )
+    }
+    case 'index': {
+      const [arrT, arrNode, arrData] = typecheck_internal(node.array, env)
+      if (
+        arrT != 'reference' ||
+        !arrData ||
+        !('kind' in arrData) ||
+        arrData.kind != 'array'
+      ) {
+        throw new Error(
+          `Array erforderlich, aber ${javaTypeName(arrT, arrData)} gefunden`,
+        )
+      }
+      const [idxT, idxNode, idxData] = typecheck_internal(node.index, env)
+      if (
+        idxT != 'byte' &&
+        idxT != 'short' &&
+        idxT != 'char' &&
+        idxT != 'int'
+      ) {
+        throw new Error(
+          `Inkompatible Typen: ${javaTypeName(idxT, idxData)} kann nicht in int konvertiert werden`,
+        )
+      }
+      const tn: TypedIndexNode = {
+        kind: 'index',
+        array: arrNode,
+        index: idxNode,
+      }
+
+      // TODO
+
+      throw 'Interner Systemfehler: TODO INDEX'
     }
     case 'assign': {
       const slot = lookupLocal(node.identifier, env)

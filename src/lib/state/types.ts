@@ -293,18 +293,24 @@ export type AssignOp =
   | '>>='
   | '>>>='
 
-export interface AssignmentExpression {
+export interface AssignmentExpressionAstNode {
   kind: 'assign'
   identifier: string
   op: AssignOp
   value: AstNode
 }
 
-export interface UpdateExpression {
+export interface UpdateExpressionAstNode {
   kind: 'update'
   identifier: string
   op: '++' | '--'
   prefix: boolean
+}
+
+export interface IndexExpressionAstNode {
+  kind: 'index'
+  array: AstNode
+  index: AstNode
 }
 
 export type AstNode =
@@ -316,8 +322,9 @@ export type AstNode =
   | IdentifierAstNode
   | ConditionalOperatorAstNode
   | MethodInvocationAstNode
-  | AssignmentExpression
-  | UpdateExpression
+  | AssignmentExpressionAstNode
+  | UpdateExpressionAstNode
+  | IndexExpressionAstNode
 
 // ----------------------------
 
@@ -338,6 +345,7 @@ export type TypedNode<T extends JavaValue> =
   | TypedMethodInvocationNode
   | TypedAssignNode
   | TypedUpdateNode // <-- we would be more strict, but this would make types later on unbearable difficult
+  | TypedIndexNode
   | (T extends JavaAllowedLiteralValue ? TypedLiteralNode<T> : never)
   | (T extends JavaNumericPrimitiveValue
       ? TypedNumericCastNode<T> | TypedConditionalOperatorNumericCastNode
@@ -604,7 +612,13 @@ export interface TypedAssignNode {
   value: TypedNode<JavaValue>
 }
 
-export type TypedUpdateNode = UpdateExpression
+export interface TypedIndexNode {
+  kind: 'index'
+  array: TypedNode<JavaReferenceValue>
+  index: TypedNode<JavaSmallIntegerValue>
+}
+
+export type TypedUpdateNode = UpdateExpressionAstNode
 
 export type TypecheckResult =
   | [type: 'boolean', node: TypedNode<JavaBooleanValue>, { boxed?: true }?]

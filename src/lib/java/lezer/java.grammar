@@ -111,7 +111,7 @@ baseExpression {
   ParenthesizedExpression |
   // ObjectCreationExpression |
   FieldAccess |
-  // ArrayAccess |
+  ArrayAccess |
   MethodInvocation
   // MethodReference |
   // ArrayCreationExpression
@@ -123,6 +123,10 @@ ParenthesizedExpression {
 
 FieldAccess {
   (baseExpression | kw<"super">) /*("." kw<"super">)?*/ "." (Identifier | kw<"this">)
+}
+
+ArrayAccess {
+  baseExpression "[" expression "]"
 }
 
 MethodName { Identifier }

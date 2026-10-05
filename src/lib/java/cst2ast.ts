@@ -181,6 +181,9 @@ export function cst2ast(node: CstNode): AstNode {
       op: opNode?.text as '++' | '--',
       prefix: node.children[0] == opNode,
     }
+  } else if (node.name == 'ArrayAccess') {
+    const [base, , index] = node.children
+    return { kind: 'index', array: cst2ast(base), index: cst2ast(index) }
   }
   throw 'Interner Systemfehler: nicht unterstützter Ausdruck, ' + node.name
 }
