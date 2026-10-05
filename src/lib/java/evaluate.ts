@@ -1,4 +1,5 @@
 import {
+  type JavaSmallIntegerValue,
   type JavaBooleanValue,
   type JavaByteValue,
   type JavaCharValue,
@@ -186,7 +187,26 @@ function evaluate_internal(
       return value
     }
     case 'index': {
-      throw 'Interner Systemfehler: EVAL TODO'
+      const array: JavaValue = evaluate(node.array, env)
+      const index = evaluate<JavaSmallIntegerValue>(node.index, env)
+
+      if (array.type == 'null') {
+        throw new Error(
+          `java.lang.NullPointerException: Array kann nicht geladen werden, da es null ist`,
+        )
+      }
+      const obj = env.heap[array.ref]
+      if (!('isArray' in obj)) {
+        throw 'Interner Systemfehler: Heap-Objekt nicht gefunden'
+      }
+      const i = Number(index.value)
+      if (i < 0 || i >= obj.elements.length) {
+        throw new Error(
+          `java.lang.ArrayIndexOutOfBoundsException: Index ${i} außerhalb des gültigen Bereichs für Länge ${obj.elements.length}`,
+        )
+      }
+
+      return obj.elements[i]
     }
     case 'binary': {
       switch (node.op) {

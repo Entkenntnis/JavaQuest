@@ -614,7 +614,7 @@ export interface TypedAssignNode {
 
 export interface TypedIndexNode {
   kind: 'index'
-  array: TypedNode<JavaReferenceValue>
+  array: TypedNode<JavaReferenceValue | JavaNullValue>
   index: TypedNode<JavaSmallIntegerValue>
 }
 

@@ -711,9 +711,7 @@ function typecheck_internal(
         index: idxNode,
       }
 
-      // TODO
-
-      throw 'Interner Systemfehler: TODO INDEX'
+      return resultFromType(arrData.elem, tn)
     }
     case 'assign': {
       const slot = lookupLocal(node.identifier, env)

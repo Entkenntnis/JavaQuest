@@ -237,7 +237,11 @@ export function hasMethodNamed(className: string, name: string): boolean {
 
 export function toType(value: JavaValue, env: JavaEnvironment): Type {
   if (value.type == 'reference') {
-    return { kind: 'class', name: env.heap[value.ref].class }
+    const obj = env.heap[value.ref]
+    if ('isArray' in obj) {
+      return { kind: 'array', elem: obj.type }
+    }
+    return { kind: 'class', name: obj.class }
   }
   if (value.type == 'null') {
     throw 'Interner Systemfehler: weiß nicht, kein Typ'
