@@ -694,7 +694,7 @@ function typecheck_internal(
     }
     case 'assign': {
       const lval = typecheck_internal(node.lval, env)
-      const [lvalT, lvalNode] = lval
+      const [lvalT, lvalNode, lvalData] = lval
 
       if (lvalNode.kind != 'identifier' && lvalNode.kind != 'index') {
         throw 'Interner Systemfehler: lval sollte gültig sein'
@@ -737,7 +737,7 @@ function typecheck_internal(
 
       if (!valid) {
         throw new Error(
-          `Ungültige Operandentypen für "${node.op}": ${printType(strDatToDisplType(opType, opData))} und ${printType(strDatToDisplType(opType, opData))}`,
+          `Ungültige Operandentypen für "${node.op}": ${printType(strDatToDisplType(lvalT, lvalData))} und ${printType(strDatToDisplType(opType, opData))}`,
         )
       }
 

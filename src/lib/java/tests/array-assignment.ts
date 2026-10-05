@@ -1,6 +1,7 @@
 import type { TestSuiteEntry } from '../../state/types'
 import {
   arrayEnv,
+  arrayEnvWithLocals,
   arrayObject,
   booleans,
   bytes,
@@ -18,10 +19,11 @@ import {
 // NPE is triggered by nulling the array local and then indexing it in the same expression
 // (`(a = null)[1]`); note `(a = null) + a[1]` is *not* NPE, it is a `+` compile error.
 // Index reads are implemented; the *write* forms below (`a[i] = ...`, compound assignment
-// and `a[i]++`) are not yet reachable in the interpreter (both `cst2ast` assignment and
-// update require an `Identifier` target), so value entries here still fail on the Suite
-// page and rely on cross-check for their expected semantics. Entries whose store is
-// rejected at compile time already agree in phase and pass.
+// and `a[i]++`) are already parsed and typechecked (`cst2ast` and the typechecker accept an
+// `Identifier` or an index target), but the evaluator still rejects non-identifier targets,
+// so value entries here still fail on the Suite page and rely on cross-check for their
+// expected semantics. Entries whose store is rejected at compile time already agree in
+// phase and pass.
 
 const a = arrayObject('int', ints([1, 2, 3]))
 const b = arrayObject('int', ints([10, 20, 30, 40]))
@@ -31,6 +33,7 @@ const f = arrayObject('double', doubles([1.5, 2.5]))
 const g = arrayObject('char', chars([97, 98, 99]))
 const h = arrayObject('byte', bytes([1, 2, 127]))
 const s = arrayObject('short', shorts([1, -2]))
+const a4 = arrayObject('int', ints([10, 20, 30, 40]))
 
 export const arrayAssignment: TestSuiteEntry[] = [
   // ------------------------- simple store & observable mutation -------------------------
@@ -181,4 +184,35 @@ export const arrayAssignment: TestSuiteEntry[] = [
   { code: `true || (h[0] = 200)`, error: 'compile', env: arrayEnv({ h }) },
   { code: `true || (g[0] = 70000)`, error: 'compile', env: arrayEnv({ g }) },
   { code: `true || (c[0] = 1.5)`, error: 'compile', env: arrayEnv({ c }) },
+  // ------------------------- single evaluation of the assignment target -------------------------
+  // Java evaluates the array reference and the index of a target exactly once, then reuses
+  // that location for the load (compound assignment) and the store. Rewriting `a[i] += x`
+  // into `a[i] = a[i] + x` evaluates `i` twice and therefore reads/writes the wrong element
+  // whenever the index has a side effect. Every case below pinpoints a different double-
+  // evaluation symptom; each expected value differs from its double-evaluated result:
+  //   a4 = [10, 20, 30, 40]
+  //   `a4[idx++] += 100`  with idx=1 -> index 1 once,           a4[1] = 20 + 100 = 120
+  //   `a4[idx--] *= 2`    with idx=2 -> index 2 once,           a4[2] = 30 * 2   = 60
+  //   `a4[++idx] += 5`    with idx=0 -> index 1 once,           a4[1] = 20 + 5   = 25
+  //   `a4[idx++] += a4[idx]` with idx=1 -> index 1 once, RHS reads a4[2]=30, 20+30 = 50
+  {
+    code: `a4[idx++] += 100`,
+    output: { type: 'int', value: 120 },
+    env: arrayEnvWithLocals({ a4 }, { idx: { type: 'int', value: 1 } }),
+  },
+  {
+    code: `a4[idx--] *= 2`,
+    output: { type: 'int', value: 60 },
+    env: arrayEnvWithLocals({ a4 }, { idx: { type: 'int', value: 2 } }),
+  },
+  {
+    code: `a4[++idx] += 5`,
+    output: { type: 'int', value: 25 },
+    env: arrayEnvWithLocals({ a4 }, { idx: { type: 'int', value: 0 } }),
+  },
+  {
+    code: `a4[idx++] += a4[idx]`,
+    output: { type: 'int', value: 50 },
+    env: arrayEnvWithLocals({ a4 }, { idx: { type: 'int', value: 1 } }),
+  },
 ]
