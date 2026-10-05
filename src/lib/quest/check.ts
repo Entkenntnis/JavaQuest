@@ -8,7 +8,7 @@ import { typecheck } from '../java/typecheck'
 import type { JavaEnvironment } from '../state/types'
 import { evaluate } from '../java/evaluate'
 import { foldConstants } from '../java/fold'
-import { javaTypeName } from '../java/helper/typing'
+import { printType, toType } from '../java/helper/typing'
 
 export function check(core: Core) {
   const quest = questsData[core.ws.quest.id]
@@ -40,7 +40,7 @@ export function check(core: Core) {
           const typeName =
             value.type == 'reference'
               ? env.heap[value.ref].class
-              : javaTypeName(value.type, value)
+              : printType(toType(value, env))
           throw `Inkompatible Typen: ${typeName} kann nicht in boolean konvertiert werden`
         }
         return value.value

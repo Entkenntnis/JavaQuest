@@ -703,6 +703,12 @@ export interface ArrayType {
 
 export type Type = PrimitiveType | ClassType | ArrayType
 
+export interface NullType {
+  kind: 'null'
+}
+
+export type DisplayType = Type | NullType
+
 export interface ClassMetaData {
   name: string
   superClass: string | null

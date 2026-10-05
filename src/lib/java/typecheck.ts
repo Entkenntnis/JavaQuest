@@ -54,12 +54,14 @@ import {
   hasMethodNamed,
   isAssignable,
   isIdentityOrWideningCast,
-  isPrimitive,
-  javaTypeName,
+  javaTypeName_bad_deprecated,
+  printType,
   resultToType,
+  toDisplayType,
   toType,
   typeDataEquals,
   typeToWrapper,
+  unboxType,
 } from './helper/typing'
 
 export function typecheck(
@@ -160,7 +162,7 @@ function typecheck_internal(
         }
       }
       throw new Error(
-        `Ungültiger Operandentyp ${javaTypeName(type, data)} für unären Operator "${node.op}"`,
+        `Ungültiger Operandentyp ${javaTypeName_bad_deprecated(type, data)} für unären Operator "${node.op}"`,
       )
     }
     case 'invoke':
@@ -187,7 +189,7 @@ function typecheck_internal(
       if (!className) {
         // javac: "int kann nicht dereferenziert werden" / "<Null> kann nicht dereferenziert werden"
         throw new Error(
-          `${javaTypeName(type, data)} kann nicht dereferenziert werden`,
+          `${javaTypeName_bad_deprecated(type, data)} kann nicht dereferenziert werden`,
         )
       }
 
@@ -255,7 +257,7 @@ function typecheck_internal(
       if (data && 'boxed' in data && data.boxed) {
         if (!isIdentityOrWideningCast(type, node.type)) {
           throw new Error(
-            `Inkompatible Typen: ${javaTypeName(type, data)} kann nicht in ${node.type} konvertiert werden`,
+            `Inkompatible Typen: ${javaTypeName_bad_deprecated(type, data)} kann nicht in ${node.type} konvertiert werden`,
           )
         }
       }
@@ -284,12 +286,12 @@ function typecheck_internal(
           return ['boolean', tn]
         }
         throw new Error(
-          `Inkompatible Typen: ${javaTypeName(type, data)} kann nicht in boolean konvertiert werden`,
+          `Inkompatible Typen: ${javaTypeName_bad_deprecated(type, data)} kann nicht in boolean konvertiert werden`,
         )
       }
       if (type == 'null' || type == 'boolean') {
         throw new Error(
-          `Inkompatible Typen: ${javaTypeName(type, data)} kann nicht in ${node.type} konvertiert werden`,
+          `Inkompatible Typen: ${javaTypeName_bad_deprecated(type, data)} kann nicht in ${node.type} konvertiert werden`,
         )
       }
       if (node.type == 'byte') {
@@ -367,7 +369,7 @@ function typecheck_internal(
         if (isBoxL && isBoxR) {
           if (typeL != typeR) {
             throw new Error(
-              `Inkompatible Typen: ${javaTypeName(typeL, dataL)} und ${javaTypeName(typeR, dataR)}`,
+              `Inkompatible Typen: ${javaTypeName_bad_deprecated(typeL, dataL)} und ${javaTypeName_bad_deprecated(typeR, dataR)}`,
             )
           }
         }
@@ -379,7 +381,7 @@ function typecheck_internal(
             refData.name != 'java.lang.Object'
           ) {
             throw new Error(
-              `Inkompatible Typen: ${javaTypeName(typeL, dataL)} und ${javaTypeName(typeR, dataR)}`,
+              `Inkompatible Typen: ${javaTypeName_bad_deprecated(typeL, dataL)} und ${javaTypeName_bad_deprecated(typeR, dataR)}`,
             )
           }
         }
@@ -651,7 +653,7 @@ function typecheck_internal(
       // <--- insert open stuff here
 
       throw new Error(
-        `Ungültige Operandentypen für binären Operator "${node.op}": ${javaTypeName(typeL, dataL)} und ${javaTypeName(typeR, dataR)}`,
+        `Ungültige Operandentypen für binären Operator "${node.op}": ${javaTypeName_bad_deprecated(typeL, dataL)} und ${javaTypeName_bad_deprecated(typeR, dataR)}`,
       )
     }
     case 'identifier': {
@@ -670,12 +672,14 @@ function typecheck_internal(
     }
     case 'update': {
       const slot = lookupLocal(node.identifier, env)
-      const slotType = toType(slot, env)
-      if (slotType.kind == 'primitive' && slotType.prim != 'boolean') {
-        return resultIsSameTypeAsSlot(slot, node, env)
+      if (slot.type != 'null') {
+        const slotType = unboxType(toType(slot, env))
+        if (slotType.kind == 'primitive' && slotType.prim != 'boolean') {
+          return resultIsSameTypeAsSlot(slot, node, env)
+        }
       }
       throw new Error(
-        `Ungültiger Operandentyp ${javaTypeName(slot.type, slot)} für "${node.op}"`,
+        `Ungültiger Operandentyp ${printType(toDisplayType(slot, env))} für "${node.op}"`,
       )
     }
     case 'index': {
@@ -687,7 +691,7 @@ function typecheck_internal(
         arrData.kind != 'array'
       ) {
         throw new Error(
-          `Array erforderlich, aber ${javaTypeName(arrT, arrData)} gefunden`,
+          `Array erforderlich, aber ${javaTypeName_bad_deprecated(arrT, arrData)} gefunden`,
         )
       }
       const [idxT, idxNode, idxData] = typecheck_internal(node.index, env)
@@ -698,7 +702,7 @@ function typecheck_internal(
         idxT != 'int'
       ) {
         throw new Error(
-          `Inkompatible Typen: ${javaTypeName(idxT, idxData)} kann nicht in int konvertiert werden`,
+          `Inkompatible Typen: ${javaTypeName_bad_deprecated(idxT, idxData)} kann nicht in int konvertiert werden`,
         )
       }
       const tn: TypedIndexNode = {
@@ -750,7 +754,7 @@ function typecheck_internal(
 
       if (!valid) {
         throw new Error(
-          `Ungültige Operandentypen für "${node.op}": ${javaTypeName(opType, opData)} und ${javaTypeName(slot.type, slot)}`,
+          `Ungültige Operandentypen für "${node.op}": ${javaTypeName_bad_deprecated(opType, opData)} und ${javaTypeName_bad_deprecated(slot.type, slot)}`,
         )
       }
 
@@ -767,7 +771,7 @@ function typecheck_internal(
       const [condT, condV, condData] = typecheck_internal(node.condition, env)
       if (condT != 'boolean') {
         throw new Error(
-          `Inkompatible Typen: ${javaTypeName(condT, condData)} kann nicht in boolean konvertiert werden`,
+          `Inkompatible Typen: ${javaTypeName_bad_deprecated(condT, condData)} kann nicht in boolean konvertiert werden`,
         )
       }
 
@@ -1095,8 +1099,8 @@ function assignmentError(
   const dstName =
     target.type == 'reference'
       ? env.heap[target.ref].class
-      : javaTypeName(target.type, target)
+      : javaTypeName_bad_deprecated(target.type, target)
   return new Error(
-    `Inkompatible Typen: ${javaTypeName(srcType, srcData)} kann nicht in ${dstName} konvertiert werden`,
+    `Inkompatible Typen: ${javaTypeName_bad_deprecated(srcType, srcData)} kann nicht in ${dstName} konvertiert werden`,
   )
 }

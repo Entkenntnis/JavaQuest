@@ -1,4 +1,7 @@
 import type {
+  ArrayType,
+  ClassType,
+  DisplayType,
   JavaBooleanValue,
   JavaEnvironment,
   JavaNumericPrimitiveValue,
@@ -58,7 +61,10 @@ export const typeToWrapper: Record<Prim, JavaWrapperObject['class']> = {
 // For error messages: show the Java type a value would have, instead of the
 // internal tag. Reference types report their class, boxed primitives their
 // wrapper class, and null the compiler's <Null> pseudo-type.
-export function javaTypeName(type: string, data?: unknown): string {
+export function javaTypeName_bad_deprecated(
+  type: string,
+  data?: unknown,
+): string {
   if (type == 'null') return '<Null>'
   if (
     type == 'reference' &&
@@ -77,6 +83,31 @@ export function javaTypeName(type: string, data?: unknown): string {
     return typeToWrapper[type as Prim] ?? type
   }
   return type
+}
+
+export function printType(type: DisplayType): string {
+  switch (type.kind) {
+    case 'null':
+      return '<Null>'
+    case 'class':
+      return type.name
+    case 'array':
+      return `${printType(type.elem)}[]`
+    case 'primitive':
+      return type.prim
+  }
+}
+
+export function strDatToDisplType(
+  type: TypecheckResult[0],
+  data?: TypecheckResult[2],
+): DisplayType {
+  if (type == 'reference') return data as ClassType | ArrayType
+  if (type == 'null') return { kind: 'null' }
+  if (data && 'boxed' in data && data.boxed) {
+    return { kind: 'class', name: typeToWrapper[type] }
+  }
+  return { kind: 'primitive', prim: type }
 }
 
 const wrapperToPrim: Record<string, Prim> = {
@@ -243,6 +274,16 @@ export function toType(value: JavaValue, env: JavaEnvironment): Type {
   return { kind: 'primitive', prim: value.type }
 }
 
+export function toDisplayType(
+  value: JavaValue,
+  env: JavaEnvironment,
+): DisplayType {
+  if (value.type == 'null') {
+    return { kind: 'null' }
+  }
+  return toType(value, env)
+}
+
 export function resultToType(result: TypecheckResult): Type {
   const [type, , data] = result
   if (type == 'reference') {
@@ -270,4 +311,14 @@ export function isPrimitive(
     val.type == 'double' ||
     val.type == 'boolean'
   )
+}
+
+export function unboxType(type: Type): Type {
+  if (type.kind == 'class') {
+    const prim = wrapperToPrim[type.name]
+    if (prim) {
+      return { kind: 'primitive', prim }
+    }
+  }
+  return type
 }
