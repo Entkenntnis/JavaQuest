@@ -31,13 +31,45 @@ if (entries.length == 0) {
 //   int a = 5;
 //   long xl = java.lang.Long.parseLong("123");
 // so that an identifier expression can reference them inside the harness.
+//
+// When several locals point at the same heap entry (one `ref`), the object is built
+// once under a temp name and the locals alias it. Without this, each local would get
+// its own `new ...` and object identity / mutation-through-an-alias would diverge
+// from the interpreter's sharing model.
 function renderDecls(entry) {
   const local = entry.env && entry.env.local
   const heap = (entry.env && entry.env.heap) || {}
   if (!local) return ''
   const lines = []
+
+  const refCounts = new Map()
+  for (const value of Object.values(local)) {
+    if (value.type == 'reference') {
+      refCounts.set(value.ref, (refCounts.get(value.ref) || 0) + 1)
+    }
+  }
+  const sharedRefs = new Set()
+  for (const [ref, count] of refCounts) {
+    if (count > 1) sharedRefs.add(ref)
+  }
+
+  const tempNames = new Map()
+  for (const value of Object.values(local)) {
+    if (value.type == 'reference' && sharedRefs.has(value.ref)) {
+      if (tempNames.has(value.ref)) continue
+      const temp = `__jqRef_${value.ref.replace(/[^A-Za-z0-9_]/g, '_')}`
+      lines.push(renderHeapValue(temp, value.ref, heap))
+      tempNames.set(value.ref, temp)
+    }
+  }
+
   for (const [name, value] of Object.entries(local)) {
-    lines.push(renderDecl(name, value, heap))
+    if (value.type == 'reference' && sharedRefs.has(value.ref)) {
+      const type = heapValueJavaType(value.ref, heap)
+      lines.push(`${type} ${name} = ${tempNames.get(value.ref)};`)
+    } else {
+      lines.push(renderDecl(name, value, heap))
+    }
   }
   return lines.join('\n')
 }
@@ -48,6 +80,79 @@ function renderDecls(entry) {
 function javaFloatingLiteral(v) {
   const s = String(v)
   return /[.eE]/.test(s) ? s : s + '.0'
+}
+
+// Renders one primitive element value as a Java expression usable inside an array
+// initializer, e.g. `(char) 98`, `200L`, `1.5f`.
+function renderPrimitiveElement(value) {
+  switch (value.type) {
+    case 'byte':
+      return `(byte) ${value.value}`
+    case 'short':
+      return `(short) ${value.value}`
+    case 'char':
+      return `(char) ${value.value}`
+    case 'int':
+      return value.value === -2147483648
+        ? 'java.lang.Integer.parseInt("-2147483648")'
+        : String(value.value)
+    case 'long':
+      return value.value === '-9223372036854775808'
+        ? 'java.lang.Long.parseLong("-9223372036854775808")'
+        : `${value.value}L`
+    case 'float':
+      return `${javaFloatingLiteral(value.value)}f`
+    case 'double':
+      return javaFloatingLiteral(value.value)
+    case 'boolean':
+      return value.value ? 'true' : 'false'
+    default:
+      throw new Error(`cannot render array element of type ${value.type}`)
+  }
+}
+
+// An env array heap object becomes a Java array declaration whose elements are built
+// inline: `int[] a = new int[] {1, 2, 3};`. Only primitive component types exist so far.
+function renderArrayDecl(name, obj) {
+  const prim =
+    obj.type && obj.type.kind == 'primitive' ? obj.type.prim : undefined
+  if (!prim) {
+    throw new Error(
+      `cannot render array env value ${name}: unsupported component type`,
+    )
+  }
+  const elements = (obj.elements || []).map(renderPrimitiveElement).join(', ')
+  return `${prim}[] ${name} = new ${prim}[] {${elements}};`
+}
+
+// Renders a heap entry as a Java declaration with the given variable name. This is
+// shared by plain locals and by the temp declaration for aliased heap entries.
+function renderHeapValue(name, ref, heap) {
+  const obj = heap[ref]
+  if (!obj) {
+    throw new Error(`cannot render env value ${name}: dangling reference ${ref}`)
+  }
+  if (obj.isArray) {
+    return renderArrayDecl(name, obj)
+  }
+  if (obj.class == 'java.lang.String') {
+    const literal = javaStringLiteral(obj.value)
+    return obj.isInterned
+      ? `String ${name} = ${literal};`
+      : `String ${name} = new String(${literal});`
+  }
+  throw new Error('comparison with reference not meaningful in test harness')
+}
+
+// The Java type to declare for a local aliasing a rendered heap entry.
+function heapValueJavaType(ref, heap) {
+  const obj = heap[ref]
+  if (!obj) {
+    throw new Error(`cannot render env value: dangling reference ${ref}`)
+  }
+  if (obj.isArray) return `${obj.type.prim}[]`
+  if (obj.class == 'java.lang.String') return 'String'
+  throw new Error('comparison with reference not meaningful in test harness')
 }
 
 function renderDecl(name, value, heap) {
@@ -98,23 +203,8 @@ function renderDecl(name, value, heap) {
       return `double ${name} = ${value.value};`
     case 'boolean':
       return `boolean ${name} = ${value.value ? 'true' : 'false'};`
-    case 'reference': {
-      const obj = heap[value.ref]
-      if (!obj) {
-        throw new Error(
-          `cannot render env value ${name}: dangling reference ${value.ref}`,
-        )
-      }
-      if (obj.class != 'java.lang.String') {
-        throw new Error(
-          'comparison with reference not meaningful in test harness',
-        )
-      }
-      const literal = javaStringLiteral(obj.value)
-      return obj.isInterned
-        ? `String ${name} = ${literal};`
-        : `String ${name} = new String(${literal});`
-    }
+    case 'reference':
+      return renderHeapValue(name, value.ref, heap)
     case 'null':
       return `Object ${name} = null;`
     default:

@@ -29,6 +29,9 @@ import { bitwiseShiftAssignment } from './tests/bitwise-shift-assignment.ts'
 import { incrementDecrement } from './tests/increment-decrement.ts'
 import { assignmentBoxed } from './tests/assignment-boxed.ts'
 import { assignmentEdgeCases } from './tests/assignment-edge-cases.ts'
+import { arrays } from './tests/arrays.ts'
+import { arrayAssignment } from './tests/array-assignment.ts'
+import { arrayIdentity } from './tests/array-identity.ts'
 
 export const testSuite: TestSuiteEntry[] = [
   ...literals,
@@ -61,4 +64,7 @@ export const testSuite: TestSuiteEntry[] = [
   ...incrementDecrement,
   ...assignmentBoxed,
   ...assignmentEdgeCases,
+  ...arrays,
+  ...arrayAssignment,
+  ...arrayIdentity,
 ]

@@ -635,6 +635,7 @@ export type JavaHeapObject =
   | JavaStringHeapObject
   | JavaObject
   | JavaWrapperObject
+  | JavaArrayHeapObject
 
 export interface JavaStringHeapObject {
   class: 'java.lang.String'
@@ -654,6 +655,13 @@ export interface JavaWrapperObject {
     | 'java.lang.Boolean'
   value: JavaNumericPrimitiveValue | JavaBooleanValue
   isWrapper: true
+}
+
+export interface JavaArrayHeapObject {
+  class: `${string}[]` // <-- necessary for type discrimination to work with existing system, NICE
+  isArray: true
+  elements: (JavaNumericPrimitiveValue | JavaBooleanValue)[]
+  type: PrimitiveType
 }
 
 export interface JavaObject {
