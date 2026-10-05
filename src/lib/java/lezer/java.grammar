@@ -35,11 +35,21 @@ literal {
   kw<"null">
 }
 
-expression {
-  AssignmentExpression |
+expression[@isGroup=Expression] {
+  // LambdaExpression |
+  assignmentExpression
+}
+
+assignmentExpression[@inline] {
+  conditionalExpression |
+  AssignmentExpression
+}
+
+// JLS ConditionalExpression and its higher-precedence levels share these
+// precedence-driven rules while retaining the existing CST nodes.
+conditionalExpression {
   BinaryExpression |
   InstanceofExpression |
-  // LambdaExpression |
   TernaryExpression |
   UpdateExpression |
   baseExpression |
@@ -52,8 +62,13 @@ CastExpression {
 }
 
 AssignmentExpression {
-  // (Identifier | FieldAccess | ArrayAccess)
-  expression !assign (AssignOp | "=") expression
+  leftHandSide !assign (AssignOp | "=") expression
+}
+
+// A JLS LeftHandSide denotes a variable. Allow any expression here so malformed
+// assignments retain their precedence and CST shape while editing.
+leftHandSide {
+  expression
 }
 
 BinaryExpression {
