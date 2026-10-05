@@ -12,6 +12,7 @@ import type {
   Type,
   TypecheckResult,
   TypeData,
+  TypedNode,
 } from '../../state/types'
 import { classMetaData } from '../classmeta'
 
@@ -296,6 +297,22 @@ export function resultToType(result: TypecheckResult): Type {
     return { kind: 'class', name: typeToWrapper[type] }
   }
   return { kind: 'primitive', prim: type }
+}
+
+export function resultFromType(
+  type: Type,
+  node: TypedNode<JavaValue>,
+): TypecheckResult {
+  if (type.kind == 'primitive') {
+    return [type.prim, node as any]
+  }
+  if (type.kind == 'array') {
+    return ['reference', node as any, type]
+  }
+  if (wrapperToPrim[type.name]) {
+    return [wrapperToPrim[type.name], node as any, { boxed: true }]
+  }
+  return ['reference', node as any, type]
 }
 
 export function isPrimitive(

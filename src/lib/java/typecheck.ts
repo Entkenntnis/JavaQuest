@@ -56,6 +56,7 @@ import {
   isIdentityOrWideningCast,
   javaTypeName_bad_deprecated,
   printType,
+  resultFromType,
   resultToType,
   toDisplayType,
   toType,
@@ -675,7 +676,7 @@ function typecheck_internal(
       if (slot.type != 'null') {
         const slotType = unboxType(toType(slot, env))
         if (slotType.kind == 'primitive' && slotType.prim != 'boolean') {
-          return resultIsSameTypeAsSlot(slot, node, env)
+          return resultFromType(slotType, node)
         }
       }
       throw new Error(
@@ -729,7 +730,7 @@ function typecheck_internal(
           op: '=',
           value: result[1],
         }
-        return resultIsSameTypeAsSlot(slot, tn, env)
+        return resultIsSameTypeAsSlot_bad_can_probably_replaced(slot, tn, env)
       }
 
       const [opType, opNode, opData] = typecheck_internal(
@@ -765,7 +766,7 @@ function typecheck_internal(
         value: opNode,
       }
 
-      return resultIsSameTypeAsSlot(slot, tn, env)
+      return resultIsSameTypeAsSlot_bad_can_probably_replaced(slot, tn, env)
     }
     case 'ternary': {
       const [condT, condV, condData] = typecheck_internal(node.condition, env)
@@ -1020,7 +1021,7 @@ function lookupLocal(name: string, env: JavaEnvironment): JavaValue {
   return value
 }
 
-function resultIsSameTypeAsSlot(
+function resultIsSameTypeAsSlot_bad_can_probably_replaced(
   slot: JavaValue,
   node: TypedAssignNode | TypedUpdateNode,
   env: JavaEnvironment,
