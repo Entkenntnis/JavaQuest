@@ -30,6 +30,7 @@ import { incrementDecrement } from './tests/increment-decrement.ts'
 import { assignmentBoxed } from './tests/assignment-boxed.ts'
 import { assignmentEdgeCases } from './tests/assignment-edge-cases.ts'
 import { arrays } from './tests/arrays.ts'
+import { arraysIndex } from './tests/array-index.ts'
 import { arrayAssignment } from './tests/array-assignment.ts'
 import { arrayIdentity } from './tests/array-identity.ts'
 
@@ -65,6 +66,7 @@ export const testSuite: TestSuiteEntry[] = [
   ...assignmentBoxed,
   ...assignmentEdgeCases,
   ...arrays,
+  ...arraysIndex,
   ...arrayAssignment,
   ...arrayIdentity,
 ]

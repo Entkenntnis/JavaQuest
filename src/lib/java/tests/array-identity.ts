@@ -1,12 +1,17 @@
 import type { TestSuiteEntry } from '../../state/types'
-import { arrayEnv, arrayObject, ints } from './array-fixtures.ts'
+import {
+  arrayEnv,
+  arrayEnvWithLocals,
+  arrayObject,
+  ints,
+} from './array-fixtures.ts'
 
 // ==================== ARRAY IDENTITY / ALIASING ====================
 // Exercises the cross-check env renderer's aliasing support: locals that share one heap
 // entry are built once and aliased, so object identity and mutation-through-an-alias are
-// represented faithfully. The interpreter does not implement `[...]`/array references
-// yet; cross-check is the baseline. Arrays are never outputs, so identity is always
-// observed via `==`/reads. Each entry only carries the arrays it uses.
+// represented faithfully. Array references and index reads are implemented in the
+// interpreter; the write forms are still pending. Arrays are never outputs, so identity
+// is always observed via `==`/`!=`/reads. Each entry only carries the arrays it uses.
 
 const shared = arrayObject('int', ints([1, 2, 3]))
 const arrA = arrayObject('int', ints([1, 2, 3]))
@@ -65,5 +70,36 @@ export const arrayIdentity: TestSuiteEntry[] = [
     code: `(p = a) == q`,
     output: { type: 'boolean', value: false },
     env: arrayEnv({ p: shared, q: { aliasOf: 'p' }, a: arrA }),
+  },
+  // ------------------------- array references vs null -------------------------
+  {
+    code: `a == null`,
+    output: { type: 'boolean', value: false },
+    env: arrayEnv({ a: arrA }),
+  },
+  {
+    code: `a != null`,
+    output: { type: 'boolean', value: true },
+    env: arrayEnv({ a: arrA }),
+  },
+  {
+    code: `n == null`,
+    output: { type: 'boolean', value: true },
+    env: arrayEnvWithLocals({}, { n: { type: 'null', value: null } }),
+  },
+  {
+    code: `n != null`,
+    output: { type: 'boolean', value: false },
+    env: arrayEnvWithLocals({}, { n: { type: 'null', value: null } }),
+  },
+  {
+    code: `n == a`,
+    output: { type: 'boolean', value: false },
+    env: arrayEnvWithLocals({ a: arrA }, { n: { type: 'null', value: null } }),
+  },
+  {
+    code: `n != a`,
+    output: { type: 'boolean', value: true },
+    env: arrayEnvWithLocals({ a: arrA }, { n: { type: 'null', value: null } }),
   },
 ]

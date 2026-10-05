@@ -11,6 +11,7 @@ import type {
   JavaLongValue,
   JavaReferenceValue,
   JavaShortValue,
+  JavaValue,
   Prim,
 } from '../../state/types'
 
@@ -75,4 +76,14 @@ export function arrayEnv(
     local[name] = { type: 'reference', ref: name }
   }
   return { local, heap }
+}
+
+// Same as `arrayEnv`, plus extra primitive/boxed locals (e.g. an index variable).
+// Kept separate so ordinary array tests do not carry unused declarations.
+export function arrayEnvWithLocals(
+  specs: Record<string, JavaArrayHeapObject | { aliasOf: string }>,
+  locals: Record<string, JavaValue>,
+): JavaEnvironment {
+  const env = arrayEnv(specs)
+  return { local: { ...env.local, ...locals }, heap: env.heap }
 }
