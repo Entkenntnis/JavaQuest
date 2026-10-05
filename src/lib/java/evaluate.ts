@@ -16,6 +16,9 @@ import {
   type JavaValue,
   type Type,
   type TypedNode,
+  type TypedIdentifierNode,
+  type TypedIndexNode,
+  type Location,
 } from '../state/types'
 import { findMethod, isPrimitive, typeToWrapper } from './helper/typing'
 import {
@@ -141,13 +144,8 @@ function evaluate_internal(
       }
     }
     case 'update': {
-      if (node.lval.kind != 'identifier') {
-        throw 'Interner Systemfehler: TODO: non-ident lval update eval'
-      }
-      const old = loadValueEnsuringBox(
-        node.lval.name,
-        env,
-      ) as JavaNumericPrimitiveValue
+      const loc = resolveLocation(node.lval, env)
+      const old = readLocation(loc, env, true) as JavaNumericPrimitiveValue
 
       const one: JavaIntValue = { type: 'int', value: 1 }
       const [promo, oldPromoted] = binaryNumericPromotion(old, one)
@@ -162,15 +160,27 @@ function evaluate_internal(
       const next = convertTo(old.type, raw)
       const stored =
         'boxed' in old && old.boxed ? { ...next, boxed: true } : next
-      env.local[node.lval.name] = stored
+      writeLocation(loc, stored, env)
       return node.prefix ? stored : old
     }
     case 'assign': {
-      if (node.lval.kind != 'identifier') {
-        throw 'Interner Systemfehler: TODO: non-ident lval assign eval'
+      const loc = resolveLocation(node.lval, env)
+      const slot = readLocation(loc, env, node.op != '=')
+
+      let value
+      if (node.op == '=') {
+        value = evaluate(node.value, env)
+      } else {
+        const bin = node.value
+        if (bin.kind != 'binary') {
+          throw 'Interner Systemfehler: sollte binary expression sein für Assign'
+        }
+        const rebound = {
+          ...bin,
+          left: { kind: 'literal', value: slot },
+        }
+        value = evaluate(rebound as any, env)
       }
-      const slot = env.local[node.lval.name]
-      let value = evaluate(node.value, env)
 
       const slotIsWrapper = 'boxed' in slot && !!slot.boxed
       const valueIsWrapper = 'boxed' in value && !!value.boxed
@@ -189,30 +199,11 @@ function evaluate_internal(
           value.boxed = true
         }
       }
-      env.local[node.lval.name] = value
+      writeLocation(loc, value, env)
       return value
     }
     case 'index': {
-      const array: JavaValue = evaluate(node.array, env)
-      const index = evaluate<JavaSmallIntegerValue>(node.index, env)
-
-      if (array.type == 'null') {
-        throw new Error(
-          `java.lang.NullPointerException: Array kann nicht geladen werden, da es null ist`,
-        )
-      }
-      const obj = env.heap[array.ref]
-      if (!('isArray' in obj)) {
-        throw 'Interner Systemfehler: Heap-Objekt nicht gefunden'
-      }
-      const i = Number(index.value)
-      if (i < 0 || i >= obj.elements.length) {
-        throw new Error(
-          `java.lang.ArrayIndexOutOfBoundsException: Index ${i} außerhalb des gültigen Bereichs für Länge ${obj.elements.length}`,
-        )
-      }
-
-      return obj.elements[i]
+      return readLocation(resolveLocation(node, env), env)
     }
     case 'binary': {
       switch (node.op) {
@@ -484,20 +475,7 @@ function evaluate_internal(
       }
     }
     case 'identifier': {
-      const value = env.local[node.name]
-      if ('boxed' in value) {
-        if (typeof value.boxed !== 'string') {
-          // we need to create heap entry
-          const ref = boxCacheRef(value) ?? freshHeapRef(env)
-          env.heap[ref] = {
-            class: typeToWrapper[value.type],
-            value: { ...value, boxed: undefined },
-            isWrapper: true,
-          }
-          value.boxed = ref
-        }
-      }
-      return loadValueEnsuringBox(node.name, env)
+      return readLocation(resolveLocation(node, env), env, true)
     }
     case 'invoke': {
       let owner = evaluate(node.owner, env)
@@ -752,4 +730,54 @@ function binaryNumericPromotion(
     return ['long', toLong(left), toLong(right)]
   }
   return ['int', toInt(left), toInt(right)]
+}
+
+function resolveLocation(
+  lval: TypedIdentifierNode | TypedIndexNode,
+  env: JavaEnvironment,
+): Location {
+  if (lval.kind == 'identifier') {
+    return { kind: 'local', name: lval.name }
+  }
+
+  const array = evaluate(lval.array, env)
+  const index = evaluate<JavaSmallIntegerValue>(lval.index, env)
+
+  if (array.type == 'null') {
+    throw new Error(
+      `java.lang.NullPointerException: Array kann nicht geladen werden, da es null ist`,
+    )
+  }
+  const obj = env.heap[array.ref]
+  if (!('isArray' in obj)) {
+    throw 'Interner Systemfehler: Heap-Objekt nicht gefunden'
+  }
+  const i = Number(index.value)
+  if (i < 0 || i >= obj.elements.length) {
+    throw new Error(
+      `java.lang.ArrayIndexOutOfBoundsException: Index ${i} außerhalb des gültigen Bereichs für Länge ${obj.elements.length}`,
+    )
+  }
+  return { kind: 'element', obj, index: i }
+}
+
+function readLocation(
+  loc: Location,
+  env: JavaEnvironment,
+  ensureBox = false,
+): JavaValue {
+  if (loc.kind == 'local') {
+    return ensureBox ? loadValueEnsuringBox(loc.name, env) : env.local[loc.name]
+  }
+  return loc.obj.elements[loc.index]
+}
+
+function writeLocation(loc: Location, value: JavaValue, env: JavaEnvironment) {
+  if (loc.kind == 'local') {
+    env.local[loc.name] = value
+  } else {
+    loc.obj.elements[loc.index] = value as
+      | JavaNumericPrimitiveValue
+      | JavaBooleanValue
+  }
 }

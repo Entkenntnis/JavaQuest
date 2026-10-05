@@ -742,3 +742,7 @@ export interface MethodSig {
   params: Type[]
   ret: Type | VoidType
 }
+
+export type Location =
+  | { kind: 'local'; name: string }
+  | { kind: 'element'; obj: JavaArrayHeapObject; index: number }
