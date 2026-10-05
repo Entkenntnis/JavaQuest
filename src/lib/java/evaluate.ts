@@ -185,6 +185,9 @@ function evaluate_internal(
       env.local[node.identifier] = value
       return value
     }
+    case 'index': {
+      throw 'Interner Systemfehler: EVAL TODO'
+    }
     case 'binary': {
       switch (node.op) {
         case '&&': {
