@@ -44,8 +44,9 @@ import type {
   Type,
   TypedMethodInvocationNode,
   TypedAssignNode,
-  BinaryExpressionAstNode,
   TypedIndexNode,
+  TypedUpdateNode,
+  BinaryExpressionAstNode,
 } from '../state/types'
 import { foldConstants } from './fold'
 import {
@@ -57,8 +58,6 @@ import {
   resultFromType,
   resultToType,
   strDatToDisplType,
-  toDisplayType,
-  toType,
   typeDataEquals,
   typeToWrapper,
   unboxType,
@@ -671,16 +670,87 @@ function typecheck_internal(
       return [value.type, node]
     }
     case 'update': {
-      const slot = lookupLocal(node.identifier, env)
-      if (slot.type != 'null') {
-        const slotType = unboxType(toType(slot, env))
-        if (slotType.kind == 'primitive' && slotType.prim != 'boolean') {
-          return resultFromType(slotType, node)
+      const lval = typecheck_internal(node.lval, env)
+      const [lvalT, lvalNode, lvalData] = lval
+      if (lvalT != 'null') {
+        const slotType = unboxType(resultToType(lval))
+        if (
+          slotType.kind == 'primitive' &&
+          slotType.prim != 'boolean' &&
+          (lvalNode.kind == 'index' || lvalNode.kind == 'identifier')
+        ) {
+          const tn: TypedUpdateNode = {
+            kind: 'update',
+            lval: lvalNode,
+            op: node.op,
+            prefix: node.prefix,
+          }
+          return resultFromType(slotType, tn)
         }
       }
       throw new Error(
-        `Ungültiger Operandentyp ${printType(toDisplayType(slot, env))} für "${node.op}"`,
+        `Ungültiger Operandentyp ${printType(strDatToDisplType(lvalT, lvalData))} für "${node.op}"`,
       )
+    }
+    case 'assign': {
+      const lval = typecheck_internal(node.lval, env)
+      const [lvalT, lvalNode] = lval
+
+      if (lvalNode.kind != 'identifier' && lvalNode.kind != 'index') {
+        throw 'Interner Systemfehler: lval sollte gültig sein'
+      }
+
+      if (node.op == '=') {
+        const result = typecheck_internal(node.value, env)
+        checkValidityOfAssignment(lval, result)
+
+        const tn: TypedAssignNode = {
+          kind: 'assign',
+          lval: lvalNode,
+          op: '=',
+          value: result[1],
+        }
+        return lvalT == 'null'
+          ? ['null', tn]
+          : resultFromType(resultToType(lval), tn)
+      }
+
+      const [opType, opNode, opData] = typecheck_internal(
+        {
+          kind: 'binary',
+          op: node.op.slice(0, -1) as BinaryExpressionAstNode['op'],
+          left: node.lval,
+          right: node.value,
+        },
+        env,
+      )
+
+      const lvalBoxed = !!lval[2] && 'boxed' in lval[2] && !!lval[2].boxed
+      const numeric =
+        opType != 'boolean' && opType != 'reference' && opType != 'null'
+      const valid =
+        lvalT == 'reference'
+          ? opType == 'reference'
+          : lvalT == 'boolean'
+            ? opType == 'boolean'
+            : numeric && (!lvalBoxed || opType == lvalT)
+
+      if (!valid) {
+        throw new Error(
+          `Ungültige Operandentypen für "${node.op}": ${printType(strDatToDisplType(opType, opData))} und ${printType(strDatToDisplType(opType, opData))}`,
+        )
+      }
+
+      const tn: TypedAssignNode = {
+        kind: 'assign',
+        lval: lvalNode,
+        op: node.op,
+        value: opNode,
+      }
+
+      return lvalT == 'null'
+        ? ['null', tn]
+        : resultFromType(resultToType(lval), tn)
     }
     case 'index': {
       const [arrT, arrNode, arrData] = typecheck_internal(node.array, env)
@@ -712,62 +782,6 @@ function typecheck_internal(
       }
 
       return resultFromType(arrData.elem, tn)
-    }
-    case 'assign': {
-      const slot = lookupLocal(node.identifier, env)
-
-      if (node.op == '=') {
-        const result = typecheck_internal(node.value, env)
-
-        checkValidityOfAssignment(slot, result, env)
-
-        const tn: TypedAssignNode = {
-          kind: 'assign',
-          identifier: node.identifier,
-          op: '=',
-          value: result[1],
-        }
-        return slot.type == 'null'
-          ? ['null', tn]
-          : resultFromType(toType(slot, env), tn)
-      }
-
-      const [opType, opNode, opData] = typecheck_internal(
-        {
-          kind: 'binary',
-          op: node.op.slice(0, -1) as BinaryExpressionAstNode['op'],
-          left: { kind: 'identifier', name: node.identifier },
-          right: node.value,
-        },
-        env,
-      )
-
-      const numeric =
-        opType != 'boolean' && opType != 'reference' && opType != 'null'
-      const valid =
-        slot.type == 'reference'
-          ? opType == 'reference'
-          : slot.type == 'boolean'
-            ? opType == 'boolean'
-            : numeric &&
-              (!('boxed' in slot) || !slot.boxed || opType == slot.type)
-
-      if (!valid) {
-        throw new Error(
-          `Ungültige Operandentypen für "${node.op}": ${printType(strDatToDisplType(opType, opData))} und ${printType(toDisplayType(slot, env))}`,
-        )
-      }
-
-      const tn: TypedAssignNode = {
-        kind: 'assign',
-        identifier: node.identifier,
-        op: node.op,
-        value: opNode,
-      }
-
-      return slot.type == 'null'
-        ? ['null', tn]
-        : resultFromType(toType(slot, env), tn)
     }
     case 'ternary': {
       const [condT, condV, condData] = typecheck_internal(node.condition, env)
@@ -1023,11 +1037,13 @@ function lookupLocal(name: string, env: JavaEnvironment): JavaValue {
 }
 
 function canConstantNarrow(
-  target: JavaValue,
+  targetType: Type,
   srcType: TypecheckResult[0],
   node: TypedNode<JavaValue>,
 ): boolean {
-  const dst = target.type
+  const unboxed = unboxType(targetType)
+  if (unboxed.kind != 'primitive') return false
+  const dst = unboxed.prim
   if (dst != 'byte' && dst != 'short' && dst != 'char') {
     return false
   }
@@ -1051,36 +1067,35 @@ function canConstantNarrow(
 }
 
 function checkValidityOfAssignment(
-  target: JavaValue,
+  target: TypecheckResult,
   result: TypecheckResult,
-  env: JavaEnvironment,
 ) {
+  const [targetT, , targetData] = target
   if (result[0] == 'null') {
-    if (target.type == 'reference') return
-    if (target.type != 'null' && target.boxed) return
-    throw assignmentError(target, result, env)
+    if (targetT == 'reference') return
+    if (
+      targetT != 'null' &&
+      targetData &&
+      'boxed' in targetData &&
+      targetData.boxed
+    )
+      return
+    throw assignmentError(target, result)
   }
-  const targetT = toType(target, env)
-  const sourceT = resultToType(result)
-  if (isAssignable(targetT, sourceT)) {
+  const targetType = resultToType(target)
+  const sourceType = resultToType(result)
+  if (isAssignable(targetType, sourceType)) {
     return
   }
-  if (canConstantNarrow(target, result[0], result[1])) {
+  if (canConstantNarrow(targetType, result[0], result[1])) {
     return
   }
-  throw assignmentError(target, result, env)
+  throw assignmentError(target, result)
 }
 
-function assignmentError(
-  target: JavaValue,
-  result: TypecheckResult,
-  env: JavaEnvironment,
-) {
+function assignmentError(target: TypecheckResult, result: TypecheckResult) {
   const [srcType, , srcData] = result
-  const dstName =
-    target.type == 'reference'
-      ? env.heap[target.ref].class
-      : printType(toDisplayType(target, env))
+  const dstName = printType(strDatToDisplType(target[0], target[2]))
   return new Error(
     `Inkompatible Typen: ${printType(strDatToDisplType(srcType, srcData))} kann nicht in ${dstName} konvertiert werden`,
   )

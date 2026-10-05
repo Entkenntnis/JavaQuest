@@ -141,8 +141,11 @@ function evaluate_internal(
       }
     }
     case 'update': {
+      if (node.lval.kind != 'identifier') {
+        throw 'Interner Systemfehler: TODO: non-ident lval update eval'
+      }
       const old = loadValueEnsuringBox(
-        node.identifier,
+        node.lval.name,
         env,
       ) as JavaNumericPrimitiveValue
 
@@ -159,11 +162,14 @@ function evaluate_internal(
       const next = convertTo(old.type, raw)
       const stored =
         'boxed' in old && old.boxed ? { ...next, boxed: true } : next
-      env.local[node.identifier] = stored
+      env.local[node.lval.name] = stored
       return node.prefix ? stored : old
     }
     case 'assign': {
-      const slot = env.local[node.identifier]
+      if (node.lval.kind != 'identifier') {
+        throw 'Interner Systemfehler: TODO: non-ident lval assign eval'
+      }
+      const slot = env.local[node.lval.name]
       let value = evaluate(node.value, env)
 
       const slotIsWrapper = 'boxed' in slot && !!slot.boxed
@@ -183,7 +189,7 @@ function evaluate_internal(
           value.boxed = true
         }
       }
-      env.local[node.identifier] = value
+      env.local[node.lval.name] = value
       return value
     }
     case 'index': {

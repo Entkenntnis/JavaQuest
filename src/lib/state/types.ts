@@ -295,14 +295,14 @@ export type AssignOp =
 
 export interface AssignmentExpressionAstNode {
   kind: 'assign'
-  identifier: string
+  lval: IdentifierAstNode | IndexExpressionAstNode
   op: AssignOp
   value: AstNode
 }
 
 export interface UpdateExpressionAstNode {
   kind: 'update'
-  identifier: string
+  lval: IdentifierAstNode | IndexExpressionAstNode
   op: '++' | '--'
   prefix: boolean
 }
@@ -607,7 +607,7 @@ export interface TypedMethodInvocationNode {
 
 export interface TypedAssignNode {
   kind: 'assign'
-  identifier: string
+  lval: TypedIndexNode | TypedIdentifierNode
   op: AssignOp
   value: TypedNode<JavaValue>
 }
@@ -618,7 +618,12 @@ export interface TypedIndexNode {
   index: TypedNode<JavaSmallIntegerValue>
 }
 
-export type TypedUpdateNode = UpdateExpressionAstNode
+export interface TypedUpdateNode {
+  kind: 'update'
+  lval: TypedIndexNode | TypedIdentifierNode
+  op: '++' | '--'
+  prefix: boolean
+}
 
 export type TypecheckResult =
   | [type: 'boolean', node: TypedNode<JavaBooleanValue>, { boxed?: true }?]
