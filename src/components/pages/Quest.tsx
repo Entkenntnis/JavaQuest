@@ -27,38 +27,10 @@ export function Quest() {
       </div>
       <div className="mx-auto max-w-[600px] pr-2">
         <InputBar />
+        {core.ws.ui.questResult && (
+          <div>{JSON.stringify(core.ws.ui.questResult)}</div>
+        )}
       </div>
     </div>
   )
-  // return (
-  //   <div className="flex flex-col h-full">
-  //     <div className="shrink-0">
-  //       <InputBar />
-  //     </div>
-  //     <div className="flex-1 flex min-h-0">
-  //       <div className="flex-1 bg-white min-w-0 relative">
-  //         <CodeSnippet />
-  //         <div className="absolute top-3.5 left-16 right-4 text-center hidden">
-  //           <div className="text-lg">{quest.title}</div>
-  //         </div>
-  //       </div>
-  //     </div>
-
-  //     <div
-  //       className={clsx(
-  //         'shrink-0 h-[150px] p-2',
-  //         core.ws.ui.questState === undefined && 'bg-gray-500',
-  //         core.ws.ui.questState === 'success' && 'bg-green-500',
-  //         core.ws.ui.questState === 'fail' && 'bg-red-500',
-  //       )}
-  //     >
-  //       <pre
-  //         className="w-full h-full bg-gray-200 rounded overflow-auto px-2"
-  //         id="quest-output"
-  //       >
-  //         {core.ws.ui.questOutput}
-  //       </pre>
-  //     </div>
-  //   </div>
-  // )
 }

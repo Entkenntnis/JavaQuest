@@ -17,12 +17,24 @@ interface Ui {
   testOnlyFail: boolean
 
   questInput: string
-  questOutput: string
-  questState?: 'success' | 'fail'
+  questResult?: QuestResult
 }
 
 interface Quest {
   id: number
+}
+
+export interface QuestResult {
+  kind: 'success' | 'fail' | 'error'
+  expression: string
+  total: number
+  passed: number
+  message?: string
+  failure?: {
+    args: string
+    expected: string
+    actual: string
+  }
 }
 
 export interface CoreRef {
@@ -41,8 +53,13 @@ export interface QuestData {
 export interface QuestChecker<T> {
   data: T[]
   reference: string
+  params?: string[]
   driver: (el: T, oracle: (env: JavaEnvironment) => boolean) => string
 }
+
+export type RunResult =
+  | { ok: true; output: string }
+  | { ok: false; error: string }
 
 export interface ChapterData {
   title: string

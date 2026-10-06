@@ -29,6 +29,7 @@ class Willkommen {
     checker: {
       reference: 'zahl == 42',
       data: [-1000, 0, 41, 42, 43, 66, 67, 68, 100],
+      params: ['zahl'],
       driver(el, oracle) {
         if (el == 67) {
           return 'Geh in die Ecke.'
@@ -59,6 +60,7 @@ class Vorzeichen {
     checker: {
       reference: 'zahl < 0',
       data: [-1000, -100, -5, -1, 0, 1, 5, 100, 1000],
+      params: ['zahl'],
       driver(el, oracle) {
         if (el > 0) {
           return 'positiv'
@@ -86,6 +88,7 @@ class LevelUp {
     checker: {
       reference: 'xp >= 120',
       data: [-1000, -1, 0, 60, 119, 120, 121, 200, 1000],
+      params: ['xp'],
       driver(el, oracle) {
         if (oracle(intEnv(['xp', el]))) {
           return 'LevelUp möglich!'
@@ -112,6 +115,7 @@ class Passwort {
     checker: {
       reference: 'code != 2026',
       data: [-1000, -1, 0, 1, 100, 2025, 2026, 2027, 100000],
+      params: ['code'],
       driver(el, oracle) {
         if (oracle(intEnv(['code', el]))) {
           return 'Falsches Passwort'
@@ -138,6 +142,7 @@ class Altersfreigabe {
     checker: {
       reference: 'alter >= 18',
       data: [-5, -1, 0, 5, 17, 18, 19, 100, 1000],
+      params: ['alter'],
       driver(el, oracle) {
         if (oracle(intEnv(['alter', el]))) {
           return 'Volljährig'
@@ -176,6 +181,7 @@ class Zahlenvergleich {
         [2, 100],
         [-100, -200],
       ],
+      params: ['a', 'b'],
       driver(el, oracle) {
         const [a, b] = el
         if (a > b) {
@@ -207,6 +213,7 @@ class Luftfeuchtigkeit {
     checker: {
       reference: 'messwert >= 35 && messwert <= 65',
       data: [-1000, -1, 0, 34, 35, 36, 50, 64, 65, 66, 100, 1000],
+      params: ['messwert'],
       driver(el, oracle) {
         if (oracle(intEnv(['messwert', el]))) {
           return 'Optimal'
@@ -248,6 +255,7 @@ class Pythagoras {
         [1, 2, 3],
         [10, 10, 15],
       ],
+      params: ['a', 'b', 'c'],
       driver(el, oracle) {
         const [a, b, c] = el
         if (oracle(intEnv(['a', a], ['b', b], ['c', c]))) {
@@ -275,6 +283,7 @@ class Wochenende {
     checker: {
       reference: 'tag == 6 || tag == 7',
       data: [1, 2, 3, 4, 5, 6, 7],
+      params: ['tag'],
       driver(el, oracle) {
         if (oracle(intEnv(['tag', el]))) {
           return 'Wochenende!'
@@ -303,6 +312,7 @@ class Hauptstadt
     checker: {
       reference: '',
       data: [],
+      params: ['stadt'],
       driver() {
         return 'x'
       },

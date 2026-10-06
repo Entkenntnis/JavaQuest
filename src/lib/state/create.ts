@@ -8,7 +8,6 @@ export function createDefaultCoreState(): CoreState {
       testEnv: '',
       testOnlyFail: false,
       questInput: '',
-      questOutput: '',
     },
     quest: {
       id: -1,

@@ -25,7 +25,7 @@ export function InputBar() {
             onChange={(e) => {
               core.mutateWs((ws) => {
                 ws.ui.questInput = e.target.value
-                ws.ui.questState = undefined
+                ws.ui.questResult = undefined
               })
             }}
             maxLength={1024}
@@ -34,9 +34,6 @@ export function InputBar() {
         </div>
         <button
           className="h-[40px] ml-2 text-xl bg-pink-500 hover:bg-pink-700 px-3 py-0.5 rounded-lg text-white transition-colors"
-          onClick={() => {
-            check(core)
-          }}
           type="submit"
         >
           <FaIcon icon={faCheckCircle} />

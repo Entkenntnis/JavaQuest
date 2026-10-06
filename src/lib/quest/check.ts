@@ -5,22 +5,18 @@ import { parser } from '../java/lezer/parser'
 import type { Core } from '../state/core'
 import { checkForParseErrors, cst2ast } from '../java/cst2ast'
 import { typecheck } from '../java/typecheck'
-import type { JavaEnvironment } from '../state/types'
+import type { JavaEnvironment, QuestResult, RunResult } from '../state/types'
 import { evaluate } from '../java/evaluate'
 import { foldConstants } from '../java/fold'
-import { printType, toType } from '../java/helper/typing'
+import { printType, toDisplayType } from '../java/helper/typing'
 
 export function check(core: Core) {
-  const quest = questsData[core.ws.quest.id]
   core.mutateWs((ws) => {
-    ws.ui.questOutput = ''
+    ws.ui.questResult = undefined
   })
 
-  function println(line: string) {
-    core.mutateWs((ws) => {
-      ws.ui.questOutput += line + '\n'
-    })
-  }
+  const quest = questsData[core.ws.quest.id]
+  const expression = core.ws.ui.questInput
 
   function evalSnippet(snippet: string, env: JavaEnvironment) {
     const tree = parser.parse(snippet)
@@ -31,50 +27,76 @@ export function check(core: Core) {
     return evaluate(foldConstants(typed), env)
   }
 
-  function runTestcase(el: any, snippet: string) {
-    let output
+  function runTestcase(el: any, snippet: string): RunResult {
     try {
-      output = quest.checker.driver(el, (env) => {
+      const output = quest.checker.driver(el, (env) => {
         const value = evalSnippet(snippet, env)
         if (value.type != 'boolean') {
-          const typeName =
-            value.type == 'reference'
-              ? env.heap[value.ref].class
-              : printType(toType(value, env))
-          throw `Inkompatible Typen: ${typeName} kann nicht in boolean konvertiert werden`
+          throw `Inkompatible Typen: ${printType(toDisplayType(value, env))} kann nicht in boolean konvertiert werden`
         }
         return value.value
       })
+      return { ok: true, output }
     } catch (e) {
-      output = e instanceof Error ? e.message : String(e)
+      return { ok: false, error: e instanceof Error ? e.message : String(e) }
     }
-    return output
   }
 
-  println(
-    `Überprüfe ${quest.checker.data.length} Testfälle für die Eingabe \`${core.ws.ui.questInput}\` ...`,
-  )
-  const list = quest.checker.data.slice()
-  list.sort(() => (Math.random() >= 0.5 ? 1 : -1))
+  const list = quest.checker.data
+
+  if (list.length == 0) {
+    alert('Checker noch nicht implementiert')
+  }
+
+  let passed = 0
+  const failures: QuestResult['failure'][] = []
+  let errorMessage: string | undefined
 
   for (const el of list) {
-    const refOutput = runTestcase(el, quest.checker.reference)
-    const testOutput = runTestcase(el, core.ws.ui.questInput)
-    // println(refOutput)
-    // println(testOutput)
-    if (refOutput != testOutput) {
-      println(`Testeingabe: ${el}`)
-      println(`IST: ${testOutput}`)
-      println(`SOLL: ${refOutput}`)
-      println('> Leider nicht richtig.')
-      core.mutateWs((ws) => {
-        ws.ui.questState = 'fail'
-      })
-      return
+    const reference = runTestcase(el, quest.checker.reference)
+    const test = runTestcase(el, expression)
+
+    if (!test.ok) {
+      errorMessage = test.error
+      break
     }
+
+    const refOutput = reference.ok ? reference.output : reference.error
+    if (refOutput != test.output) {
+      failures.push({
+        expected: refOutput,
+        actual: test.output,
+        args: 'TODO FORMAT ARGS',
+      })
+      continue
+    }
+    passed++
   }
-  println('ERFOLG')
+
   core.mutateWs((ws) => {
-    ws.ui.questState = 'success'
+    if (errorMessage != undefined) {
+      ws.ui.questResult = {
+        kind: 'error',
+        expression,
+        total: list.length,
+        passed,
+        message: errorMessage,
+      }
+    } else if (failures.length > 0) {
+      ws.ui.questResult = {
+        kind: 'fail',
+        expression,
+        total: list.length,
+        passed,
+        failure: failures[Math.floor(Math.random() * failures.length)],
+      }
+    } else {
+      ws.ui.questResult = {
+        kind: 'success',
+        expression,
+        total: list.length,
+        passed,
+      }
+    }
   })
 }
