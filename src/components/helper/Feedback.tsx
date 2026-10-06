@@ -39,7 +39,7 @@ export function Feedback() {
         {result.failure && (
           <div className="border-gray-300 border-2 px-3 py-2 rounded-bl rounded-br border-t-0">
             <div className="italic mb-4">
-              Beispiel für ein fehlgeschlagenen Testfall
+              Beispiel für einen fehlgeschlagenen Testfall
             </div>
             <div className="font-mono text-lg text-gray-600">
               {result.failure.args}

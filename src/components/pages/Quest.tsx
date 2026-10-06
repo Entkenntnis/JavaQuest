@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { CodeSnippet } from '../helper/CodeSnippet'
 import { useCore } from '../../lib/state/core'
 import { InputBar } from '../helper/InputBar'
@@ -8,6 +9,16 @@ import { Feedback } from '../helper/Feedback'
 
 export function Quest() {
   const core = useCore()
+  const questResult = core.ws.ui.questResult
+
+  useEffect(() => {
+    if (questResult) {
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth',
+      })
+    }
+  }, [questResult])
 
   return (
     <div className="pt-4">
@@ -31,6 +42,7 @@ export function Quest() {
         <div className="mt-6 px-2">
           <Feedback />
         </div>
+        <div className="h-12"></div>
       </div>
     </div>
   )
