@@ -39,11 +39,11 @@ export function Quest() {
       </div>
       <div className="mx-auto max-w-[600px] pr-2">
         <InputBar />
-        <div className="mt-6 px-2">
-          <Feedback />
-        </div>
-        <div className="h-12"></div>
       </div>
+      <div className="mx-auto max-w-[600px] px-3 mt-6">
+        <Feedback />
+      </div>
+      <div className="h-12"></div>
     </div>
   )
 }
