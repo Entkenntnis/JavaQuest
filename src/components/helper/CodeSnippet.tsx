@@ -55,7 +55,7 @@ export function CodeSnippet() {
     <div className="w-full h-full flex justify-center items-center">
       <div
         ref={editorDiv}
-        className="bg-white text-lg rounded-lg border-2 border-gray-400 overflow-hidden font-mono"
+        className="bg-white text-base sm:text-lg rounded-lg border-2 border-gray-400 overflow-hidden font-mono"
       />
     </div>
   )

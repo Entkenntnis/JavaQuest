@@ -13,8 +13,8 @@ export function InputBar() {
       }}
     >
       <div className="text-lg px-3 py-2.5 flex justify-between items-center">
-        <div className="mt-4">
-          Vervollständige die Lücke mit einem passenden Ausdruck:
+        <div className="mt-4 text-sm sm:text-base">
+          Fülle die Lücke mit einem passenden Ausdruck:
         </div>
       </div>
       <div className="flex items-center bg-white py-3">
