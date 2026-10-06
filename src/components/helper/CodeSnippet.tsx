@@ -55,7 +55,7 @@ export function CodeSnippet() {
     <div className="w-full h-full flex justify-center items-center">
       <div
         ref={editorDiv}
-        className="bg-white text-xl rounded-lg border-2 border-gray-400 overflow-hidden font-mono"
+        className="bg-white text-lg rounded-lg border-2 border-gray-400 overflow-hidden font-mono"
       />
     </div>
   )
@@ -97,10 +97,11 @@ class PlaceholderWidget extends WidgetType {
     span.textContent = '???'
     span.classList.add(
       'px-6',
-      'bg-indigo-100',
+      'bg-pink-300',
       'italic',
       'border-2',
-      'border-indigo-300',
+      'border-pink-500',
+      'text-white',
       'rounded',
       'select-none',
     )
