@@ -4,6 +4,7 @@ import { InputBar } from '../helper/InputBar'
 import { FaIcon } from '../helper/FaIcon'
 import { faArrowLeftLong } from '@fortawesome/free-solid-svg-icons'
 import { navigate } from '../../lib/router/navigate'
+import { Feedback } from '../helper/Feedback'
 
 export function Quest() {
   const core = useCore()
@@ -27,9 +28,9 @@ export function Quest() {
       </div>
       <div className="mx-auto max-w-[600px] pr-2">
         <InputBar />
-        {core.ws.ui.questResult && (
-          <div>{JSON.stringify(core.ws.ui.questResult)}</div>
-        )}
+        <div className="mt-6 px-2">
+          <Feedback />
+        </div>
       </div>
     </div>
   )

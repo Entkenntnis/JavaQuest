@@ -66,7 +66,11 @@ export function check(core: Core) {
       failures.push({
         expected: refOutput,
         actual: test.output,
-        args: 'TODO FORMAT ARGS',
+        args: (Array.isArray(el) ? el : [el])
+          .map((_, i) => {
+            return `${quest.checker.params?.[i] ?? 'arg' + i} = ${el}`
+          })
+          .join(', '),
       })
       continue
     }
