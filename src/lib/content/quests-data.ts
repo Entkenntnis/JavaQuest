@@ -1,14 +1,50 @@
-import type { JavaEnvironment, QuestData } from '../state/types'
+import type { JavaEnvironment, JavaValue, QuestData } from '../state/types'
 
-function intEnv(...entries: [string, number][]): JavaEnvironment {
+function env(...entries: [string, JavaValue][]): JavaEnvironment {
   const env: JavaEnvironment = {
     local: {},
     heap: {},
   }
   for (const [name, value] of entries) {
-    env.local[name] = { type: 'int', value }
+    env.local[name] = value
   }
   return env
+}
+
+function intEnv(...entries: [string, number][]): JavaEnvironment {
+  return env(
+    ...entries.map(([name, value]): [string, JavaValue] => [
+      name,
+      { type: 'int', value },
+    ]),
+  )
+}
+
+function charEnv(...entries: [string, number][]): JavaEnvironment {
+  return env(
+    ...entries.map(([name, value]): [string, JavaValue] => [
+      name,
+      { type: 'char', value },
+    ]),
+  )
+}
+
+function longEnv(...entries: [string, number | string][]): JavaEnvironment {
+  return env(
+    ...entries.map(([name, value]): [string, JavaValue] => [
+      name,
+      { type: 'long', value: String(value) },
+    ]),
+  )
+}
+
+function doubleEnv(...entries: [string, number][]): JavaEnvironment {
+  return env(
+    ...entries.map(([name, value]): [string, JavaValue] => [
+      name,
+      { type: 'double', value },
+    ]),
+  )
 }
 
 export const questsData: { [key: number]: QuestData } = {
@@ -290,6 +326,170 @@ class Wochenende {
         } else {
           return 'Leider kein Wochenende!'
         }
+      },
+    },
+  },
+  10: {
+    id: 10,
+    title: 'Kompass',
+    code: `
+class Kompass {
+    // richtung ist ein Großbuchstabe
+    // wie 'N', 'O', 'S', 'W'
+    void istNorden(char richtung) {
+        if (___placeholder___) {
+            System.out.println("Hier geht es lang!");
+        } else {
+            System.out.println("Drehe dich weiter..."); 
+        }
+    }
+}
+    `.trim(),
+    checker: {
+      reference: "richtung == 'N'",
+      data: [78, 79, 83, 87, 110, 48],
+      params: ['richtung'],
+      driver(el, oracle) {
+        if (oracle(charEnv(['richtung', el]))) {
+          return 'Hier geht es lang!'
+        } else {
+          return 'Drehe dich weiter...'
+        }
+      },
+    },
+  },
+  11: {
+    id: 11,
+    title: 'Guthaben',
+    code: `
+class Guthaben {
+    // benötigte Credits dürfen Guthaben nicht überschreiten
+    void reichtEs(int benötigt, int guthaben) {
+        if (___placeholder___) {
+            System.out.println("Auftrag freigegeben!");
+            return;
+        }
+        throw new GuthabenException();
+    }
+}
+    `.trim(),
+    checker: {
+      reference: 'guthaben >= benötigt',
+      data: [
+        [10, 20],
+        [20, 20],
+        [20, 10],
+        [0, 0],
+        [-5, -5],
+        [-5, 5],
+        [5, -5],
+        [100, -100],
+      ],
+      params: ['benötigt', 'guthaben'],
+      driver(el, oracle) {
+        const [benötigt, guthaben] = el
+        if (oracle(intEnv(['benötigt', benötigt], ['guthaben', guthaben]))) {
+          return 'Auftrag freigegeben!'
+        }
+        return '<GuthabenException>'
+      },
+    },
+  },
+  12: {
+    id: 12,
+    title: 'Billionär',
+    code: `
+class Billionär {
+    void bistDuReich(long vermögen) {
+        if (___placeholder___) {
+            System.out.println("Billionär");
+            System.out.println("Unsympathisch..."); 
+        }
+    }
+}
+    `.trim(),
+    checker: {
+      reference: 'vermögen >= 1_000_000_000_000L',
+      data: [
+        -1_000_000_000_000, 0, 1, 2_000_000_000, 999_999_999_999,
+        1_000_000_000_000, 1_000_000_000_001, 2_000_000_000_000,
+        9_000_000_000_000,
+      ],
+      params: ['vermögen'],
+      driver(el, oracle) {
+        if (oracle(longEnv(['vermögen', el]))) {
+          return 'Billionär / Unsympathisch...'
+        }
+        return '<keine Ausgabe>'
+      },
+    },
+  },
+
+  13: {
+    id: 13,
+    title: 'VierGewinnt',
+    code: `
+class VierGewinnt {
+    // Du bestehst bis 4.0
+    void vierGewinnt(double note) {
+        boolean bestanden = ___placeholder___;
+        if (bestanden) {
+            System.out.println("Bestanden!");
+        }
+    }
+}
+    `.trim(),
+    checker: {
+      reference: 'note <= 4.0',
+      data: [1.0, 1.3, 2.0, 2.7, 3.0, 3.7, 4.0, 4.3, 5.0, 6.0],
+      params: ['note'],
+      driver(el, oracle) {
+        if (oracle(doubleEnv(['note', el]))) {
+          return 'Bestanden!'
+        }
+        return '<keine Ausgabe>'
+      },
+    },
+  },
+  15: {
+    id: 15,
+    title: 'Gleichstand',
+    code: `
+class Gleichstand {
+    // Bei gleichem Punktestand geht das Spiel weiter
+    void istGleichstand(int punkteHeim, int punkteAuswärts) {
+        if (___placeholder___) {
+            System.out.println("WEITERSPIELEN!");
+        }
+    }
+}
+    `.trim(),
+    checker: {
+      reference: 'punkteHeim == punkteAuswärts',
+      data: [
+        [0, 0],
+        [1, 1],
+        [2, 3],
+        [3, 2],
+        [5, 5],
+        [10, 0],
+        [-1, -1],
+        [-1, 1],
+      ],
+      params: ['punkteHeim', 'punkteAuswärts'],
+      driver(el, oracle) {
+        const [punkteHeim, punkteAuswärts] = el
+        if (
+          oracle(
+            intEnv(
+              ['punkteHeim', punkteHeim],
+              ['punkteAuswärts', punkteAuswärts],
+            ),
+          )
+        ) {
+          return 'WEITERSPIELEN!'
+        }
+        return '<keine Ausgabe>'
       },
     },
   },

@@ -67,8 +67,8 @@ export function check(core: Core) {
         expected: refOutput,
         actual: test.output,
         args: (Array.isArray(el) ? el : [el])
-          .map((_, i) => {
-            return `${quest.checker.params?.[i] ?? 'arg' + i} = ${el}`
+          .map((value, i) => {
+            return `${quest.checker.params?.[i] ?? 'arg' + i} = ${value}`
           })
           .join(', '),
       })
