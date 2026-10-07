@@ -8,6 +8,7 @@ import { chapter06Quests } from './chapter-06'
 import { chapter07Quests } from './chapter-07'
 import { chapter08Quests } from './chapter-08'
 import { chapter09Quests } from './chapter-09'
+import { chapter10Quests } from './chapter-10'
 
 export const questsData: { [key: number]: QuestData } = {
   ...chapter01Quests,
@@ -19,4 +20,5 @@ export const questsData: { [key: number]: QuestData } = {
   ...chapter07Quests,
   ...chapter08Quests,
   ...chapter09Quests,
+  ...chapter10Quests,
 }

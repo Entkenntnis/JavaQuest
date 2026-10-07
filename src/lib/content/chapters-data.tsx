@@ -53,6 +53,20 @@ export const chaptersData: ChapterData[] = [
     ),
   },
   {
+    title: 'Alles unter Kontrolle',
+    quests: [], // TODO: Aufgaben für Kapitel 3 anlegen
+    description: () => (
+      <>
+        <p>
+          Hier geht es darum, dass Boolesche Ausdrücke auch innerhalb von for,
+          while vorkommen können und damit auch für Schleifen relevant sind.
+          Weitere Kontrollstrukturen halt, mehr Dynamik, mehr Nachdenken, mehr
+          Idiome.
+        </p>
+      </>
+    ),
+  },
+  {
     title: 'Taschenrechner erlaubt',
     quests: [8], // TODO: mehr Aufgaben, vermeide problematische Gleitkomma-Vergleiche
     description: () => (
