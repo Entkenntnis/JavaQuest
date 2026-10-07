@@ -33,17 +33,22 @@ export const chaptersData: ChapterData[] = [
     description: () => (
       <>
         <p>
-          Einzelne Vergleiche lassen sich zu größeren Ausdrücken verbinden. Mit{' '}
-          <code>&amp;&amp;</code> (und) wird der Gesamtausdruck genau dann wahr,
-          wenn beide Seiten wahr sind. Mit <code>||</code> (oder) wird der
-          Gesamtausdruck genau dann wahr, wenn eine der Seiten (oder beide) wahr
-          sind.
+          Mit logischen Operatoren kannst du zwei Ausdrücke zu einem größeren
+          Ausdruck verbinden. Bei <code>&amp;&amp;</code> (UND) müssen beide
+          Seiten wahr sein, damit der Geamtausdruck wahr wird. Bei{' '}
+          <code>||</code> (ODER) reicht es, wenn (mindestens) einer der
+          Ausdrücke wahr ist.
         </p>
         <p>
-          Du kannst auch <code>true</code> und <code>false</code> direkt
-          verwenden. Einen Ausdruck kannst du mit <code>!</code> (nicht)
-          umkehren. Und für ExpertInnen: Mit <code>^</code> (xor) ist auch ein
-          entweder-oder möglich.
+          Mit <code>true</code> und <code>false</code> kannst du Wahrheitswerte
+          direkt angeben, zum Beispiel für eine Endlosschleife. Ein einzelner
+          Ausdruck lässt sich mit dem Operator <code>!</code> (NICHT) umkehren.
+          Nutze Klammern, um die Reihenfolge der Auswertung festzulegen und
+          Missverständnisse zu klären.
+        </p>
+        <p>
+          Für ExpertInnen: Es gibt auch einen Operator <code>^</code> (XOR) für
+          Entweder-Oder.
         </p>
       </>
     ),
