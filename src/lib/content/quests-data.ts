@@ -267,7 +267,7 @@ class Pythagoras {
     // Nutze den Satz des Pythagoras.
     // c ist die längste Seite.
     void prüfeRechtwinklig(int a, int b, int c) {
-        if (      ___placeholder___      ) {
+        if (___placeholder___) {
             System.out.println("Hurra! Rechtwinklig!");
         }
     }
@@ -308,7 +308,7 @@ class Pythagoras {
 class Wochenende {
     // tag ist 1 (Mo) bis 7 (So)
     void hochDieHände(byte tag) {
-        if ( ___placeholder___) {
+        if (___placeholder___) {
             System.out.println("Wochenende!");
         } else {
             System.out.println("Leider kein Wochenende!");

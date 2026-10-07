@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import { faCircleDot } from '@fortawesome/free-solid-svg-icons'
 import { faJava } from '@fortawesome/free-brands-svg-icons'
 import { chaptersData } from '../../lib/content/chapters-data'
@@ -6,14 +7,36 @@ import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
 import { FaIcon } from '../helper/FaIcon'
 
+const OVERVIEW_SCROLL_KEY = 'jq:overview-scroll'
+
 export function Overview() {
   const questsList = Object.values(questsData)
   questsList.sort((a, b) => a.id - b.id)
 
   const core = useCore()
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const div = scrollRef.current
+    if (!div) return
+    const saved = sessionStorage.getItem(OVERVIEW_SCROLL_KEY)
+    if (saved) {
+      const max = div.scrollHeight - div.clientHeight
+      div.scrollTop = Math.max(0, Math.min(Number(saved), max))
+    }
+  }, [])
 
   return (
-    <div className="h-full bg-rose-50 overflow-auto">
+    <div
+      ref={scrollRef}
+      className="h-full bg-rose-50 overflow-auto"
+      onScroll={(e) =>
+        sessionStorage.setItem(
+          OVERVIEW_SCROLL_KEY,
+          String(e.currentTarget.scrollTop),
+        )
+      }
+    >
       <div className="max-w-[600px] mx-auto bg-white relative">
         <div className="absolute right-5 top-4">
           <FaIcon icon={faJava} className="text-[50px] text-pink-700" />
