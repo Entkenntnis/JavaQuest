@@ -29,7 +29,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Logik, yeah!',
-    quests: [7, 9, 16, 17, 18, 19], // TODO: Weitere Aufgaben, die alle Themen abdecken
+    quests: [7, 9, 16, 17, 18, 19, 20, 21, 22],
     description: () => (
       <>
         <p>

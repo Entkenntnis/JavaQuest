@@ -1,5 +1,5 @@
 import type { QuestData } from '../../state/types'
-import { env, intEnv } from './helpers'
+import { boolEnv, env, intEnv, mergeEnv } from './helpers'
 
 export const chapter02Quests: { [key: number]: QuestData } = {
   7: {
@@ -219,9 +219,110 @@ class Museum {
         const [hatAusweis, alter] = el
         if (
           oracle(
-            env(
-              ['hatAusweis', { type: 'boolean', value: hatAusweis }],
-              ['alter', { type: 'int', value: alter }],
+            mergeEnv(
+              boolEnv(['hatAusweis', hatAusweis]),
+              intEnv(['alter', alter]),
+            ),
+          )
+        ) {
+          return 'true'
+        } else {
+          return 'false'
+        }
+      },
+    },
+  },
+
+  20: {
+    id: 20,
+    title: 'Wetter',
+    code: `
+class Wetter {
+    void istSchön(boolean istNass, boolean istWindig) {
+        if (___placeholder___) {
+            System.out.println("Es ist schön.");
+            System.out.println("Trocken und windstill.");
+        }
+    }
+}
+    `.trim(),
+    checker: {
+      reference: '!istNass && !istWindig',
+      data: [
+        [false, false],
+        [false, true],
+        [true, false],
+        [true, true],
+      ],
+      params: ['istNass', 'istWindig'],
+      driver(el, oracle) {
+        const [istNass, istWindig] = el
+        if (oracle(boolEnv(['istNass', istNass], ['istWindig', istWindig]))) {
+          return 'Es ist schön. Trocken und windstill.'
+        } else {
+          return '<keine Ausgabe>'
+        }
+      },
+    },
+  },
+  21: {
+    id: 21,
+    title: 'MVG',
+    code: `
+class MVG {
+    void fährtBus(boolean streik, boolean störung) {
+        if (___placeholder___) {
+            System.out.println("Bus fährt");
+        }
+    }
+}
+    `.trim(),
+    checker: {
+      reference: '!(streik || störung)',
+      data: [
+        [false, false],
+        [false, true],
+        [true, false],
+        [true, true],
+      ],
+      params: ['streik', 'störung'],
+      driver(el, oracle) {
+        const [streik, störung] = el
+        if (oracle(boolEnv(['streik', streik], ['störung', störung]))) {
+          return 'Bus fährt'
+        } else {
+          return '<keine Ausgabe>'
+        }
+      },
+    },
+  },
+  22: {
+    id: 22,
+    title: 'Rabatt',
+    code: `
+class Rabatt {
+    // Nur wenn entweder Gutschein oder Mitglied
+    boolean gibtRabatt(boolean hatGutschein, boolean istMitglied) {
+        return ___placeholder___;
+    }
+}
+    `.trim(),
+    checker: {
+      reference: 'hatGutschein ^ istMitglied',
+      data: [
+        [false, false],
+        [false, true],
+        [true, false],
+        [true, true],
+      ],
+      params: ['hatGutschein', 'istMitglied'],
+      driver(el, oracle) {
+        const [hatGutschein, istMitglied] = el
+        if (
+          oracle(
+            boolEnv(
+              ['hatGutschein', hatGutschein],
+              ['istMitglied', istMitglied],
             ),
           )
         ) {

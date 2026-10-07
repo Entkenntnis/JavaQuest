@@ -20,6 +20,24 @@ export function intEnv(...entries: [string, number][]): JavaEnvironment {
   )
 }
 
+export function boolEnv(...entries: [string, boolean][]): JavaEnvironment {
+  return env(
+    ...entries.map(([name, value]): [string, JavaValue] => [
+      name,
+      { type: 'boolean', value },
+    ]),
+  )
+}
+
+export function mergeEnv(...envs: JavaEnvironment[]): JavaEnvironment {
+  const result: JavaEnvironment = { local: {}, heap: {} }
+  for (const e of envs) {
+    Object.assign(result.local, e.local)
+    Object.assign(result.heap, e.heap)
+  }
+  return result
+}
+
 export function charEnv(...entries: [string, number][]): JavaEnvironment {
   return env(
     ...entries.map(([name, value]): [string, JavaValue] => [
