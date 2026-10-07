@@ -29,11 +29,13 @@ function charEnv(...entries: [string, number][]): JavaEnvironment {
   )
 }
 
-function longEnv(...entries: [string, number | string][]): JavaEnvironment {
+function longEnv(
+  ...entries: [string, number | string | bigint][]
+): JavaEnvironment {
   return env(
     ...entries.map(([name, value]): [string, JavaValue] => [
       name,
-      { type: 'long', value: String(value) },
+      { type: 'long', value: value.toString() },
     ]),
   )
 }
@@ -95,7 +97,7 @@ class Vorzeichen {
     `.trim(),
     checker: {
       reference: 'zahl < 0',
-      data: [-1000, -100, -5, -1, 0, 1, 5, 100, 1000],
+      data: [-2147483648, -1000, -100, -5, -1, 0, 1, 5, 100, 1000],
       params: ['zahl'],
       driver(el, oracle) {
         if (el > 0) {
@@ -123,7 +125,7 @@ class LevelUp {
     `.trim(),
     checker: {
       reference: 'xp >= 120',
-      data: [-1000, -1, 0, 60, 119, 120, 121, 200, 1000],
+      data: [-1000, -1, 0, 60, 119, 120, 121, 200, 1000, 2147483647],
       params: ['xp'],
       driver(el, oracle) {
         if (oracle(intEnv(['xp', el]))) {
@@ -177,7 +179,7 @@ class Altersfreigabe {
     `.trim(),
     checker: {
       reference: 'alter >= 18',
-      data: [-5, -1, 0, 5, 17, 18, 19, 100, 1000],
+      data: [-5, -1, 0, 5, 17, 18, 19, 100, 1000, 2147483647],
       params: ['alter'],
       driver(el, oracle) {
         if (oracle(intEnv(['alter', el]))) {
@@ -411,9 +413,16 @@ class Billionär {
     checker: {
       reference: 'vermögen >= 1_000_000_000_000L',
       data: [
-        -1_000_000_000_000, 0, 1, 2_000_000_000, 999_999_999_999,
-        1_000_000_000_000, 1_000_000_000_001, 2_000_000_000_000,
-        9_000_000_000_000,
+        -1_000_000_000_000n,
+        0n,
+        1n,
+        2_000_000_000n,
+        999_999_999_999n,
+        1_000_000_000_000n,
+        1_000_000_000_001n,
+        2_000_000_000_000n,
+        9_000_000_000_000n,
+        100_000_000_000_000n,
       ],
       params: ['vermögen'],
       driver(el, oracle) {
@@ -441,7 +450,7 @@ class VierGewinnt {
     `.trim(),
     checker: {
       reference: 'note <= 4.0',
-      data: [1.0, 1.3, 2.0, 2.7, 3.0, 3.7, 4.0, 4.3, 5.0, 6.0],
+      data: [1.0, 1.3, 2.0, 2.7, 3.0, 3.7, 4.0, 4.05, 4.3, 5.0, 6.0],
       params: ['note'],
       driver(el, oracle) {
         if (oracle(doubleEnv(['note', el]))) {
