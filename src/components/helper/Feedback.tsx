@@ -41,9 +41,11 @@ export function Feedback() {
             <div className="italic mb-4">
               Beispiel für einen fehlgeschlagenen Testfall
             </div>
-            <div className="font-mono text-lg text-gray-600">
-              {result.failure.args}
-            </div>
+            {result.failure.args && (
+              <div className="font-mono text-lg text-gray-600">
+                {result.failure.args}
+              </div>
+            )}
             <div className="mt-3">
               Erwartet:{' '}
               <span className="text-green-600 font-mono ml-3">

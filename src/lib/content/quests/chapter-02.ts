@@ -183,4 +183,53 @@ class Geheimnis {
       },
     },
   },
+  19: {
+    id: 19,
+    title: 'Museum',
+    code: `
+class Museum {
+    // Ermäßigung für unter 12 und ab 65
+    // Ausweis notwendig!
+    boolean istErmäßigt(boolean hatAusweis, int alter) {
+        return ___placeholder___;
+    }
+}
+    `.trim(),
+    checker: {
+      reference: 'hatAusweis && (alter < 12 || alter >= 65)',
+      data: [
+        [false, 30],
+        [false, 11],
+        [false, 65],
+        [false, 70],
+        [false, 200],
+        [true, 11],
+        [true, 12],
+        [true, 30],
+        [true, 64],
+        [true, 65],
+        [true, 70],
+        [true, 200],
+        [true, -2147483648],
+        [true, 2147483647],
+        [false, 0],
+      ],
+      params: ['hatAusweis', 'alter'],
+      driver(el, oracle) {
+        const [hatAusweis, alter] = el
+        if (
+          oracle(
+            env(
+              ['hatAusweis', { type: 'boolean', value: hatAusweis }],
+              ['alter', { type: 'int', value: alter }],
+            ),
+          )
+        ) {
+          return 'true'
+        } else {
+          return 'false'
+        }
+      },
+    },
+  },
 }

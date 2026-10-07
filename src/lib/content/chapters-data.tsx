@@ -29,22 +29,21 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Logik, yeah!',
-    quests: [7, 9, 16, 17, 18], // TODO: Weitere Aufgaben, die alle Themen abdecken
+    quests: [7, 9, 16, 17, 18, 19], // TODO: Weitere Aufgaben, die alle Themen abdecken
     description: () => (
       <>
         <p>
           Mit logischen Operatoren kannst du zwei Ausdrücke zu einem größeren
           Ausdruck verbinden. Bei <code>&amp;&amp;</code> (UND) müssen beide
-          Seiten wahr sein, damit der Geamtausdruck wahr wird. Bei{' '}
-          <code>||</code> (ODER) reicht es, wenn (mindestens) einer der
-          Ausdrücke wahr ist.
+          Seiten wahr sein, damit der Gesamtausdruck wahr wird. Bei{' '}
+          <code>||</code> (ODER) reicht es, wenn mindestens einer der Ausdrücke
+          wahr ist.
         </p>
         <p>
           Mit <code>true</code> und <code>false</code> kannst du Wahrheitswerte
-          direkt angeben, zum Beispiel für eine Endlosschleife. Ein einzelner
-          Ausdruck lässt sich mit dem Operator <code>!</code> (NICHT) umkehren.
-          Nutze Klammern, um die Reihenfolge der Auswertung festzulegen und
-          Missverständnisse zu klären.
+          direkt angeben. Ein einzelner Ausdruck lässt sich mit dem Operator{' '}
+          <code>!</code> (NICHT) umkehren. Nutze Klammern, um die Reihenfolge
+          der Auswertung festzulegen und Missverständnisse zu klären.
         </p>
         <p>
           Für ExpertInnen: Es gibt auch einen Operator <code>^</code> (XOR) für

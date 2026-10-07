@@ -66,11 +66,14 @@ export function check(core: Core) {
       failures.push({
         expected: refOutput,
         actual: test.output,
-        args: (Array.isArray(el) ? el : [el])
-          .map((value, i) => {
-            return `${quest.checker.params?.[i] ?? 'arg' + i} = ${value}`
-          })
-          .join(', '),
+        args:
+          quest.checker.params?.length === 0
+            ? ''
+            : (Array.isArray(el) ? el : [el])
+                .map((value, i) => {
+                  return `${quest.checker.params?.[i] ?? 'arg' + i} = ${value}`
+                })
+                .join(', '),
       })
       continue
     }
