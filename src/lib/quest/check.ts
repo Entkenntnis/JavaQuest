@@ -1,5 +1,5 @@
 import { Text } from '@codemirror/state'
-import { questsData } from '../content/quests-data'
+import { questsData } from '../content/quests'
 import { cursorToCstNode } from '../java/helper/cst'
 import { parser } from '../java/lezer/parser'
 import type { Core } from '../state/core'

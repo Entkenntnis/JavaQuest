@@ -1,4 +1,4 @@
-import { questsData } from '../content/quests-data'
+import { questsData } from '../content/quests'
 import type { Core } from '../state/core'
 
 export async function navigate(core: Core, url: string) {
