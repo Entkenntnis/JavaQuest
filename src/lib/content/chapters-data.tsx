@@ -54,14 +54,18 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Unter Kontrolle',
-    quests: [], // TODO: Aufgaben für Kapitel 3 anlegen
+    quests: [23], // TODO: weitere Aufgaben für Kapitel 3 anlegen
     description: () => (
       <>
         <p>
-          Hier geht es darum, dass Boolesche Ausdrücke auch innerhalb von for,
-          while vorkommen können und damit auch für Schleifen relevant sind.
-          Weitere Kontrollstrukturen halt, mehr Dynamik, mehr Nachdenken, mehr
-          Idiome.
+          Nicht nur in <code>if</code>-Anweisungen verwenden boolesche
+          Ausdrücke: Auch <code>for</code>- und <code>while</code>-Schleifen
+          werden über eine Bedingung gesteuert.
+        </p>
+        <p>
+          Dabei wird die Bedingung vor jedem Durchlauf der Schleife geprüft.
+          Solange sie wahr ist, wird der Schleifenrumpf wiederholt; sobald sie
+          falsch ist, wird die Schleife verlassen.
         </p>
       </>
     ),

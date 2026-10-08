@@ -72,7 +72,7 @@ export function Overview() {
                 return (
                   <a
                     key={j}
-                    className="px-6 mt-1 flex justify-between hover:bg-gray-100 py-3 cursor-pointer select-none"
+                    className="px-6 mt-1 flex justify-between hover:bg-gray-100 py-2 cursor-pointer select-none"
                     onClick={(e) => {
                       navigate(core, `/quest-${quest.id}`)
                       e.preventDefault()
