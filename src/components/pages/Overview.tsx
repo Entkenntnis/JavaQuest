@@ -10,9 +10,6 @@ import { FaIcon } from '../helper/FaIcon'
 const OVERVIEW_SCROLL_KEY = 'jq:overview-scroll'
 
 export function Overview() {
-  const questsList = Object.values(questsData)
-  questsList.sort((a, b) => a.id - b.id)
-
   const core = useCore()
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -51,7 +48,7 @@ export function Overview() {
           return (
             <div key={i} className="mt-28 border-b border-gray-200 pb-6">
               <h2 className="px-4 text-2xl">
-                <FaIcon icon={faCircleDot} className="text-pink-500 mr-3" />
+                <FaIcon icon={faCircleDot} className="text-pink-600 mr-3" />
                 <span className="text-gray-500">Kapitel {i + 1}:</span>{' '}
                 {chapter.title}
               </h2>
@@ -79,7 +76,7 @@ export function Overview() {
                     }}
                   >
                     <div>
-                      <span className="pl-1 pr-1.5 bg-pink-500 text-white font-bold rounded mr-3">
+                      <span className="pl-1 pr-1.5 bg-pink-400 text-white font-bold rounded mr-3">
                         {i + 1}.{j + 1}
                       </span>
                       {quest.title}

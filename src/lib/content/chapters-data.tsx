@@ -54,7 +54,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Unter Kontrolle',
-    quests: [23], // TODO: weitere Aufgaben für Kapitel 3 anlegen
+    quests: [23, 24, 25, 26, 27, 28, 29], // TODO: weitere Aufgaben für Kapitel 3 anlegen
     description: () => (
       <>
         <p>
@@ -63,7 +63,7 @@ export const chaptersData: ChapterData[] = [
           werden über eine Bedingung gesteuert.
         </p>
         <p>
-          Dabei wird die Bedingung vor jedem Durchlauf der Schleife geprüft.
+          Dabei wird die Bedingung bei jedem Durchlauf der Schleife geprüft.
           Solange sie wahr ist, wird der Schleifenrumpf wiederholt; sobald sie
           falsch ist, wird die Schleife verlassen.
         </p>

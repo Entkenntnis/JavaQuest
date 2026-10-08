@@ -17,7 +17,7 @@ export function Feedback() {
             <span className="font-mono text-green-700">{result.output}</span>
           </div>
         )}
-        <div>Dein Ausdruck besteht alle Tests ☺️</div>
+        <div>Dein Programm besteht alle Tests ☺️</div>
 
         <div className="text-right">
           <a
@@ -41,7 +41,7 @@ export function Feedback() {
         <div className="border-red-400 border-2 rounded-tl rounded-tr px-3 py-2 bg-red-50">
           {result.total > 1 ? (
             <>
-              Fast! Dein Ausdruck hat {result.passed} von {result.total}{' '}
+              Fast! Das Programm hat {result.passed} von {result.total}{' '}
               Testfällen bestanden.
             </>
           ) : (
