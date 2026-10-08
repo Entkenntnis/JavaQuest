@@ -51,6 +51,7 @@ export function check(core: Core) {
   let passed = 0
   const failures: QuestResult['failure'][] = []
   let errorMessage: string | undefined
+  let output: string | undefined
 
   for (const el of list) {
     const reference = runTestcase(el, quest.checker.reference)
@@ -59,6 +60,10 @@ export function check(core: Core) {
     if (!test.ok) {
       errorMessage = test.error
       break
+    }
+
+    if (list.length === 1) {
+      output = test.output
     }
 
     const refOutput = reference.ok ? reference.output : reference.error
@@ -103,6 +108,7 @@ export function check(core: Core) {
         expression,
         total: list.length,
         passed,
+        output,
       }
     }
   })

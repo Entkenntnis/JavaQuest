@@ -30,6 +30,7 @@ export interface QuestResult {
   total: number
   passed: number
   message?: string
+  output?: string
   failure?: {
     args: string
     expected: string

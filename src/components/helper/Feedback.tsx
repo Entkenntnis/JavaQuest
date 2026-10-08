@@ -12,7 +12,13 @@ export function Feedback() {
   if (result.kind == 'success') {
     return (
       <div className="border-green-400 border-2 rounded-lg px-3 py-2 bg-green-50">
-        <div>Dein Ausdruck besteht alle Testfälle ☺️</div>
+        {result.output != null && (
+          <div className="mt-3 mb-6">
+            <span className="font-mono text-green-700">{result.output}</span>
+          </div>
+        )}
+        <div>Dein Ausdruck besteht alle Tests ☺️</div>
+
         <div className="text-right">
           <a
             href="/"
