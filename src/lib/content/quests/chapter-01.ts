@@ -64,7 +64,7 @@ class Vorzeichen {
   },
   3: {
     id: 3,
-    title: 'LevelUp',
+    title: 'Level Up',
     code: `
 class LevelUp {
     // Aufstieg bei 120 oder mehr XP
@@ -288,7 +288,7 @@ class Billionär {
   },
   13: {
     id: 13,
-    title: 'VierGewinnt',
+    title: 'Vier Gewinnt',
     code: `
 class VierGewinnt {
     // Du bestehst bis 4.0

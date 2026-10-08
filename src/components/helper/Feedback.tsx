@@ -45,7 +45,7 @@ export function Feedback() {
               Testfällen bestanden.
             </>
           ) : (
-            <>Noch nicht ganz!</>
+            <>Noch nicht ganz.</>
           )}
         </div>
         {result.failure && (
