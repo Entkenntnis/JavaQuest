@@ -257,7 +257,7 @@ class Guthaben {
 class Billionär {
     void bistDuReich(long vermögen) {
         if (___placeholder___) {
-            System.out.println("Billionär");
+            System.out.print("Billionär. ");
             System.out.println("Unsympathisch..."); 
         }
     }
@@ -280,7 +280,7 @@ class Billionär {
       params: ['vermögen'],
       driver(el, oracle) {
         if (oracle(longEnv(['vermögen', el]))) {
-          return 'Billionär / Unsympathisch...'
+          return 'Billionär. Unsympathisch...'
         }
         return '<keine Ausgabe>'
       },

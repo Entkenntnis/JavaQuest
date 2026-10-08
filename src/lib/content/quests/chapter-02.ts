@@ -164,7 +164,7 @@ class Geheimnis {
     void istHierWasVersteckt() {
         if (___placeholder___) {
             // Diese Zeile nie ausführen.
-            System.out.println("Das sieht niemand.");
+            System.out.print("Das sieht niemand. ");
         }
         System.out.println("Fertig.");
     }
@@ -240,7 +240,7 @@ class Museum {
 class Wetter {
     void istSchön(boolean istNass, boolean istWindig) {
         if (___placeholder___) {
-            System.out.println("Es ist schön.");
+            System.out.print("Es ist schön. ");
             System.out.println("Trocken und windstill.");
         }
     }
