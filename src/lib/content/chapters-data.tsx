@@ -53,7 +53,7 @@ export const chaptersData: ChapterData[] = [
     ),
   },
   {
-    title: 'Alles unter Kontrolle',
+    title: 'Unter Kontrolle',
     quests: [], // TODO: Aufgaben für Kapitel 3 anlegen
     description: () => (
       <>
