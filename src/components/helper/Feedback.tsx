@@ -17,7 +17,7 @@ export function Feedback() {
             <span className="font-mono text-green-700">{result.output}</span>
           </div>
         )}
-        <div>Dein Programm besteht alle Tests ☺️</div>
+        <div>Alle Tests bestanden! ☺️</div>
 
         <div className="text-right">
           <a
@@ -51,9 +51,7 @@ export function Feedback() {
         {result.failure && (
           <div className="border-gray-300 border-2 px-3 py-2 rounded-bl rounded-br border-t-0">
             {result.total > 1 && (
-              <div className="italic mb-4">
-                Beispiel für einen fehlgeschlagenen Testfall
-              </div>
+              <div className="italic mb-4">Beispiel-Testfall</div>
             )}
             {result.failure.args && (
               <div className="font-mono text-lg text-gray-600">
