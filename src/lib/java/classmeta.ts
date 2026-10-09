@@ -117,6 +117,36 @@ export const classMetaData: Record<string, ClassMetaData> = {
         type: 'double',
         value: Math.abs((v as JavaDoubleValue).value),
       })),
+      {
+        name: 'sqrt',
+        isStatic: true,
+        sig: {
+          params: [{ kind: 'primitive', prim: 'double' }],
+          ret: { kind: 'primitive', prim: 'double' },
+        },
+        handler: (_owner, args) => ({
+          type: 'double',
+          value: Math.sqrt((args[0] as JavaDoubleValue).value),
+        }),
+      },
+      {
+        name: 'pow',
+        isStatic: true,
+        sig: {
+          params: [
+            { kind: 'primitive', prim: 'double' },
+            { kind: 'primitive', prim: 'double' },
+          ],
+          ret: { kind: 'primitive', prim: 'double' },
+        },
+        handler: (_owner, args) => ({
+          type: 'double',
+          value: Math.pow(
+            (args[0] as JavaDoubleValue).value,
+            (args[1] as JavaDoubleValue).value,
+          ),
+        }),
+      },
     ],
   },
 }

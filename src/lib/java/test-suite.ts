@@ -24,6 +24,7 @@ import { mathAbs } from './tests/math-abs.ts'
 import { mathAbsValues } from './tests/math-abs-values.ts'
 import { mathAbsContext } from './tests/math-abs-context.ts'
 import { mathSymbol } from './tests/math-symbol.ts'
+import { mathSqrtPow } from './tests/math-sqrt-pow.ts'
 import { equalsSubtle } from './tests/equals-subtle.ts'
 import { toStringCases } from './tests/to-string.ts'
 import { regressionAndErrors } from './tests/regression-and-errors.ts'
@@ -64,6 +65,7 @@ export const testSuite: TestSuiteEntry[] = [
   ...mathAbsValues,
   ...mathAbsContext,
   ...mathSymbol,
+  ...mathSqrtPow,
   ...equalsSubtle,
   ...toStringCases,
   ...regressionAndErrors,
