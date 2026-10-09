@@ -759,6 +759,7 @@ export interface FieldMetaData {
 export interface MethodMetaData {
   name: string
   sig: MethodSig
+  isStatic?: true
   handler: (
     owern: JavaReferenceValue,
     args: JavaValue[],

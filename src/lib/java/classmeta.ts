@@ -1,7 +1,9 @@
 import type {
   ClassMetaData,
+  JavaDoubleValue,
   JavaEnvironment,
-  JavaIntValue,
+  JavaFloatValue,
+  JavaNumericPrimitiveValue,
   JavaReferenceValue,
   JavaValue,
   JavaWrapperObject,
@@ -93,21 +95,28 @@ export const classMetaData: Record<string, ClassMetaData> = {
     interfaces: [],
     fields: [],
     methods: [
-      {
-        name: 'abs',
-        sig: {
-          params: [{ kind: 'primitive', prim: 'int' }],
-          ret: { kind: 'primitive', prim: 'int' },
-        },
-        handler: (_owner, args, _env) => {
-          const v = args[0] as JavaIntValue
-          const n = BigInt(v.value)
-          return {
-            type: 'int',
-            value: Number(BigInt.asIntN(32, n < 0n ? -n : n)),
-          }
-        },
-      },
+      absMethod('int', (v) => {
+        const n = BigInt(v.value)
+        return {
+          type: 'int',
+          value: Number(BigInt.asIntN(32, n < 0n ? -n : n)),
+        }
+      }),
+      absMethod('long', (v) => {
+        const n = BigInt(v.value)
+        return {
+          type: 'long',
+          value: BigInt.asIntN(64, n < 0n ? -n : n).toString(),
+        }
+      }),
+      absMethod('float', (v) => ({
+        type: 'float',
+        value: Math.abs((v as JavaFloatValue).value),
+      })),
+      absMethod('double', (v) => ({
+        type: 'double',
+        value: Math.abs((v as JavaDoubleValue).value),
+      })),
     ],
   },
 }
@@ -176,6 +185,23 @@ function buildToStringHandler(
         return { type: 'reference', ref }
       }
       throw 'Interner Systemfehler: ungültiger toString-Empfänger'
+    },
+  }
+}
+
+function absMethod(
+  prim: 'int' | 'long' | 'float' | 'double',
+  abs: (v: JavaNumericPrimitiveValue) => JavaNumericPrimitiveValue,
+): MethodMetaData {
+  return {
+    name: 'abs',
+    isStatic: true,
+    sig: {
+      params: [{ kind: 'primitive', prim }],
+      ret: { kind: 'primitive', prim },
+    },
+    handler(_owner, args) {
+      return abs(args[0] as JavaNumericPrimitiveValue)
     },
   }
 }

@@ -47,7 +47,6 @@ import type {
   TypedIndexNode,
   TypedUpdateNode,
   BinaryExpressionAstNode,
-  TypedClassReferenceNode,
 } from '../state/types'
 import { foldConstants } from './fold'
 import {
@@ -166,7 +165,26 @@ function typecheck_internal(
       )
     }
     case 'invoke':
-      const [type, inner, data] = typecheck_internal(node.owner, env)
+      const possibleTypeBinding =
+        node.owner.kind == 'identifier' && !env.local[node.owner.name]
+
+      let staticName = undefined
+
+      if (possibleTypeBinding) {
+        if (node.owner.kind == 'identifier') {
+          if (node.owner.name == 'Math') {
+            staticName = 'java.lang.Math'
+          }
+        }
+      }
+
+      const [type, inner, data]: TypecheckResult = staticName
+        ? [
+            'reference',
+            { kind: 'class-reference', name: staticName },
+            { kind: 'class', name: staticName },
+          ]
+        : typecheck_internal(node.owner, env)
 
       let className
       // first job: unbox and resolve to class name
@@ -226,6 +244,12 @@ function typecheck_internal(
           )
         }
         throw new Error(`Symbol nicht gefunden: Methode ${node.name}()`)
+      }
+
+      if (staticName && !methodMeta.isStatic) {
+        throw new Error(
+          `Nicht-statische Methode ${node.name} kann nicht über den Klassennamen aufgerufen werden`,
+        )
       }
 
       const ret = methodMeta.sig.ret
@@ -657,20 +681,6 @@ function typecheck_internal(
       )
     }
     case 'identifier': {
-      if (!env.local[node.name]) {
-        // special case for static class references
-        if (node.name == 'Math') {
-          const tn: TypedClassReferenceNode = {
-            kind: 'class-reference',
-            name: 'java.lang.Math',
-          }
-          // Also, ist das eigentlich ok? Weil wenn man versucht, dass auf den
-          // aufzurufen, dann schlägt das natürlich fehl.
-          // Aber das sollte ja 'eigentlich' nicht passieren, right?
-          // Oder ich muss an entsprechender Stelle einen guard einbauen
-          return ['reference', tn, { kind: 'class', name: 'java.lang.Math' }]
-        }
-      }
       const value = lookupLocal(node.name, env)
       if (value.type == 'reference') {
         const obj = env.heap[value.ref]

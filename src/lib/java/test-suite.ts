@@ -21,6 +21,8 @@ import { strings } from './tests/strings.ts'
 import { stringObjectModel } from './tests/string-object-model.ts'
 import { methodInvocation } from './tests/method-invocation.ts'
 import { mathAbs } from './tests/math-abs.ts'
+import { mathAbsValues } from './tests/math-abs-values.ts'
+import { mathAbsContext } from './tests/math-abs-context.ts'
 import { mathSymbol } from './tests/math-symbol.ts'
 import { equalsSubtle } from './tests/equals-subtle.ts'
 import { toStringCases } from './tests/to-string.ts'
@@ -59,6 +61,8 @@ export const testSuite: TestSuiteEntry[] = [
   ...stringObjectModel,
   ...methodInvocation,
   ...mathAbs,
+  ...mathAbsValues,
+  ...mathAbsContext,
   ...mathSymbol,
   ...equalsSubtle,
   ...toStringCases,
