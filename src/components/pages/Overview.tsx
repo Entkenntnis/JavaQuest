@@ -1,11 +1,11 @@
 import { useLayoutEffect, useRef } from 'react'
-import { faCircleDot } from '@fortawesome/free-solid-svg-icons'
 import { faJava } from '@fortawesome/free-brands-svg-icons'
 import { chaptersData } from '../../lib/content/chapters-data'
 import { questsData } from '../../lib/content/quests'
 import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
 import { FaIcon } from '../helper/FaIcon'
+import { ChapterDoodle } from '../helper/ChapterDoodle'
 
 const OVERVIEW_SCROLL_KEY = 'jq:overview-scroll'
 
@@ -41,14 +41,19 @@ export function Overview() {
         <h1 className="mb-6 text-3xl pl-4 mx-4 pt-8 border-b-2 border-pink-500 pb-3">
           JavaQuest "Alles Logisch"
         </h1>
-        <p className="italic text-center mb-20">
-          Lerne boolesche Ausdrücke und ihre Anwendung kennen.
-        </p>
+        <div className="text-center mb-20 px-6">
+          <p className="inline-block italic text-lg text-gray-700 bg-rose-50 border-2 border-dashed border-pink-200 rounded-3xl px-6 py-3 -rotate-1 shadow-sm">
+            Lernen wir gemeinsam, Ausdruck-für-Ausdruck! ♡
+          </p>
+        </div>
         {chaptersData.map((chapter, i) => {
           return (
             <div key={i} className="mt-28">
               <h2 className="sticky top-0 z-10 bg-white px-4 py-2 text-2xl border-b border-gray-100">
-                <FaIcon icon={faCircleDot} className="text-pink-600 mr-3" />
+                <ChapterDoodle
+                  index={i}
+                  className="inline-block h-[1.05em] w-[1.05em] mr-3 align-[-0.18em] text-pink-600"
+                />
                 <span className="text-gray-500">Kapitel {i + 1}:</span>{' '}
                 {chapter.title}
               </h2>
