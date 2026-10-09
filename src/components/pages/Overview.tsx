@@ -46,44 +46,47 @@ export function Overview() {
         </p>
         {chaptersData.map((chapter, i) => {
           return (
-            <div key={i} className="mt-28 border-b border-gray-200 pb-6">
-              <h2 className="px-4 text-2xl">
+            <div key={i} className={i === 0 ? 'mt-28' : ''}>
+              <h2 className="sticky top-0 z-10 bg-white px-4 py-2 text-2xl border-b border-gray-100">
                 <FaIcon icon={faCircleDot} className="text-pink-600 mr-3" />
                 <span className="text-gray-500">Kapitel {i + 1}:</span>{' '}
                 {chapter.title}
               </h2>
-              <div
-                className="
-                  ml-5 px-4 mr-5 mt-6 mb-4 pb-2 border-gray-400
-                  border rounded-lg [&>p]:mt-2
-                  [&_code]:text-orange-600
-                  [&_code]:whitespace-nowrap
-                  [&_a]:text-blue-500 [&_a]:hover:underline
-                "
-              >
-                {chapter.description()}
+              <div className="border-b border-gray-200 pb-6">
+                <div
+                  className="
+                    ml-5 px-4 mr-5 mt-6 mb-4 pb-2 border-gray-400
+                    border rounded-lg [&>p]:mt-2
+                    [&_code]:text-orange-600
+                    [&_code]:whitespace-nowrap
+                    [&_a]:text-blue-500 [&_a]:hover:underline
+                  "
+                >
+                  {chapter.description()}
+                </div>
+                <h3 className="px-6 mt-6 text-lg hidden">Aufgaben</h3>
+                {chapter.quests.map((q, j) => {
+                  const quest = questsData[q]
+                  return (
+                    <a
+                      key={j}
+                      className="px-6 mt-1 flex justify-between hover:bg-gray-100 py-2 cursor-pointer select-none"
+                      onClick={(e) => {
+                        navigate(core, `/quest-${quest.id}`)
+                        e.preventDefault()
+                      }}
+                    >
+                      <div>
+                        <span className="pl-1 pr-1.5 bg-pink-400 text-white font-bold rounded mr-3">
+                          {i + 1}.{j + 1}
+                        </span>
+                        {quest.title}
+                      </div>
+                    </a>
+                  )
+                })}
               </div>
-              <h3 className="px-6 mt-6 text-lg hidden">Aufgaben</h3>
-              {chapter.quests.map((q, j) => {
-                const quest = questsData[q]
-                return (
-                  <a
-                    key={j}
-                    className="px-6 mt-1 flex justify-between hover:bg-gray-100 py-2 cursor-pointer select-none"
-                    onClick={(e) => {
-                      navigate(core, `/quest-${quest.id}`)
-                      e.preventDefault()
-                    }}
-                  >
-                    <div>
-                      <span className="pl-1 pr-1.5 bg-pink-400 text-white font-bold rounded mr-3">
-                        {i + 1}.{j + 1}
-                      </span>
-                      {quest.title}
-                    </div>
-                  </a>
-                )
-              })}
+              <div className="h-28" aria-hidden="true" />
             </div>
           )
         })}
