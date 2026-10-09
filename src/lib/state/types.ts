@@ -157,6 +157,7 @@ export interface JavaLongValue {
 export interface JavaReferenceValue {
   type: 'reference'
   ref: string // <-- pointing to an entry on the heap
+  syntheticClassName?: string // <-- bypass heap, e.g. for type bindings
 }
 
 export interface JavaNullValue {
@@ -370,7 +371,11 @@ export type TypedNode<T extends JavaValue> =
       : never)
   | (T extends JavaLongFloatDoubleValue ? TypedUnaryPlusMinusNodeB<T> : never)
   | (T extends JavaReferenceValue
-      ? TypedLiteralStringNode | TypedStringConcatNodeL | TypedStringConcatNodeR
+      ?
+          | TypedLiteralStringNode
+          | TypedStringConcatNodeL
+          | TypedStringConcatNodeR
+          | TypedClassReferenceNode
       : never)
   | (T extends JavaNumericPrimitiveValue | JavaBooleanValue
       ? TypedUnboxCastNode
@@ -406,6 +411,11 @@ export type TypedNode<T extends JavaValue> =
 export interface TypedLiteralNode<T extends JavaAllowedLiteralValue> {
   kind: 'literal'
   value: T // <-- this is an important contract to avoid bypassing the expectation with literals
+}
+
+export interface TypedClassReferenceNode {
+  kind: 'class-reference'
+  name: string // e.g. 'java.lang.Math'
 }
 
 // The job of this node is to INTERN its value

@@ -1,6 +1,7 @@
 import type {
   ClassMetaData,
   JavaEnvironment,
+  JavaIntValue,
   JavaReferenceValue,
   JavaValue,
   JavaWrapperObject,
@@ -86,6 +87,29 @@ export const classMetaData: Record<string, ClassMetaData> = {
   'java.lang.Float': buildWrapper('java.lang.Float'),
   'java.lang.Double': buildWrapper('java.lang.Double'),
   'java.lang.Boolean': buildWrapper('java.lang.Boolean'),
+  'java.lang.Math': {
+    name: 'java.lang.Math',
+    superClass: 'java.lang.Object',
+    interfaces: [],
+    fields: [],
+    methods: [
+      {
+        name: 'abs',
+        sig: {
+          params: [{ kind: 'primitive', prim: 'int' }],
+          ret: { kind: 'primitive', prim: 'int' },
+        },
+        handler: (_owner, args, _env) => {
+          const v = args[0] as JavaIntValue
+          const n = BigInt(v.value)
+          return {
+            type: 'int',
+            value: Number(BigInt.asIntN(32, n < 0n ? -n : n)),
+          }
+        },
+      },
+    ],
+  },
 }
 
 function buildWrapper(className: JavaWrapperObject['class']): ClassMetaData {

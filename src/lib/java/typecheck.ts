@@ -47,6 +47,7 @@ import type {
   TypedIndexNode,
   TypedUpdateNode,
   BinaryExpressionAstNode,
+  TypedClassReferenceNode,
 } from '../state/types'
 import { foldConstants } from './fold'
 import {
@@ -656,6 +657,20 @@ function typecheck_internal(
       )
     }
     case 'identifier': {
+      if (!env.local[node.name]) {
+        // special case for static class references
+        if (node.name == 'Math') {
+          const tn: TypedClassReferenceNode = {
+            kind: 'class-reference',
+            name: 'java.lang.Math',
+          }
+          // Also, ist das eigentlich ok? Weil wenn man versucht, dass auf den
+          // aufzurufen, dann schlägt das natürlich fehl.
+          // Aber das sollte ja 'eigentlich' nicht passieren, right?
+          // Oder ich muss an entsprechender Stelle einen guard einbauen
+          return ['reference', tn, { kind: 'class', name: 'java.lang.Math' }]
+        }
+      }
       const value = lookupLocal(node.name, env)
       if (value.type == 'reference') {
         const obj = env.heap[value.ref]

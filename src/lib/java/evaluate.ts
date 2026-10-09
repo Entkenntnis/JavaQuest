@@ -80,6 +80,9 @@ function evaluate_internal(
       }
       return { type: 'reference', ref }
     }
+    case 'class-reference': {
+      return { type: 'reference', ref: '---', syntheticClassName: node.name }
+    }
     case 'unary': {
       switch (node.op) {
         case '+': {
@@ -502,9 +505,11 @@ function evaluate_internal(
           env,
         ),
       )
-      const obj = env.heap[owner.ref]
+      const className = owner.syntheticClassName
+        ? owner.syntheticClassName
+        : env.heap[owner.ref].class
       let handler = findMethod(
-        obj.class,
+        className,
         node.name,
         node.resolvedSignature.params,
       )!.handler
