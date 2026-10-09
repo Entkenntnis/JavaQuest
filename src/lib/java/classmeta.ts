@@ -9,6 +9,7 @@ import type {
   JavaWrapperObject,
   MethodMetaData,
 } from '../state/types'
+import { equalsIgnoreCase } from './helper/equals-ignore-case'
 import { freshHeapRef } from './helper/heap'
 import { javaValueToString } from './helper/print'
 
@@ -77,6 +78,75 @@ export const classMetaData: Record<string, ClassMetaData> = {
         },
         handler: (owner, _args, _env) => {
           return owner
+        },
+      },
+      {
+        name: 'length',
+        sig: { params: [], ret: { kind: 'primitive', prim: 'int' } },
+        handler(owner, _args, env) {
+          const obj = env.heap[owner.ref]
+          if (obj.class != 'java.lang.String') {
+            throw 'Interner Systemfehler: ungültiger String-Aufruf'
+          }
+          return { type: 'int', value: obj.value.length }
+        },
+      },
+      {
+        name: 'isEmpty',
+        sig: { params: [], ret: { kind: 'primitive', prim: 'boolean' } },
+        handler(owner, _args, env) {
+          const obj = env.heap[owner.ref]
+          if (obj.class != 'java.lang.String') {
+            throw 'Interner Systemfehler: ungültiger String-Aufruf'
+          }
+          return { type: 'boolean', value: obj.value.length === 0 }
+        },
+      },
+      {
+        name: 'contains',
+        sig: {
+          params: [{ kind: 'class', name: 'java.lang.String' }],
+          ret: { kind: 'primitive', prim: 'boolean' },
+        },
+        handler(owner, args, env) {
+          const own = env.heap[owner.ref]
+          if (own.class != 'java.lang.String') {
+            throw 'Interner Systemfehler: ungültiger String-Aufruf'
+          }
+          const other = args[0]
+          if (other.type != 'reference') {
+            throw new Error('java.lang.NullPointerException')
+          }
+          const obj = env.heap[other.ref]
+          if (obj.class != 'java.lang.String') {
+            throw 'Interner Systemfehler: ungültiger String-Aufruf'
+          }
+          return { type: 'boolean', value: own.value.includes(obj.value) }
+        },
+      },
+      {
+        name: 'equalsIgnoreCase',
+        sig: {
+          params: [{ kind: 'class', name: 'java.lang.String' }],
+          ret: { kind: 'primitive', prim: 'boolean' },
+        },
+        handler(owner, args, env) {
+          const own = env.heap[owner.ref]
+          if (own.class != 'java.lang.String') {
+            throw 'Interner Systemfehler: ungültiger String-Aufruf'
+          }
+          const other = args[0]
+          if (other.type != 'reference') {
+            throw new Error('java.lang.NullPointerException')
+          }
+          const obj = env.heap[other.ref]
+          if (obj.class != 'java.lang.String') {
+            throw 'Interner Systemfehler: ungültiger String-Aufruf'
+          }
+          return {
+            type: 'boolean',
+            value: equalsIgnoreCase(own.value, obj.value),
+          }
         },
       },
     ],

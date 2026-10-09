@@ -66,3 +66,13 @@ export function doubleEnv(...entries: [string, number][]): JavaEnvironment {
     ]),
   )
 }
+
+export function stringEnv(...entries: [string, string][]): JavaEnvironment {
+  const result: JavaEnvironment = { local: {}, heap: {} }
+  for (const [name, value] of entries) {
+    const ref = `heap${Object.keys(result.heap).length}`
+    result.heap[ref] = { class: 'java.lang.String', value, isInterned: true }
+    result.local[name] = { type: 'reference', ref }
+  }
+  return result
+}

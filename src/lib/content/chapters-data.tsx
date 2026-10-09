@@ -91,15 +91,15 @@ export const chaptersData: ChapterData[] = [
     ),
   },
   {
-    title: 'Zeichenketten (Strings)',
+    title: 'Zeichenketten (String)',
     quests: [100], // TODO: Aufgaben anlegen
     description: () => (
       <>
         <p>
           Zeichenketten („Texte“) werden in Java als <code>String</code>{' '}
-          gespeichert. Diese haben als Objekte eine Besonderheit: Um zwei
-          Zeichenketten zu vergleichen, musst du die Methode{' '}
-          <code>str.equals(other)</code> aufrufen.
+          gespeichert. Diese haben eine Besonderheit: Weil sie Objekte sind,
+          brauchst zum Vergleich zweier Zeichenketten die Methode{' '}
+          <code>str.equals(other)</code>.
         </p>
         <p>
           Außerdem gibt es weitere{' '}

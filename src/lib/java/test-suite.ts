@@ -27,6 +27,7 @@ import { mathSymbol } from './tests/math-symbol.ts'
 import { mathSqrtPow } from './tests/math-sqrt-pow.ts'
 import { equalsSubtle } from './tests/equals-subtle.ts'
 import { toStringCases } from './tests/to-string.ts'
+import { stringMethods } from './tests/string-methods.ts'
 import { regressionAndErrors } from './tests/regression-and-errors.ts'
 import { assignmentBasic } from './tests/assignment-basic.ts'
 import { compoundAssignment } from './tests/compound-assignment.ts'
@@ -68,6 +69,7 @@ export const testSuite: TestSuiteEntry[] = [
   ...mathSqrtPow,
   ...equalsSubtle,
   ...toStringCases,
+  ...stringMethods,
   ...regressionAndErrors,
   ...assignmentBasic,
   ...compoundAssignment,
