@@ -46,7 +46,7 @@ export function Overview() {
         </p>
         {chaptersData.map((chapter, i) => {
           return (
-            <div key={i} className={i === 0 ? 'mt-28' : ''}>
+            <div key={i} className="mt-28">
               <h2 className="sticky top-0 z-10 bg-white px-4 py-2 text-2xl border-b border-gray-100">
                 <FaIcon icon={faCircleDot} className="text-pink-600 mr-3" />
                 <span className="text-gray-500">Kapitel {i + 1}:</span>{' '}
@@ -86,7 +86,6 @@ export function Overview() {
                   )
                 })}
               </div>
-              <div className="h-28" aria-hidden="true" />
             </div>
           )
         })}
