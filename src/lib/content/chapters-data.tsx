@@ -121,7 +121,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Felder (Arrays)',
-    quests: [47, 48, 49, 50, 51, 52],
+    quests: [47, 48, 49, 50, 51, 52, 53, 54],
     description: () => (
       <>
         <p>

@@ -12,7 +12,7 @@ class Summe {
     int berechneSumme(int[] arr) {
         int ergebnis = 0;
         for (int i = 0; ___placeholder___; i++) {
-            ergebnis += arr[i]
+            ergebnis += arr[i];
         }
         return ergebnis;
     }
@@ -286,6 +286,182 @@ class Echo {
         if (oracle(env)) return 'Erwarte genau 1 Argument.'
         if (args.length == 0) return '<ArrayIndexOutOfBoundsException>'
         return 'Echo: ' + args[0]
+      },
+    },
+  },
+
+  53: {
+    id: 53,
+    title: 'Klon',
+    code: `
+class Klon {
+    // a und b enthalten den gleichen Inhalt
+    boolean istKlon(int[] a, int[] b) {
+        if (a.length != b.length) {
+            return false;
+        }
+        for (int i = 0; i < a.length; i++) {
+            if (___placeholder___) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+    `.trim(),
+    checker: {
+      reference: 'a[i] != b[i]',
+      data: [
+        [
+          [1, 2, 3],
+          [1, 2, 3],
+        ],
+        [
+          [1, 2, 3],
+          [3, 2, 1],
+        ],
+        [
+          [1, 2, 3],
+          [1, 2, 4],
+        ],
+        [
+          [1, 2, 3, 4],
+          [1, 2, 3, 4],
+        ],
+        [
+          [1, 2, 3, 4],
+          [1, 2, 3, 0],
+        ],
+        [
+          [1, 2, 1],
+          [1, 2, 1],
+        ],
+        [[5], [5]],
+        [[5], [6]],
+        [[], []],
+        [[1, 2], [1]],
+        [[1], [1, 2]],
+        [[0], [0]],
+        [
+          [1, 2],
+          [2, 1],
+        ],
+        [
+          [-1, -2, -3],
+          [-1, -2, -3],
+        ],
+        [
+          [-1, -2, -3],
+          [1, 2, 3],
+        ],
+        [
+          [2147483647, -2147483648],
+          [2147483647, -2147483648],
+        ],
+        [
+          [2147483647, -2147483648],
+          [-2147483648, 2147483647],
+        ],
+      ],
+      params: ['a', 'b'],
+      driver(el, oracle) {
+        const [a, b] = el
+        if (a.length != b.length) return 'false'
+        for (let i = 0; i < a.length; i++) {
+          const env = mergeEnv(
+            intArrayEnv('a', a),
+            intArrayEnv('b', b),
+            intEnv(['i', i]),
+          )
+          if (oracle(env)) return 'false'
+        }
+        return 'true'
+      },
+    },
+  },
+
+  54: {
+    id: 54,
+    title: 'Spiegelbild',
+    code: `
+class Spiegelbild {
+    // a und b sind zueinander gespiegelt
+    boolean istSpiegelbild(int[] a, int[] b) {
+        if (a.length != b.length) {
+            return false;
+        }
+        for (int i = 0; i < a.length; i++) {
+            if (___placeholder___) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+    `.trim(),
+    checker: {
+      reference: 'a[i] != b[b.length - 1 - i]',
+      data: [
+        [
+          [1, 2, 3],
+          [3, 2, 1],
+        ],
+        [
+          [1, 2, 3],
+          [1, 2, 3],
+        ],
+        [
+          [1, 2, 3, 4],
+          [4, 3, 2, 1],
+        ],
+        [
+          [1, 2, 3, 4],
+          [4, 3, 2, 0],
+        ],
+        [
+          [1, 2, 1],
+          [1, 2, 1],
+        ],
+        [[5], [5]],
+        [[5], [6]],
+        [[], []],
+        [[1, 2], [1]],
+        [[1], [1, 2]],
+        [[0], [0]],
+        [
+          [1, 2],
+          [2, 1],
+        ],
+        [
+          [-1, -2, -3],
+          [-3, -2, -1],
+        ],
+        [
+          [-1, -2, -3],
+          [3, 2, 1],
+        ],
+        [
+          [2147483647, -2147483648],
+          [-2147483648, 2147483647],
+        ],
+        [
+          [2147483647, -2147483648],
+          [2147483647, -2147483648],
+        ],
+      ],
+      params: ['a', 'b'],
+      driver(el, oracle) {
+        const [a, b] = el
+        if (a.length != b.length) return 'false'
+        for (let i = 0; i < a.length; i++) {
+          const env = mergeEnv(
+            intArrayEnv('a', a),
+            intArrayEnv('b', b),
+            intEnv(['i', i]),
+          )
+          if (oracle(env)) return 'false'
+        }
+        return 'true'
       },
     },
   },
