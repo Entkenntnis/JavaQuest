@@ -116,10 +116,10 @@ export function rawStringsEnv(
 export function stringArrayEnv(name: string, values: string[]): JavaEnvironment {
   const ref = `array_${name}`
   const heap: JavaEnvironment['heap'] = {}
-  const elements = values.map((value, i) => {
+  const elements = values.map((value, i): JavaValue => {
     const objRef = `array_${name}_${i}`
     heap[objRef] = { class: 'java.lang.String', value, isInterned: true }
-    return { type: 'reference', ref: objRef } as JavaValue
+    return { type: 'reference', ref: objRef }
   })
   heap[ref] = {
     class: 'java.lang.String[]',
