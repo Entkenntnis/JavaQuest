@@ -184,6 +184,16 @@ export function cst2ast(node: CstNode): AstNode {
   } else if (node.name == 'ArrayAccess') {
     const [base, , index] = node.children
     return { kind: 'index', array: cst2ast(base), index: cst2ast(index) }
+  } else if (node.name == 'FieldAccess') {
+    const [base, , fieldNode] = node.children
+    // for the future
+    // if (base.name == 'super' || fieldNode.name == 'this') {
+    //   throw conversionError(
+    //     node,
+    //     'super/this an dieser Stelle nicht unterstützt',
+    //   )
+    // }
+    return { kind: 'field', target: cst2ast(base), name: fieldNode.text }
   }
   throw 'Interner Systemfehler: nicht unterstützter Ausdruck, ' + node.name
 }

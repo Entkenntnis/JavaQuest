@@ -515,6 +515,22 @@ function evaluate_internal(
       )!.handler
       return handler(owner, args, env)
     }
+    case 'field': {
+      const target = evaluate(node.target, env)
+      if (target.type == 'null') {
+        throw new Error(
+          `java.lang.NullPointerException: Feld ${node.name} kann nicht gelesen werden, weil der Empfänger null ist`,
+        )
+      }
+      if (target.type != 'reference') {
+        throw 'Interner Systemfehler: primitiver Feld-Empfänger unerwartet'
+      }
+      const obj = env.heap[target.ref]
+      if ('isArray' in obj && obj.isArray && node.name == 'length') {
+        return { type: 'int', value: obj.elements.length }
+      }
+      throw 'Interner Systemfehler: unbekanntes Feld'
+    }
     case 'ternary': {
       const cond = unboxBoolean(evaluate(node.condition, env))
       let raw

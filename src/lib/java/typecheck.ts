@@ -48,6 +48,7 @@ import type {
   TypedUpdateNode,
   BinaryExpressionAstNode,
   TypeWithNull,
+  TypedFieldAccessNode,
 } from '../state/types'
 import { foldConstants } from './fold'
 import {
@@ -191,7 +192,7 @@ function typecheck_internal(
       // first job: unbox and resolve to class name
       if (type == 'reference') {
         if (data.kind == 'array') {
-          throw 'Interner Systemfehler: Methodenaufruf auf Arrays wird noch nicht unterstützt'
+          throw `Symbol nicht gefunden: Methode ${node.name}()`
         }
         className = data.name
       }
@@ -808,6 +809,34 @@ function typecheck_internal(
       }
 
       return resultFromType(arrData.elem, tn)
+    }
+    case 'field': {
+      const [targetT, targetNode, targetData] = typecheck_internal(
+        node.target,
+        env,
+      )
+
+      if (
+        targetT == 'reference' &&
+        targetData &&
+        targetData.kind == 'array' &&
+        node.name == 'length'
+      ) {
+        const tn: TypedFieldAccessNode = {
+          kind: 'field',
+          target: targetNode,
+          name: 'length',
+        }
+        return ['int', tn]
+      }
+
+      if (targetT != 'reference') {
+        throw new Error(
+          `${printType(strDatToDisplType(targetT, targetData))} kann nicht dereferenziert werden`,
+        )
+      }
+
+      throw new Error(`Symbol nicht gefunden: Feld ${node.name}`)
     }
     case 'ternary': {
       const [condT, condV, condData] = typecheck_internal(node.condition, env)

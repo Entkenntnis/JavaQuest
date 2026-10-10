@@ -12,8 +12,20 @@ const testEnv: JavaEnvironment = {
   local: {
     zahl: { type: 'int', value: 42 },
     a: { type: 'int', value: 1000, boxed: true },
+    arr: { type: 'reference', ref: 'arr' },
   },
-  heap: {},
+  heap: {
+    arr: {
+      class: 'int[]',
+      isArray: true,
+      type: { kind: 'primitive', prim: 'int' },
+      elements: [
+        { type: 'int', value: 1 },
+        { type: 'int', value: 2 },
+        { type: 'int', value: 3 },
+      ],
+    },
+  },
 }
 
 export function Test() {

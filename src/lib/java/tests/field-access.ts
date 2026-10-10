@@ -4,6 +4,7 @@ import {
   arrayEnvWithLocals,
   arrayObject,
   ints,
+  longs,
 } from './array-fixtures.ts'
 
 // ==================== FIELD ACCESS: GENERIC NEGATIVE RULES ====================
@@ -22,6 +23,7 @@ import {
 
 const a = arrayObject('int', ints([1, 2, 3]))
 const b = arrayObject('int', ints([10, 20, 30, 40]))
+const c = arrayObject('long', longs(['100', '200', '300']))
 
 export const fieldAccess: TestSuiteEntry[] = [
   // ------------------------- parenthesized receivers are still fields (valid) -------------------------
@@ -166,5 +168,79 @@ export const fieldAccess: TestSuiteEntry[] = [
     code: `true || ((a[0]).length == 0)`,
     error: 'compile',
     env: arrayEnv({ a }),
+  },
+  // ------------------------- the int result cannot be used as a receiver / index -------------------------
+  {
+    code: `true || (a.length.toString() == "3")`,
+    error: 'compile',
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `true || (a.length.equals(3))`,
+    error: 'compile',
+    env: arrayEnv({ a }),
+  },
+  { code: `true || (a.length[0] == 0)`, error: 'compile', env: arrayEnv({ a }) },
+  // ------------------------- the int result is incompatible with boolean / String / null -------------------------
+  {
+    code: `true || (a.length == true)`,
+    error: 'compile',
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `true || (a.length == "x")`,
+    error: 'compile',
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `true || (a.length + true)`,
+    error: 'compile',
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `true || (a.length == null)`,
+    error: 'compile',
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `true || (null == a.length)`,
+    error: 'compile',
+    env: arrayEnv({ a }),
+  },
+  // ------------------------- a parenthesized lvalue is still the final field -------------------------
+  {
+    code: `true || ((a.length) = 5)`,
+    error: 'compile',
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `true || ((a.length) += 1)`,
+    error: 'compile',
+    env: arrayEnv({ a }),
+  },
+  // ------------------------- the int result is not assignable to an array -------------------------
+  {
+    code: `true || (b = a.length)`,
+    error: 'compile',
+    env: arrayEnv({ a, b }),
+  },
+  {
+    code: `true || (b = a.length + 0)`,
+    error: 'compile',
+    env: arrayEnv({ a, b }),
+  },
+  // ------------------------- bare null literal is not a receiver -------------------------
+  { code: `true || (null.length == 0)`, error: 'compile', env: arrayEnv({}) },
+  // ------------------------- mixed-component conditional degrades to Object, so `.length` is gone -------------------------
+  {
+    code: `true || ((true ? a : c).length == 0)`,
+    error: 'compile',
+    env: arrayEnv({ a, c }),
+  },
+  // ------------------------- the int result cannot be stored in a boolean -------------------------
+  {
+    code: `true || (bo = a.length)`,
+    error: 'compile',
+    env: arrayEnvWithLocals({ a }, { bo: { type: 'boolean', value: true } }),
   },
 ]

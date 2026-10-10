@@ -30,6 +30,7 @@ const one = arrayObject('int', ints([42]))
 const empty = arrayObject('int', ints([]))
 const c = arrayObject('long', longs(['100', '200', '300']))
 const d = arrayObject('boolean', booleans([true, false, true]))
+const shared = arrayObject('int', ints([1, 2, 3]))
 
 export const arrayLength: TestSuiteEntry[] = [
   // ------------------------- basics -------------------------
@@ -284,6 +285,237 @@ export const arrayLength: TestSuiteEntry[] = [
     code: `(a = b).length + b.length`,
     output: { type: 'int', value: 8 },
     env: arrayEnv({ a, b }),
+  },
+  // ------------------------- conditional receivers -------------------------
+  {
+    code: `(true ? a : b).length`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnv({ a, b }),
+  },
+  {
+    code: `(false ? a : b).length`,
+    output: { type: 'int', value: 4 },
+    env: arrayEnv({ a, b }),
+  },
+  {
+    code: `(a[0] > 0 ? a : b).length`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnv({ a, b }),
+  },
+  // ------------------------- parenthesized / spaced / commented field access -------------------------
+  { code: `(a.length)`, output: { type: 'int', value: 3 }, env: arrayEnv({ a }) },
+  {
+    code: `((a.length))`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnv({ a }),
+  },
+  { code: `a . length`, output: { type: 'int', value: 3 }, env: arrayEnv({ a }) },
+  {
+    code: `a./* still the field */length`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnv({ a }),
+  },
+  // ------------------------- interaction with boxed values (unboxing) -------------------------
+  {
+    code: `a.length + bi`,
+    output: { type: 'int', value: 8 },
+    env: arrayEnvWithLocals(
+      { a },
+      { bi: { type: 'int', value: 5, boxed: true } },
+    ),
+  },
+  {
+    code: `bi + a.length`,
+    output: { type: 'int', value: 8 },
+    env: arrayEnvWithLocals(
+      { a },
+      { bi: { type: 'int', value: 5, boxed: true } },
+    ),
+  },
+  {
+    code: `a.length == bi`,
+    output: { type: 'boolean', value: true },
+    env: arrayEnvWithLocals(
+      { a },
+      { bi: { type: 'int', value: 3, boxed: true } },
+    ),
+  },
+  {
+    code: `a.length == bi`,
+    output: { type: 'boolean', value: false },
+    env: arrayEnvWithLocals(
+      { a },
+      { bi: { type: 'int', value: 4, boxed: true } },
+    ),
+  },
+  // ------------------------- length stored into / accumulated in an int local -------------------------
+  {
+    code: `i = a.length`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnvWithLocals({ a }, { i: { type: 'int', value: 0 } }),
+  },
+  {
+    code: `i += a.length`,
+    output: { type: 'int', value: 4 },
+    env: arrayEnvWithLocals({ a }, { i: { type: 'int', value: 1 } }),
+  },
+  {
+    code: `i = b.length`,
+    output: { type: 'int', value: 4 },
+    env: arrayEnvWithLocals({ b }, { i: { type: 'int', value: 0 } }),
+  },
+  // ------------------------- length as a method argument -------------------------
+  {
+    code: `Math.abs(a.length)`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnv({ a }),
+  },
+  // ------------------------- empty / one-element arrays -------------------------
+  {
+    code: `empty.length + 1`,
+    output: { type: 'int', value: 1 },
+    env: arrayEnv({ empty }),
+  },
+  {
+    code: `one.length * 3`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnv({ one }),
+  },
+  // ------------------------- nested index expressions using length -------------------------
+  {
+    code: `b[a[a.length - 3]]`,
+    output: { type: 'int', value: 20 },
+    env: arrayEnv({ a, b }),
+  },
+  // ------------------------- an element write does not change the length -------------------------
+  {
+    code: `(a[0] = 99) == 99 && a.length == 3`,
+    output: { type: 'boolean', value: true },
+    env: arrayEnv({ a }),
+  },
+  // ------------------------- ternary with a null branch keeps the int result -------------------------
+  {
+    code: `true ? a.length : null`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnv({ a }),
+  },
+  // ------------------------- short-circuit / untaken branch skips the field read -------------------------
+  {
+    code: `false && (a = null).length == 0`,
+    output: { type: 'boolean', value: false },
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `true || (a = null).length == 0`,
+    output: { type: 'boolean', value: true },
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `true ? a.length : (a = null).length`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `false ? (a = null).length : b.length`,
+    output: { type: 'int', value: 4 },
+    env: arrayEnv({ a, b }),
+  },
+  // ------------------------- conditional with a null branch -------------------------
+  {
+    code: `(true ? a : null).length`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnv({ a }),
+  },
+  // ------------------------- length through an alias after the alias is re-pointed -------------------------
+  {
+    code: `(q = b).length + p.length`,
+    output: { type: 'int', value: 7 },
+    env: arrayEnv({ p: shared, q: { aliasOf: 'p' }, b }),
+  },
+  // ------------------------- casting / char comparison of the int result -------------------------
+  {
+    code: `(long) a.length + 1`,
+    output: { type: 'long', value: '4' },
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `a.length == 'c'`,
+    output: { type: 'boolean', value: false },
+    env: arrayEnv({ a }),
+  },
+  // ------------------------- narrow / boxed destinations for the stored int -------------------------
+  {
+    code: `by += a.length`,
+    output: { type: 'byte', value: 4 },
+    env: arrayEnvWithLocals({ a }, { by: { type: 'byte', value: 1 } }),
+  },
+  {
+    code: `ch += a.length`,
+    output: { type: 'char', value: 100 },
+    env: arrayEnvWithLocals({ a }, { ch: { type: 'char', value: 97 } }),
+  },
+  {
+    code: `bi2 = a.length`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnvWithLocals(
+      { a },
+      { bi2: { type: 'int', value: 0, boxed: true } },
+    ),
+  },
+  // ------------------------- runtime: arithmetic on the int result -------------------------
+  {
+    code: `a.length / 0`,
+    error: 'runtime',
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `a.length % 0`,
+    error: 'runtime',
+    env: arrayEnv({ a }),
+  },
+  // ------------------------- cross-feature: length stored through an index target -------------------------
+  {
+    code: `a[0] = b.length`,
+    output: { type: 'int', value: 4 },
+    env: arrayEnv({ a, b }),
+  },
+  {
+    code: `a[0] += b.length`,
+    output: { type: 'int', value: 5 },
+    env: arrayEnv({ a, b }),
+  },
+  {
+    code: `a[b.length - 4] = b.length`,
+    output: { type: 'int', value: 4 },
+    env: arrayEnv({ a, b }),
+  },
+  // ------------------------- evaluation order across two reassignments -------------------------
+  {
+    code: `(a = b).length + (a = one).length`,
+    output: { type: 'int', value: 5 },
+    env: arrayEnv({ a, b, one }),
+  },
+  // ------------------------- length of an empty / single-element array -------------------------
+  {
+    code: `empty.length - 1`,
+    output: { type: 'int', value: -1 },
+    env: arrayEnv({ empty }),
+  },
+  {
+    code: `one.length + one.length`,
+    output: { type: 'int', value: 2 },
+    env: arrayEnv({ one }),
+  },
+  // ------------------------- runtime: length used as an out-of-range bound -------------------------
+  {
+    code: `a[b.length - 1]`,
+    error: 'runtime',
+    env: arrayEnv({ a, b }),
+  },
+  {
+    code: `a[a.length - 4]`,
+    error: 'runtime',
+    env: arrayEnv({ a }),
   },
   // ------------------------- runtime: null array reference (NPE) -------------------------
   // `(a = null)` still has static type int[], so `.length` compiles and throws at run time.

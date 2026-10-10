@@ -332,6 +332,12 @@ export interface IndexExpressionAstNode {
   index: AstNode
 }
 
+export interface FieldAccessAstNode {
+  kind: 'field'
+  target: AstNode
+  name: string
+}
+
 export type AstNode =
   | LiteralAstNode
   | LiteralStringAstNode
@@ -344,6 +350,7 @@ export type AstNode =
   | AssignmentExpressionAstNode
   | UpdateExpressionAstNode
   | IndexExpressionAstNode
+  | FieldAccessAstNode
 
 // ----------------------------
 
@@ -364,6 +371,7 @@ export type TypedNode<T extends JavaValue> =
   | TypedMethodInvocationNode
   | TypedAssignNode
   | TypedUpdateNode // <-- we would be more strict, but this would make types later on unbearable difficult
+  | TypedFieldAccessNode
   | TypedIndexNode
   | (T extends JavaAllowedLiteralValue ? TypedLiteralNode<T> : never)
   | (T extends JavaNumericPrimitiveValue
@@ -651,6 +659,12 @@ export interface TypedUpdateNode {
   lval: TypedIndexNode | TypedIdentifierNode
   op: '++' | '--'
   prefix: boolean
+}
+
+export interface TypedFieldAccessNode {
+  kind: 'field'
+  target: TypedNode<JavaReferenceValue | JavaNullValue>
+  name: 'length' // <--- currently the only support operator
 }
 
 export type TypecheckResult =
