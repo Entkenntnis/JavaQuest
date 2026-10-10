@@ -91,7 +91,7 @@ export const chaptersData: ChapterData[] = [
     ),
   },
   {
-    title: 'Zeichenketten (String)',
+    title: 'Zeichenketten (Strings)',
     quests: [46, 37, 38, 39, 40, 41, 42, 43, 44, 45],
     description: () => (
       <>
@@ -121,15 +121,19 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Felder (Arrays)',
-    quests: [],
+    quests: [47, 48, 49, 50, 51, 52],
     description: () => (
       <>
         <p>
-          Im wesentlichen also Zugriff über Index <code>arr[i]</code> und die
-          Abfrage der Länge mit <code>arr.length</code>. Ansonsten weiß ich gar
-          nicht, was es da viel zu erzählen gibt. Arrays können von
-          verschiedenen Typen sein. Die Erzeugung von Arrays liegt nicht in
-          meinem Zuständigkeitsbereich.
+          In einem Feld (z.&#8239;B.{' '}
+          <code>
+            int[] arr = {'{'}1, 2, 3{'}'}
+          </code>
+          ) werden mehrere Werte gemeinsam in einer Variablen gespeichert. Diese
+          Werte sind von 0 beginnend durchnummeriert und können mit{' '}
+          <code>arr[index]</code> gelesen und geschrieben werden. Auf die Länge
+          des Felds greifst du mit <code>arr.length</code> zu (beachte: keine
+          Methode, sondern ein Attribut).
         </p>
       </>
     ),

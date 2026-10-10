@@ -76,7 +76,7 @@ export function check(core: Core) {
             ? ''
             : (Array.isArray(el) ? el : [el])
                 .map((value, i) => {
-                  return `${quest.checker.params?.[i] ?? 'arg' + i} = ${value}`
+                  return `${quest.checker.params?.[i] ?? 'arg' + i} = ${Array.isArray(value) ? `[${value.join(', ')}]` : value}`
                 })
                 .join(', '),
       })

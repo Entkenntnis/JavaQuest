@@ -1,5 +1,12 @@
 import type { QuestData } from '../../state/types'
-import { intEnv, mergeEnv, rawStringsEnv, stringEnv } from './helpers'
+import {
+  intEnv,
+  mergeEnv,
+  rawStringsEnv,
+  readIntLocal,
+  readStringLocal,
+  stringEnv,
+} from './helpers'
 
 const MAX_ITER = 1000
 
@@ -233,19 +240,23 @@ class LeftPad {
       ],
       params: ['text', 'länge'],
       driver(el, oracle) {
-        const [text, länge] = el
-        let ergebnis = text
+        const [text0, länge0] = el
+        let text = text0
+        let ergebnis = text0
+        let länge = länge0
         let schritte = 0
-        while (
-          oracle(
-            mergeEnv(
-              stringEnv(['text', text], ['ergebnis', ergebnis]),
-              intEnv(['länge', länge]),
-            ),
+        while (true) {
+          const env = mergeEnv(
+            stringEnv(['text', text], ['ergebnis', ergebnis]),
+            intEnv(['länge', länge]),
           )
-        ) {
-          ergebnis = '_' + ergebnis
+          const weiter = oracle(env)
+          text = readStringLocal(env, 'text', text)
+          ergebnis = readStringLocal(env, 'ergebnis', ergebnis)
+          länge = readIntLocal(env, 'länge', länge)
+          if (!weiter) break
           if (++schritte > MAX_ITER) return '<Endlosschleife>'
+          ergebnis = '_' + ergebnis
         }
         return ergebnis
       },
