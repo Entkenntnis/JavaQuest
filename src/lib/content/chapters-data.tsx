@@ -92,7 +92,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Zeichenketten (String)',
-    quests: [100], // TODO: Aufgaben anlegen
+    quests: [37, 38, 39, 40, 41, 42, 43],
     description: () => (
       <>
         <p>
