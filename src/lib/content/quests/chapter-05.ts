@@ -14,7 +14,7 @@ class Gleichheit {
         if (___placeholder___) {
             System.out.println("Sie sind gleich.");
         } else {
-            System.out.println("String sind ungleich.");
+            System.out.println("Strings sind ungleich.");
         }
     }
 }
@@ -45,7 +45,7 @@ class Gleichheit {
         if (oracle(rawStringsEnv(['a', a], ['b', b]))) {
           return 'Sie sind gleich.'
         }
-        return 'String sind ungleich.'
+        return 'Strings sind ungleich.'
       },
     },
   },
@@ -135,6 +135,9 @@ class Passwortsicherheit2 {
         '',
         'a',
         'kurz',
+        'a!',
+        'kurz!',
+        '12345!',
         'kurzesPasswort',
         'kurzesPasswort!',
         'genau12Zeich',
@@ -288,6 +291,133 @@ class EmailCheck {
           return 'Könnt ne Mail sein'
         }
         return 'nope'
+      },
+    },
+  },
+
+  44: {
+    id: 44,
+    title: 'Suchbegriff',
+    code: `
+class Suchbegriff {
+    // Der Begriff ist im Text enthalten
+    // Der Begriff darf nicht leer sein
+    void kommtVor(String text, String begriff) {
+        if (___placeholder___) {
+            System.out.println("Gefunden!");
+        } else {
+            System.out.println("Fehlanzeige");
+        }
+    }
+}
+    `.trim(),
+    checker: {
+      reference: '!begriff.isEmpty() && text.contains(begriff)',
+      data: [
+        ['Hallo Welt', 'Welt'],
+        ['Hallo Welt', 'welt'],
+        ['Hallo Welt', 'W'],
+        ['Hallo Welt', ''],
+        ['Hallo Welt', 'Hallo Welt'],
+        ['', ''],
+        ['', 'a'],
+        ['abc', 'abc'],
+        ['abc', 'abcd'],
+        ['abc', 'bc'],
+        ['JavaQuest', 'Java'],
+        ['Programmieren', 'gramm'],
+        ['😀😁', '😁'],
+        ['😀😁', '😂'],
+      ],
+      params: ['text', 'begriff'],
+      driver(el, oracle) {
+        const [text, begriff] = el
+        if (oracle(stringEnv(['text', text], ['begriff', begriff]))) {
+          return 'Gefunden!'
+        }
+        return 'Fehlanzeige'
+      },
+    },
+  },
+
+  45: {
+    id: 45,
+    title: 'Längenvergleich',
+    code: `
+class Längenvergleich {
+    void vergleiche(String a, String b) {
+        if (___placeholder___) {
+            System.out.println("A ist länger als B");
+        } else {
+            System.out.println("A nicht länger als B");
+        }
+    }
+}
+    `.trim(),
+    checker: {
+      reference: 'a.length() > b.length()',
+      data: [
+        ['abc', 'ab'],
+        ['ab', 'abc'],
+        ['abc', 'abc'],
+        ['', ''],
+        ['a', ''],
+        ['', 'a'],
+        ['Hallo', 'Hallo Welt'],
+        ['Hallo Welt', 'Hallo'],
+        ['Java', 'C'],
+        ['C', 'Java'],
+        ['Straße', 'Strasse'],
+        ['😀', 'ab'],
+        ['😀', 'a'],
+        ['ä', 'ae'],
+        ['aa', 'ä'],
+      ],
+      params: ['a', 'b'],
+      driver(el, oracle) {
+        const [a, b] = el
+        if (oracle(stringEnv(['a', a], ['b', b]))) {
+          return 'A ist länger als B'
+        }
+        return 'A nicht länger als B'
+      },
+    },
+  },
+
+  // Platziere als erste Aufgabe des Kapitels
+  46: {
+    id: 46,
+    title: 'Hauptstadt',
+    code: `
+class Hauptstadt {
+    void vonDeutschlandIst(String antwort) {
+        if (___placeholder___) {
+            System.out.println("RICHTIG!");
+        }
+    }
+}
+    `.trim(),
+    checker: {
+      reference: 'antwort.equals("Berlin")',
+      data: [
+        'Berlin',
+        'berlin',
+        'BERLIN',
+        'Berlin ',
+        ' Berlin',
+        'Berlinz',
+        'Berli',
+        'Bonn',
+        'Hamburg',
+        'München',
+        '',
+      ],
+      params: ['antwort'],
+      driver(el, oracle) {
+        if (oracle(rawStringsEnv(['antwort', el]))) {
+          return 'RICHTIG!'
+        }
+        return '<keine Ausgabe>'
       },
     },
   },

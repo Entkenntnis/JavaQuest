@@ -76,3 +76,19 @@ export function stringEnv(...entries: [string, string][]): JavaEnvironment {
   }
   return result
 }
+
+// Like stringEnv, but every string is a fresh, non-interned object with its own
+// heap reference. This keeps reference equality (==) from accidentally matching
+// equal content, which is exactly what the String chapter wants to contrast
+// against content equality (equals).
+export function rawStringsEnv(
+  ...entries: [string, string][]
+): JavaEnvironment {
+  const result: JavaEnvironment = { local: {}, heap: {} }
+  for (const [name, value] of entries) {
+    const ref = `heap${Object.keys(result.heap).length}`
+    result.heap[ref] = { class: 'java.lang.String', value }
+    result.local[name] = { type: 'reference', ref }
+  }
+  return result
+}
