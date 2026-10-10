@@ -184,8 +184,8 @@ class Zahlenvergleich {
       },
     },
   },
-  10: {
-    id: 10,
+  8: {
+    id: 8,
     title: 'Kompass',
     code: `
 class Kompass {
@@ -213,8 +213,8 @@ class Kompass {
       },
     },
   },
-  11: {
-    id: 11,
+  9: {
+    id: 9,
     title: 'Guthaben',
     code: `
 class Guthaben {
@@ -250,8 +250,8 @@ class Guthaben {
       },
     },
   },
-  12: {
-    id: 12,
+  10: {
+    id: 10,
     title: 'Billionär',
     code: `
 class Billionär {
@@ -286,8 +286,8 @@ class Billionär {
       },
     },
   },
-  13: {
-    id: 13,
+  11: {
+    id: 11,
     title: 'Vier Gewinnt',
     code: `
 class VierGewinnt {
@@ -312,8 +312,8 @@ class VierGewinnt {
       },
     },
   },
-  15: {
-    id: 15,
+  7: {
+    id: 7,
     title: 'Gleichstand',
     code: `
 class Gleichstand {

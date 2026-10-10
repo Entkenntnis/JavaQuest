@@ -396,8 +396,8 @@ class Längenvergleich {
   },
 
   // Platziere als erste Aufgabe des Kapitels
-  46: {
-    id: 46,
+  36: {
+    id: 36,
     title: 'Hauptstadt',
     code: `
 class Hauptstadt {

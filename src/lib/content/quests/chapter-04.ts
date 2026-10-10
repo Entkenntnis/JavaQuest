@@ -2,8 +2,8 @@ import type { QuestData } from '../../state/types'
 import { intEnv } from './helpers'
 
 export const chapter04Quests: { [key: number]: QuestData } = {
-  30: {
-    id: 30,
+  29: {
+    id: 29,
     title: 'Gerade oder ungerade',
     code: `
 class GeradeOderUngerade {
@@ -33,8 +33,8 @@ class GeradeOderUngerade {
     },
   },
 
-  33: {
-    id: 33,
+  28: {
+    id: 28,
     title: 'Teilbarkeit',
     code: `
 class Teilbarkeit {
@@ -81,8 +81,8 @@ class Teilbarkeit {
     },
   },
 
-  8: {
-    id: 8,
+  30: {
+    id: 30,
     title: 'Pythagoras',
     code: `
 class Pythagoras {
@@ -223,8 +223,8 @@ class Potenz {
     },
   },
 
-  34: {
-    id: 34,
+  33: {
+    id: 33,
     title: 'Diskriminante',
     code: `
 class Diskriminante {
@@ -266,8 +266,8 @@ class Diskriminante {
     },
   },
 
-  35: {
-    id: 35,
+  34: {
+    id: 34,
     title: 'Skalarprodukt',
     code: `
 class Skalarprodukt {
@@ -311,8 +311,8 @@ class Skalarprodukt {
     },
   },
 
-  36: {
-    id: 36,
+  35: {
+    id: 35,
     title: 'Nullstelle',
     code: `
 class Nullstelle {

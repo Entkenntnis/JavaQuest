@@ -2,8 +2,8 @@ import type { QuestData } from '../../state/types'
 import { boolEnv, env, intEnv, mergeEnv } from './helpers'
 
 export const chapter02Quests: { [key: number]: QuestData } = {
-  7: {
-    id: 7,
+  12: {
+    id: 12,
     title: 'Luftfeuchtigkeit',
     code: `
 class Luftfeuchtigkeit {
@@ -31,8 +31,8 @@ class Luftfeuchtigkeit {
       },
     },
   },
-  9: {
-    id: 9,
+  13: {
+    id: 13,
     title: 'Wochenende',
     code: `
 class Wochenende {
@@ -59,8 +59,8 @@ class Wochenende {
       },
     },
   },
-  16: {
-    id: 16,
+  14: {
+    id: 14,
     title: 'Spielfeld',
     code: `
 class Spielfeld {
@@ -110,8 +110,8 @@ class Spielfeld {
       },
     },
   },
-  17: {
-    id: 17,
+  15: {
+    id: 15,
     title: 'Achterbahn',
     code: `
 class Achterbahn {
@@ -156,8 +156,8 @@ class Achterbahn {
       },
     },
   },
-  18: {
-    id: 18,
+  16: {
+    id: 16,
     title: 'Geheimnis',
     code: `
 class Geheimnis {
@@ -183,8 +183,8 @@ class Geheimnis {
       },
     },
   },
-  19: {
-    id: 19,
+  17: {
+    id: 17,
     title: 'Museum',
     code: `
 class Museum {
@@ -233,8 +233,8 @@ class Museum {
     },
   },
 
-  20: {
-    id: 20,
+  18: {
+    id: 18,
     title: 'Wetter',
     code: `
 class Wetter {
@@ -265,8 +265,8 @@ class Wetter {
       },
     },
   },
-  21: {
-    id: 21,
+  19: {
+    id: 19,
     title: 'MVG',
     code: `
 class MVG {
@@ -296,8 +296,8 @@ class MVG {
       },
     },
   },
-  22: {
-    id: 22,
+  20: {
+    id: 20,
     title: 'Rabatt',
     code: `
 class Rabatt {

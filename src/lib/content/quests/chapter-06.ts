@@ -4,8 +4,8 @@ import { intArrayEnv, intEnv, mergeEnv, stringArrayEnv } from './helpers'
 const MAX_ITER = 1000
 
 export const chapter06Quests: { [key: number]: QuestData } = {
-  47: {
-    id: 47,
+  46: {
+    id: 46,
     title: 'Summe',
     code: `
 class Summe {
@@ -64,8 +64,8 @@ class Summe {
     },
   },
 
-  48: {
-    id: 48,
+  47: {
+    id: 47,
     title: 'Grenzen',
     code: `
 class Grenzen {
@@ -104,8 +104,8 @@ class Grenzen {
     },
   },
 
-  49: {
-    id: 49,
+  48: {
+    id: 48,
     title: 'Finde Index',
     code: `
 class FindeIndex {
@@ -156,8 +156,8 @@ class FindeIndex {
     },
   },
 
-  50: {
-    id: 50,
+  49: {
+    id: 49,
     title: 'Alles positiv',
     code: `
 class AllesPositiv {
@@ -201,8 +201,8 @@ class AllesPositiv {
     },
   },
 
-  51: {
-    id: 51,
+  53: {
+    id: 53,
     title: 'Sortiert',
     code: `
 class Sortiert {
@@ -249,8 +249,8 @@ class Sortiert {
     },
   },
 
-  52: {
-    id: 52,
+  50: {
+    id: 50,
     title: 'Echo',
     code: `
 class Echo {
@@ -290,8 +290,8 @@ class Echo {
     },
   },
 
-  53: {
-    id: 53,
+  51: {
+    id: 51,
     title: 'Klon',
     code: `
 class Klon {
@@ -380,8 +380,8 @@ class Klon {
     },
   },
 
-  54: {
-    id: 54,
+  52: {
+    id: 52,
     title: 'Spiegelbild',
     code: `
 class Spiegelbild {

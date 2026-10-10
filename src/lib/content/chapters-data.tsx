@@ -5,7 +5,7 @@ import type { ChapterData } from '../state/types'
 export const chaptersData: ChapterData[] = [
   {
     title: 'Deine ersten Vergleiche',
-    quests: [1, 2, 3, 4, 5, 6, 15, 10, 11, 12, 13],
+    quests: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     description: () => (
       <>
         <p>
@@ -29,7 +29,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Logik, yeah!',
-    quests: [7, 9, 16, 17, 18, 19, 20, 21, 22],
+    quests: [12, 13, 14, 15, 16, 17, 18, 19, 20],
     description: () => (
       <>
         <p>
@@ -54,7 +54,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Unter Kontrolle',
-    quests: [23, 24, 25, 26, 27, 28, 29],
+    quests: [21, 22, 23, 24, 25, 26, 27],
     description: () => (
       <>
         <p>
@@ -72,7 +72,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Keine Angst vor Mathe 🙈',
-    quests: [33, 30, 8, 31, 32, 34, 35, 36], // TODO: mehr Aufgaben, vermeide problematische Gleitkomma-Vergleiche
+    quests: [28, 29, 30, 31, 32, 33, 34, 35], // TODO: mehr Aufgaben, vermeide problematische Gleitkomma-Vergleiche
     description: () => (
       <>
         <p>
@@ -92,7 +92,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Zeichenketten (Strings)',
-    quests: [46, 37, 38, 39, 40, 41, 42, 43, 44, 45],
+    quests: [36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
     description: () => (
       <>
         <p>
@@ -121,7 +121,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Felder (Arrays)',
-    quests: [47, 48, 49, 50, 51, 52, 53, 54],
+    quests: [46, 47, 48, 49, 50, 51, 52, 53],
     description: () => (
       <>
         <p>

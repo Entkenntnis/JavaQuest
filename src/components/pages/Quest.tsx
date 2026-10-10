@@ -25,6 +25,7 @@ export function Quest() {
       <div className="max-w-[600px] px-2 mx-auto sticky top-1 z-10 pointer-events-none">
         <a
           className="px-2 py-0.5 bg-gray-200 rounded-xl hover:bg-gray-300 cursor-pointer pointer-events-auto"
+          href="/"
           onClick={(e) => {
             navigate(core, '/')
             e.preventDefault()

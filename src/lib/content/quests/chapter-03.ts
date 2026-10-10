@@ -11,8 +11,8 @@ import {
 const MAX_ITER = 1000
 
 export const chapter03Quests: { [key: number]: QuestData } = {
-  23: {
-    id: 23,
+  21: {
+    id: 21,
     title: 'Auf die Plätze',
     code: `
 class AufDiePlätze {
@@ -48,8 +48,8 @@ class AufDiePlätze {
     },
   },
 
-  24: {
-    id: 24,
+  22: {
+    id: 22,
     title: 'Ho Ho Ho',
     code: `
 class Weihnachtsmann {
@@ -83,8 +83,8 @@ class Weihnachtsmann {
     },
   },
 
-  25: {
-    id: 25,
+  23: {
+    id: 23,
     title: 'Der Schrei',
     code: `
 class DerSchrei {
@@ -122,8 +122,8 @@ class DerSchrei {
     },
   },
 
-  26: {
-    id: 26,
+  24: {
+    id: 24,
     title: 'Alphabet',
     code: `
 class Alphabet {
@@ -159,8 +159,8 @@ class Alphabet {
     },
   },
 
-  27: {
-    id: 27,
+  25: {
+    id: 25,
     title: 'Collatz',
     code: `
 class Collatz {
@@ -202,8 +202,8 @@ class Collatz {
     },
   },
 
-  28: {
-    id: 28,
+  26: {
+    id: 26,
     title: 'Inflation',
     code: `
 class Inflation {
@@ -243,8 +243,8 @@ class Inflation {
     },
   },
 
-  29: {
-    id: 29,
+  27: {
+    id: 27,
     title: 'Weihnachtsbäckerei',
     code: `
 class Weihnachtsbäckerei {
