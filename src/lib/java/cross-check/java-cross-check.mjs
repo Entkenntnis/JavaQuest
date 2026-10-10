@@ -41,32 +41,16 @@ function renderDecls(entry) {
   const heap = (entry.env && entry.env.heap) || {}
   if (!local) return ''
   const lines = []
-
-  const refCounts = new Map()
-  for (const value of Object.values(local)) {
-    if (value.type == 'reference') {
-      refCounts.set(value.ref, (refCounts.get(value.ref) || 0) + 1)
-    }
-  }
-  const sharedRefs = new Set()
-  for (const [ref, count] of refCounts) {
-    if (count > 1) sharedRefs.add(ref)
-  }
-
-  const tempNames = new Map()
-  for (const value of Object.values(local)) {
-    if (value.type == 'reference' && sharedRefs.has(value.ref)) {
-      if (tempNames.has(value.ref)) continue
-      const temp = `__jqRef_${value.ref.replace(/[^A-Za-z0-9_]/g, '_')}`
-      lines.push(renderHeapValue(temp, value.ref, heap))
-      tempNames.set(value.ref, temp)
-    }
-  }
+  const renderedRefs = new Map()
 
   for (const [name, value] of Object.entries(local)) {
-    if (value.type == 'reference' && sharedRefs.has(value.ref)) {
+    if (value.type == 'reference') {
+      // Every reference local goes through renderRef, so a heap object that is shared
+      // between several locals (or between a local and an array element) is declared
+      // once and aliased, preserving object identity.
+      const temp = renderRef(value.ref, heap, lines, renderedRefs)
       const type = heapValueJavaType(value.ref, heap)
-      lines.push(`${type} ${name} = ${tempNames.get(value.ref)};`)
+      lines.push(`${type} ${name} = ${temp};`)
     } else {
       lines.push(renderDecl(name, value, heap))
     }
@@ -111,29 +95,81 @@ function renderPrimitiveElement(value) {
   }
 }
 
-// An env array heap object becomes a Java array declaration whose elements are built
-// inline: `int[] a = new int[] {1, 2, 3};`. Only primitive component types exist so far.
-function renderArrayDecl(name, obj) {
-  const prim =
-    obj.type && obj.type.kind == 'primitive' ? obj.type.prim : undefined
-  if (!prim) {
-    throw new Error(
-      `cannot render array env value ${name}: unsupported component type`,
-    )
+// The Java type for an array component / heap object type, e.g. `int`, `java.lang.String`.
+function printJavaType(type) {
+  if (!type) {
+    throw new Error('cannot render type: missing component type')
   }
-  const elements = (obj.elements || []).map(renderPrimitiveElement).join(', ')
-  return `${prim}[] ${name} = new ${prim}[] {${elements}};`
+  if (type.kind == 'primitive') return type.prim
+  if (type.kind == 'class') return type.name
+  if (type.kind == 'array') return `${printJavaType(type.elem)}[]`
+  throw new Error(`cannot render unsupported type ${JSON.stringify(type)}`)
 }
 
-// Renders a heap entry as a Java declaration with the given variable name. This is
-// shared by plain locals and by the temp declaration for aliased heap entries.
+// Renders one array element as a Java initializer expression. Reference elements are
+// materialised through renderRef, so elements that point at the same heap object become
+// the same Java object (identity is preserved for `==` tests).
+function renderElementExpr(value, heap, lines, renderedRefs) {
+  if (value.type == 'null') return 'null'
+  if (value.type == 'reference') {
+    return renderRef(value.ref, heap, lines, renderedRefs)
+  }
+  return renderPrimitiveElement(value)
+}
+
+// Declares the heap object behind `ref` under a generated temp name and returns that name.
+// Repeated calls for the same ref reuse the declaration, and array elements are declared
+// before the array that references them.
+function renderRef(ref, heap, lines, renderedRefs) {
+  if (renderedRefs.has(ref)) return renderedRefs.get(ref)
+  const obj = heap[ref]
+  if (!obj) {
+    throw new Error(`cannot render env value: dangling reference ${ref}`)
+  }
+  const name = `__jqRef_${ref.replace(/[^A-Za-z0-9_]/g, '_')}_${renderedRefs.size}`
+  renderedRefs.set(ref, name)
+
+  if (obj.isArray) {
+    const component = printJavaType(obj.type)
+    const elements = (obj.elements || [])
+      .map((element) => renderElementExpr(element, heap, lines, renderedRefs))
+      .join(', ')
+    lines.push(`${component}[] ${name} = new ${component}[] {${elements}};`)
+  } else if (obj.class == 'java.lang.String') {
+    const literal = javaStringLiteral(obj.value)
+    lines.push(
+      obj.isInterned
+        ? `String ${name} = ${literal};`
+        : `String ${name} = new String(${literal});`,
+    )
+  } else {
+    throw new Error('comparison with reference not meaningful in test harness')
+  }
+  return name
+}
+
+// An env array heap object becomes a Java array declaration whose elements are built
+// inline: `int[] a = new int[] {1, 2, 3};`. Reference components (e.g. String[]) declare
+// their element objects first and then reference those temps.
+function renderArrayDecl(name, obj, heap) {
+  const component = printJavaType(obj.type)
+  const lines = []
+  const renderedRefs = new Map()
+  const elements = (obj.elements || [])
+    .map((element) => renderElementExpr(element, heap, lines, renderedRefs))
+    .join(', ')
+  const decl = `${component}[] ${name} = new ${component}[] {${elements}};`
+  return [...lines, decl].join('\n')
+}
+
+// Renders a heap entry as a Java declaration with the given variable name.
 function renderHeapValue(name, ref, heap) {
   const obj = heap[ref]
   if (!obj) {
     throw new Error(`cannot render env value ${name}: dangling reference ${ref}`)
   }
   if (obj.isArray) {
-    return renderArrayDecl(name, obj)
+    return renderArrayDecl(name, obj, heap)
   }
   if (obj.class == 'java.lang.String') {
     const literal = javaStringLiteral(obj.value)
@@ -150,7 +186,7 @@ function heapValueJavaType(ref, heap) {
   if (!obj) {
     throw new Error(`cannot render env value: dangling reference ${ref}`)
   }
-  if (obj.isArray) return `${obj.type.prim}[]`
+  if (obj.isArray) return `${printJavaType(obj.type)}[]`
   if (obj.class == 'java.lang.String') return 'String'
   throw new Error('comparison with reference not meaningful in test harness')
 }

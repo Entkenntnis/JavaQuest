@@ -55,7 +55,7 @@ class Summe {
             return '<ArrayIndexOutOfBoundsException>'
           }
           const element = arrObj.elements[i]
-          ergebnis = (ergebnis + Number(element.value)) | 0
+          ergebnis = (ergebnis + Number((element as JavaIntValue).value)) | 0
           env.local['i'] = { type: 'int', value: (i + 1) | 0 }
           if (++schritte > MAX_ITER) return '<Endlosschleife>'
         }

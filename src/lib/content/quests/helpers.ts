@@ -126,7 +126,7 @@ export function stringArrayEnv(name: string, values: string[]): JavaEnvironment 
     isArray: true,
     elements,
     type: { kind: 'class', name: 'java.lang.String' },
-  } as unknown as JavaArrayHeapObject
+  }
   return {
     local: { [name]: { type: 'reference', ref } },
     heap,

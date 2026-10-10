@@ -11,9 +11,19 @@ import type {
   JavaLongValue,
   JavaReferenceValue,
   JavaShortValue,
+  JavaStringHeapObject,
   JavaValue,
   Prim,
+  Type,
 } from '../../state/types'
+
+// Minimal Java type rendering, kept local so this fixture module has no runtime imports
+// (the cross-check runner loads it through Node's type stripping without a resolver).
+function componentName(component: Type): string {
+  if (component.kind == 'primitive') return component.prim
+  if (component.kind == 'class') return component.name
+  return `${componentName(component.elem)}[]`
+}
 
 export const ints = (values: number[]): JavaIntValue[] =>
   values.map((value) => ({ type: 'int', value }))
@@ -51,11 +61,46 @@ export function arrayObject(
   }
 }
 
-// Builds an env containing only the arrays a single test cares about, so the test page
+// General reference-capable array: any component type, any element values (references,
+// null, primitives). Covers object arrays such as String[] that `arrayObject` cannot
+// express.
+export function refArray(
+  component: Type,
+  elements: (JavaValue | null)[],
+): JavaArrayHeapObject {
+  return {
+    class: `${componentName(component)}[]`,
+    isArray: true,
+    type: component,
+    elements: elements.map((element) => element ?? { type: 'null', value: null }),
+  }
+}
+
+// A String heap object, so tests can name and reuse the same String across locals and
+// array elements.
+export function stringObject(
+  value: string,
+  interned = true,
+): JavaStringHeapObject {
+  return { class: 'java.lang.String', value, isInterned: interned }
+}
+
+// A String[] whose elements point at named String objects (registered as locals in the
+// same `arrayEnv` call) or are null.
+export function stringArray(names: (string | null)[]): JavaArrayHeapObject {
+  return refArray(
+    { kind: 'class', name: 'java.lang.String' },
+    names.map((name): JavaValue | null =>
+      name === null ? null : { type: 'reference', ref: name },
+    ),
+  )
+}
+
+// Builds an env containing only the objects a single test cares about, so the test page
 // does not print unrelated locals. Each spec entry becomes a local of the same name; a
 // `{ aliasOf }` entry points at an already-declared local instead of creating an object.
 export function arrayEnv(
-  specs: Record<string, JavaArrayHeapObject | { aliasOf: string }>,
+  specs: Record<string, JavaHeapObject | { aliasOf: string }>,
 ): JavaEnvironment {
   const local: Record<string, JavaReferenceValue> = {}
   const heap: Record<string, JavaHeapObject> = {}
@@ -81,7 +126,7 @@ export function arrayEnv(
 // Same as `arrayEnv`, plus extra primitive/boxed locals (e.g. an index variable).
 // Kept separate so ordinary array tests do not carry unused declarations.
 export function arrayEnvWithLocals(
-  specs: Record<string, JavaArrayHeapObject | { aliasOf: string }>,
+  specs: Record<string, JavaHeapObject | { aliasOf: string }>,
   locals: Record<string, JavaValue>,
 ): JavaEnvironment {
   const env = arrayEnv(specs)

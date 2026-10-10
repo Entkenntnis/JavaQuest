@@ -721,8 +721,8 @@ export interface JavaWrapperObject {
 export interface JavaArrayHeapObject {
   class: `${string}[]` // <-- necessary for type discrimination to work with existing system, NICE
   isArray: true
-  elements: (JavaNumericPrimitiveValue | JavaBooleanValue)[]
-  type: PrimitiveType
+  elements: JavaValue[]
+  type: Type
 }
 
 export interface JavaObject {
