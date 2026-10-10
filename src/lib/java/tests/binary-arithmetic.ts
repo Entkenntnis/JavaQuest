@@ -433,6 +433,19 @@ export const binaryArithmetic: TestSuiteEntry[] = [
     code: `null - 1`,
     error: 'compile',
   },
+  // null is not numeric for any of the remaining arithmetic operators either.
+  {
+    code: `null * 1`,
+    error: 'compile',
+  },
+  {
+    code: `null / 1`,
+    error: 'compile',
+  },
+  {
+    code: `null % 1`,
+    error: 'compile',
+  },
   {
     code: `true / false`,
     error: 'compile',

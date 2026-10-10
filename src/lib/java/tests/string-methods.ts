@@ -348,6 +348,16 @@ export const stringMethods: TestSuiteEntry[] = [
     code: `"".equalsIgnoreCase(null)`,
     output: { type: 'boolean', value: false },
   },
+  // A `(cond ? null : "abc")` arm is String-typed, so it passes overload resolution and reaches
+  // the method body: selecting the null arm returns false, selecting the non-null arm compares.
+  {
+    code: `"abc".equalsIgnoreCase(true ? null : "abc")`,
+    output: { type: 'boolean', value: false },
+  },
+  {
+    code: `"abc".equalsIgnoreCase(false ? null : "abc")`,
+    output: { type: 'boolean', value: true },
+  },
   // ------------------------- equalsIgnoreCase(String): heap operands -------------------------
   {
     code: `s.equalsIgnoreCase(t)`,
@@ -679,6 +689,16 @@ export const stringMethods: TestSuiteEntry[] = [
   {
     code: `"abc".contains(null)`,
     error: 'runtime',
+  },
+  // A `(cond ? null : "abc")` arm is String-typed, so it reaches the method body too; a selected
+  // null arm NPEs, while a selected non-null arm searches it normally.
+  {
+    code: `"abc".contains(true ? null : "abc")`,
+    error: 'runtime',
+  },
+  {
+    code: `"abc".contains(false ? null : "abc")`,
+    output: { type: 'boolean', value: true },
   },
   // ------------------------- equalsIgnoreCase(): self / identity -------------------------
   {

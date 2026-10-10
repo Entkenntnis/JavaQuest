@@ -510,6 +510,15 @@ export const relational: TestSuiteEntry[] = [
     code: `null < 1`,
     error: 'compile',
   },
+  // Relation against null is symmetric: neither operand order compiles.
+  {
+    code: `1 < null`,
+    error: 'compile',
+  },
+  {
+    code: `null > 1`,
+    error: 'compile',
+  },
   {
     code: `'a' > true`,
     error: 'compile',

@@ -609,6 +609,14 @@ export const bitwiseOperators: TestSuiteEntry[] = [
     error: 'compile',
   },
   {
+    code: `null | 1`,
+    error: 'compile',
+  },
+  {
+    code: `null ^ 1`,
+    error: 'compile',
+  },
+  {
     code: `'a' & "b"`,
     error: 'compile',
   },

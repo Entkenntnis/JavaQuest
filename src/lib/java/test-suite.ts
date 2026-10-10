@@ -39,6 +39,8 @@ import { arrays } from './tests/arrays.ts'
 import { arraysIndex } from './tests/array-index.ts'
 import { arrayAssignment } from './tests/array-assignment.ts'
 import { arrayIdentity } from './tests/array-identity.ts'
+import { arrayLength } from './tests/array-length.ts'
+import { fieldAccess } from './tests/field-access.ts'
 
 export const testSuite: TestSuiteEntry[] = [
   ...literals,
@@ -81,4 +83,6 @@ export const testSuite: TestSuiteEntry[] = [
   ...arraysIndex,
   ...arrayAssignment,
   ...arrayIdentity,
+  ...arrayLength,
+  ...fieldAccess,
 ]

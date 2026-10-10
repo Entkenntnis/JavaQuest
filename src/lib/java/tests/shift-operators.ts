@@ -539,6 +539,14 @@ export const shiftOperators: TestSuiteEntry[] = [
     error: 'compile',
   },
   {
+    code: `null >> 1`,
+    error: 'compile',
+  },
+  {
+    code: `null >>> 1`,
+    error: 'compile',
+  },
+  {
     code: `1 << (boolean)true`,
     error: 'compile',
   },

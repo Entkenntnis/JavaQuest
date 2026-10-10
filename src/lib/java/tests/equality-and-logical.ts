@@ -278,6 +278,11 @@ export const equalityAndLogical: TestSuiteEntry[] = [
     code: `null == 1`,
     error: 'compile',
   },
+  // null is also incomparable with a primitive boolean.
+  {
+    code: `null == true`,
+    error: 'compile',
+  },
   // ==================== NON-EQUALITY (!=) ====================
   // ------------------------- non-equality !=: booleans -------------------------
   {
@@ -616,6 +621,10 @@ export const equalityAndLogical: TestSuiteEntry[] = [
   },
   {
     code: `1 != null`,
+    error: 'compile',
+  },
+  {
+    code: `null != true`,
     error: 'compile',
   },
   {

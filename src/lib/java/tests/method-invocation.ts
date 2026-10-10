@@ -105,6 +105,12 @@ export const methodInvocation: TestSuiteEntry[] = [
     code: `"abc".equals(null)`,
     output: { type: 'boolean', value: false },
   },
+  // A `(cond ? null : "abc")` arm is String-typed (reference, not the null type), yet selecting
+  // the null arm still passes null to equals and yields false.
+  {
+    code: `"abc".equals(true ? null : "abc")`,
+    output: { type: 'boolean', value: false },
+  },
   // A null-valued variable is a reference; it is a legal argument and yields false.
   {
     code: `"abc".equals(s)`,
