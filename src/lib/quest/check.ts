@@ -5,7 +5,7 @@ import { parser } from '../java/lezer/parser'
 import type { Core } from '../state/core'
 import { checkForParseErrors, cst2ast } from '../java/cst2ast'
 import { typecheck } from '../java/typecheck'
-import type { JavaEnvironment, QuestResult, RunResult } from '../state/types'
+import type { QuestResult, RunResult, TestErrorPhase } from '../state/types'
 import { evaluate } from '../java/evaluate'
 import { foldConstants } from '../java/fold'
 import { printType, toDisplayType } from '../java/helper/typing'
@@ -18,19 +18,20 @@ export function check(core: Core) {
   const quest = questsData[core.ws.quest.id]
   const expression = core.ws.ui.questInput
 
-  function evalSnippet(snippet: string, env: JavaEnvironment) {
-    const tree = parser.parse(snippet)
-    const cst = cursorToCstNode(tree.cursor(), Text.of([snippet]))
-    checkForParseErrors(cst)
-    const ast = cst2ast(cst)
-    const typed = typecheck(ast, env)
-    return evaluate(foldConstants(typed), env)
-  }
-
   function runTestcase(el: any, snippet: string): RunResult {
+    let phase: TestErrorPhase = 'compile'
     try {
       const output = quest.checker.driver(el, (env) => {
-        const value = evalSnippet(snippet, env)
+        phase = 'compile'
+        const tree = parser.parse(snippet)
+        const cst = cursorToCstNode(tree.cursor(), Text.of([snippet]))
+        checkForParseErrors(cst)
+        const ast = cst2ast(cst)
+        const typed = typecheck(ast, env)
+        const folded = foldConstants(typed)
+        phase = 'runtime'
+        const value = evaluate(folded, env)
+        phase = 'compile'
         if (value.type != 'boolean') {
           throw `Inkompatible Typen: ${printType(toDisplayType(value, env))} kann nicht in boolean konvertiert werden`
         }
@@ -38,7 +39,11 @@ export function check(core: Core) {
       })
       return { ok: true, output }
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : String(e) }
+      return {
+        ok: false,
+        error: e instanceof Error ? e.message : String(e),
+        phase,
+      }
     }
   }
 
@@ -56,29 +61,38 @@ export function check(core: Core) {
   for (const el of list) {
     const reference = runTestcase(el, quest.checker.reference)
     const test = runTestcase(el, expression)
+    const args =
+      quest.checker.params?.length === 0
+        ? ''
+        : (Array.isArray(el) ? el : [el])
+            .map((value, i) => {
+              return `${quest.checker.params?.[i] ?? 'arg' + i} = ${Array.isArray(value) ? `[${value.join(', ')}]` : value}`
+            })
+            .join(', ')
+
+    const refOutput = reference.ok ? reference.output : reference.error
 
     if (!test.ok) {
-      errorMessage = test.error
-      break
+      if (test.phase == 'compile') {
+        errorMessage = test.error
+        break
+      }
+      if (list.length == 1) {
+        output = test.error
+      }
+      failures.push({ expected: refOutput, actual: test.error, args })
+      continue
     }
 
     if (list.length === 1) {
       output = test.output
     }
 
-    const refOutput = reference.ok ? reference.output : reference.error
     if (refOutput != test.output) {
       failures.push({
         expected: refOutput,
         actual: test.output,
-        args:
-          quest.checker.params?.length === 0
-            ? ''
-            : (Array.isArray(el) ? el : [el])
-                .map((value, i) => {
-                  return `${quest.checker.params?.[i] ?? 'arg' + i} = ${Array.isArray(value) ? `[${value.join(', ')}]` : value}`
-                })
-                .join(', '),
+        args,
       })
       continue
     }

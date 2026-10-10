@@ -60,7 +60,7 @@ export interface QuestChecker<T> {
 
 export type RunResult =
   | { ok: true; output: string }
-  | { ok: false; error: string }
+  | { ok: false; phase: TestErrorPhase; error: string }
 
 export interface ChapterData {
   title: string
