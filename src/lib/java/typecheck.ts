@@ -47,6 +47,7 @@ import type {
   TypedIndexNode,
   TypedUpdateNode,
   BinaryExpressionAstNode,
+  TypeWithNull,
 } from '../state/types'
 import { foldConstants } from './fold'
 import {
@@ -212,14 +213,14 @@ function typecheck_internal(
       }
 
       // now, extract the arg structure
-      const argTypes: Type[] = []
+      const argTypes: TypeWithNull[] = []
       const args: TypedNode<JavaValue>[] = []
 
       for (const arg of node.args) {
         const [type, inner, data] = typecheck_internal(arg, env)
         args.push(inner)
         if (type == 'null') {
-          argTypes.push({ kind: 'class', name: 'java.lang.Object' })
+          argTypes.push({ kind: 'null' })
           continue
         }
         if (type == 'reference') {

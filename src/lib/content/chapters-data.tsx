@@ -82,7 +82,7 @@ export const chaptersData: ChapterData[] = [
           einer Division ermitteln.
         </p>
         <p>
-          Falls du mehr brauchst: Die Java-Bibliothek enthält weitere nützliche
+          Es gibt noch mehr: Die Java-Bibliothek enthält weitere nützliche
           Funktionen wie <code>Math.sqrt(x)</code> (Quadratwurzel),{' '}
           <code>Math.abs(x)</code> (Betrag) oder <code>Math.pow(b, e)</code>{' '}
           (Potenz).
@@ -121,7 +121,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Felder (Arrays)',
-    quests: [100],
+    quests: [],
     description: () => (
       <>
         <p>
@@ -136,7 +136,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'OOP-ala',
-    quests: [100],
+    quests: [],
     description: () => (
       <>
         <p>
@@ -151,7 +151,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Character, Epsilon und Co.',
-    quests: [100],
+    quests: [],
     description: () => (
       <>
         <p>
@@ -165,7 +165,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Nicht-binäre Operatoren',
-    quests: [100],
+    quests: [],
     description: () => (
       <>
         <p>
@@ -178,7 +178,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'Finale mit Vertiefungen',
-    quests: [100],
+    quests: [],
     description: () => (
       <>
         <p>

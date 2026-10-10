@@ -137,7 +137,7 @@ export const classMetaData: Record<string, ClassMetaData> = {
           }
           const other = args[0]
           if (other.type != 'reference') {
-            throw new Error('java.lang.NullPointerException')
+            return { type: 'boolean', value: false }
           }
           const obj = env.heap[other.ref]
           if (obj.class != 'java.lang.String') {

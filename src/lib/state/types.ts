@@ -740,7 +740,7 @@ export interface NullType {
   kind: 'null'
 }
 
-export type DisplayType = Type | NullType
+export type TypeWithNull = Type | NullType
 
 export interface ClassMetaData {
   name: string

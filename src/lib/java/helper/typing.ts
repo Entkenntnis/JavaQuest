@@ -1,7 +1,7 @@
 import type {
   ArrayType,
   ClassType,
-  DisplayType,
+  TypeWithNull,
   JavaBooleanValue,
   JavaEnvironment,
   JavaNumericPrimitiveValue,
@@ -59,7 +59,7 @@ export const typeToWrapper: Record<Prim, JavaWrapperObject['class']> = {
   boolean: 'java.lang.Boolean',
 }
 
-export function printType(type: DisplayType): string {
+export function printType(type: TypeWithNull): string {
   switch (type.kind) {
     case 'null':
       return '<Null>'
@@ -75,7 +75,7 @@ export function printType(type: DisplayType): string {
 export function strDatToDisplType(
   type: TypecheckResult[0],
   data?: TypecheckResult[2],
-): DisplayType {
+): TypeWithNull {
   if (type == 'reference') return data as ClassType | ArrayType
   if (type == 'null') return { kind: 'null' }
   if (data && 'boxed' in data && data.boxed) {
@@ -105,7 +105,7 @@ export function typeDataEquals(a: TypeData, b: TypeData) {
   return typeEquals(a, b)
 }
 
-export function typeEquals(a: Type, b: Type): boolean {
+export function typeEquals(a: TypeWithNull, b: TypeWithNull): boolean {
   if (a.kind == 'primitive' && b.kind == 'primitive') {
     return a.prim == b.prim
   }
@@ -158,7 +158,11 @@ export function isSubtype(sub: string, sup: string): boolean {
   return false
 }
 
-export function isAssignable(target: Type, source: Type): boolean {
+export function isAssignable(target: Type, source: TypeWithNull): boolean {
+  if (source.kind == 'null') {
+    return target.kind == 'class' || target.kind == 'array'
+  }
+
   if (typeEquals(target, source)) return true
 
   if (target.kind == 'array' && source.kind == 'array') {
@@ -193,7 +197,7 @@ export function isAssignable(target: Type, source: Type): boolean {
 export function findMethod(
   className: string,
   name: string,
-  argTypes: Type[],
+  argTypes: TypeWithNull[],
 ): MethodMetaData | undefined {
   const candidates: MethodMetaData[] = []
   for (const current of classChain(className)) {
@@ -255,7 +259,7 @@ export function toType(value: JavaValue, env: JavaEnvironment): Type {
 export function toDisplayType(
   value: JavaValue,
   env: JavaEnvironment,
-): DisplayType {
+): TypeWithNull {
   if (value.type == 'null') {
     return { kind: 'null' }
   }

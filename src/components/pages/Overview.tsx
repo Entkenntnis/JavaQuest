@@ -64,7 +64,7 @@ export function Overview() {
                     border rounded-lg [&>p]:mt-2
                     [&_code]:text-orange-600
                     [&_code]:whitespace-nowrap
-                    [&_a]:text-blue-500 [&_a]:hover:underline
+                    [&_a]:text-blue-500 hover:[&_a]:underline
                   "
                 >
                   {chapter.description()}
