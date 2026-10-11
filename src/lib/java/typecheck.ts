@@ -54,13 +54,13 @@ import type {
 } from '../state/types'
 import { foldConstants } from './fold'
 import {
-  classExists,
   findField,
   findMethod,
   hasMethodNamed,
   isAssignable,
   isIdentityOrWideningCast,
   printType,
+  resolveClassName,
   resultFromType,
   resultToType,
   strDatToDisplType,
@@ -1102,13 +1102,14 @@ function typecheck_internal(
           `Inkompatible Typen: ${printType(strDatToDisplType(type, data))} kann nicht mit instanceof verwendet werden`,
         )
       }
-      if (!classExists(node.className, env)) {
+      const resolved = resolveClassName(node.className, env)
+      if (!resolved) {
         throw new Error(`Symbol nicht gefunden: Klasse ${node.className}`)
       }
       const tn: TypedInstanceofNode = {
         kind: 'instanceof',
         expression: inner,
-        className: node.className,
+        className: resolved,
       }
       return ['boolean', tn]
     }

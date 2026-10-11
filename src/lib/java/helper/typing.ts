@@ -218,7 +218,7 @@ export function findMethod(
 ): MethodMetaData | undefined {
   const candidates: MethodMetaData[] = []
   for (const current of classChain(className, env)) {
-    const meta = classMetaData[current]
+    const meta = requireClassMeta(current, env)
     if (!meta) throw `Interner Systemfehler: Klasse "${current}" nicht gefunden`
     for (const method of meta.methods) {
       if (method.name != name) continue
@@ -251,7 +251,7 @@ export function hasMethodNamed(
   env: JavaEnvironment,
 ): boolean {
   for (const current of classChain(className, env)) {
-    const meta = classMetaData[current]
+    const meta = requireClassMeta(current, env)
     if (!meta) throw `Interner Systemfehler: Klasse "${current}" nicht gefunden`
     for (const method of meta.methods) {
       if (method.name == name) return true
@@ -273,8 +273,10 @@ export function findField(
   return undefined
 }
 
-export function classExists(name: string, env: JavaEnvironment) {
-  return classMetaOf(name, env) !== undefined
+export function resolveClassName(name: string, env: JavaEnvironment) {
+  if (classMetaOf(name, env)) return name
+  const qualified = 'java.lang.' + name
+  if (classMetaOf(qualified, env)) return qualified
 }
 
 export function toType(value: JavaValue, env: JavaEnvironment): Type {
