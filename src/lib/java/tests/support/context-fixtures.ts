@@ -109,7 +109,11 @@ function instanceField(
   obj: JavaInstanceObject,
   name: string,
 ): JavaInstanceObject {
-  return asInstance(env, obj.fields[name] as JavaReferenceValue)
+  const field = obj.fields[name]
+  if (field.type != 'reference') {
+    throw new Error('java.lang.NullPointerException')
+  }
+  return asInstance(env, field)
 }
 
 // int arithmetic through the real evaluator, so promotion/wrapping is Java's.
@@ -166,7 +170,9 @@ const punktMeta: ClassMetaData = {
       handler: (owner, args, env) => {
         const self = asInstance(env, owner)
         const other = args[0]
-        if (other.type != 'reference') return ofBool(false)
+        if (other.type != 'reference') {
+          throw new Error('java.lang.NullPointerException')
+        }
         const obj = env.heap[other.ref]
         if (!('isInstance' in obj)) return ofBool(false)
         return ofBool(
@@ -214,7 +220,9 @@ const rechteckMeta: ClassMetaData = {
       handler: (owner, args, env) => {
         const self = asInstance(env, owner)
         const other = args[0]
-        if (other.type != 'reference') return ofBool(false)
+        if (other.type != 'reference') {
+          throw new Error('java.lang.NullPointerException')
+        }
         const obj = env.heap[other.ref]
         if (!('isInstance' in obj)) return ofBool(false)
         const sa = instanceField(env, self, 'a')
@@ -281,7 +289,10 @@ const personMeta: ClassMetaData = {
         const self = asInstance(env, owner)
         const ownName = self.fields.name
         const arg = args[0]
-        if (ownName.type != 'reference' || arg.type != 'reference') {
+        if (ownName.type != 'reference') {
+          throw new Error('java.lang.NullPointerException')
+        }
+        if (arg.type != 'reference') {
           return ofBool(false)
         }
         const own = env.heap[ownName.ref]
@@ -305,9 +316,6 @@ const personMeta: ClassMetaData = {
       sig: { params: [], ret: { kind: 'class', name: 'java.lang.String' } },
       handler: (owner, _args, env) => {
         const self = asInstance(env, owner)
-        if (self.fields.name.type != 'reference') {
-          throw 'Interner Systemfehler: Person.name ist null'
-        }
         return self.fields.name
       },
     },
