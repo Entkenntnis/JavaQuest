@@ -59,6 +59,7 @@ import {
   hasMethodNamed,
   isAssignable,
   isIdentityOrWideningCast,
+  isSubtype,
   printType,
   resolveClassName,
   resultFromType,
@@ -1105,6 +1106,16 @@ function typecheck_internal(
       const resolved = resolveClassName(node.className, env)
       if (!resolved) {
         throw new Error(`Symbol nicht gefunden: Klasse ${node.className}`)
+      }
+      if (type == 'reference' && data && data.kind == 'class') {
+        if (
+          !isSubtype(data.name, resolved, env) &&
+          !isSubtype(resolved, data.name, env)
+        ) {
+          throw new Error(
+            `Inkompatible Typen: ${data.name} kann nicht in ${resolved} konvertiert werden`,
+          )
+        }
       }
       const tn: TypedInstanceofNode = {
         kind: 'instanceof',

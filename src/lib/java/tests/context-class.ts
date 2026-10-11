@@ -1,6 +1,8 @@
 import type { TestSuiteEntry } from '../../state/types'
+import { arrayObject, ints, refArray } from './array-fixtures.ts'
 import {
   contextEnv,
+  ofInt,
   punkt,
   punktEnv,
   ref,
@@ -9,9 +11,31 @@ import {
 // ==================== CONTEXT CLASS: Punkt ====================
 // Expressions evaluated in the context of the hand-supplied class `Punkt`:
 // instance field reads, method calls, `this`, `instanceof` and the compile/runtime
-// boundaries. The interpreter does not implement context classes yet, so these are
-// currently red in the Suite UI while staying the source of truth for the intended
-// Java semantics; `npm run cross-check` validates them against real Java.
+// boundaries. `npm run cross-check` keeps these matching real Java.
+
+// Shared envs for the interaction tests below: a context object plus an extra local
+// (a primitive int[], a Punkt[] or a boxed Integer) to exercise cross-feature edges.
+const intArrayEnv = contextEnv(
+  'self',
+  { self: punkt(1, 2), arr: arrayObject('int', ints([10, 20, 30])) },
+  { arr: ref('arr') },
+)
+
+const punktArrayEnv = contextEnv(
+  'self',
+  {
+    self: punkt(1, 2),
+    pt: punkt(5, 6),
+    arr: refArray({ kind: 'class', name: 'Punkt' }, [ref('pt'), null]),
+  },
+  { arr: ref('arr') },
+)
+
+const boxedLocalEnv = contextEnv(
+  'self',
+  { self: punkt(1, 2) },
+  { i: { type: 'int', value: 1, boxed: true } },
+)
 
 export const contextClass: TestSuiteEntry[] = [
   // ------------------------- instance fields via this -------------------------
@@ -320,6 +344,68 @@ export const contextClass: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: punktEnv({ x: 1, y: 2 }, { p: { x: 3, y: 4 } }),
   },
+  // ------------------------- this / identity corners -------------------------
+  { code: `this == this`, output: { type: 'boolean', value: true }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this != this`, output: { type: 'boolean', value: false }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this == null`, output: { type: 'boolean', value: false }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this != null`, output: { type: 'boolean', value: true }, env: punktEnv({ x: 1, y: 2 }) },
+  // ------------------------- instanceof corners -------------------------
+  // a parenthesized left operand must still be recognised
+  { code: `(this) instanceof Punkt`, output: { type: 'boolean', value: true }, env: punktEnv({ x: 1, y: 2 }) },
+  // a freshly returned instance is a Punkt / Object
+  { code: `this.kopie() instanceof Punkt`, output: { type: 'boolean', value: true }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this.kopie() instanceof Object`, output: { type: 'boolean', value: true }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this.kopie().kopie() instanceof Punkt`, output: { type: 'boolean', value: true }, env: punktEnv({ x: 3, y: 4 }) },
+  // null is never an instance, for the specific class or for Object
+  { code: `null instanceof Punkt`, output: { type: 'boolean', value: false }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `null instanceof Object`, output: { type: 'boolean', value: false }, env: punktEnv({ x: 1, y: 2 }) },
+  // the Boolean result composes like any other boolean
+  { code: `this instanceof Punkt && true`, output: { type: 'boolean', value: true }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this instanceof Punkt || false`, output: { type: 'boolean', value: true }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this instanceof Punkt ? this.x : -1`, output: { type: 'int', value: 1 }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this instanceof Punkt ? -1 : this.x`, output: { type: 'int', value: -1 }, env: punktEnv({ x: 1, y: 2 }) },
+  // ------------------------- local shadows a field -------------------------
+  // a local named like the field wins over the instance field
+  { code: `x == 9`, output: { type: 'boolean', value: true }, env: contextEnv('self', { self: punkt(1, 2) }, { x: ofInt(9) }) },
+  { code: `x == this.x`, output: { type: 'boolean', value: false }, env: contextEnv('self', { self: punkt(1, 2) }, { x: ofInt(9) }) },
+  { code: `x + y`, output: { type: 'int', value: 11 }, env: contextEnv('self', { self: punkt(1, 2) }, { x: ofInt(9) }) },
+  // ------------------------- fields meet casts / numeric promotion -------------------------
+  { code: `(long) this.x`, output: { type: 'long', value: '1' }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `(double) this.x`, output: { type: 'double', value: 1 }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `(byte) this.x`, output: { type: 'byte', value: 1 }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `(char) this.x`, output: { type: 'char', value: 1 }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `(long) this.summe()`, output: { type: 'long', value: '3' }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this.x + 1L`, output: { type: 'long', value: '2' }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `1L + this.x`, output: { type: 'long', value: '2' }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this.x + 1.0`, output: { type: 'double', value: 2 }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this.x * 1.0f`, output: { type: 'float', value: 1 }, env: punktEnv({ x: 1, y: 2 }) },
+  // ------------------------- fields meet Math and the ternary -------------------------
+  { code: `Math.pow(this.x, this.y)`, output: { type: 'double', value: 1 }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `Math.sqrt(this.y + 2)`, output: { type: 'double', value: 2 }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this.istUrsprung() ? this.x : this.y`, output: { type: 'int', value: 2 }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this.istUrsprung() ? "ja" : "nein"`, output: { type: '__str', value: 'nein' }, env: punktEnv({ x: 1, y: 2 }) },
+  { code: `(this.istUrsprung() ? this : p).x`, output: { type: 'int', value: 9 }, env: punktEnv({ x: 1, y: 2 }, { p: { x: 9, y: 0 } }) },
+  // ------------------------- fields meet primitive arrays -------------------------
+  { code: `this.x + arr.length`, output: { type: 'int', value: 4 }, env: intArrayEnv },
+  { code: `arr[this.y]`, output: { type: 'int', value: 30 }, env: intArrayEnv },
+  { code: `arr[this.x - 1]`, output: { type: 'int', value: 10 }, env: intArrayEnv },
+  { code: `arr.length > this.y`, output: { type: 'boolean', value: true }, env: intArrayEnv },
+  { code: `arr[0] == this.x`, output: { type: 'boolean', value: false }, env: intArrayEnv },
+  // ------------------------- fields meet arrays of instances -------------------------
+  { code: `arr[0].x`, output: { type: 'int', value: 5 }, env: punktArrayEnv },
+  { code: `arr[0].y`, output: { type: 'int', value: 6 }, env: punktArrayEnv },
+  { code: `arr[0].x + this.x`, output: { type: 'int', value: 6 }, env: punktArrayEnv },
+  { code: `arr[0].istGleich(this)`, output: { type: 'boolean', value: false }, env: punktArrayEnv },
+  { code: `arr[0].kopie().istGleich(arr[0])`, output: { type: 'boolean', value: true }, env: punktArrayEnv },
+  { code: `arr[0] instanceof Punkt`, output: { type: 'boolean', value: true }, env: punktArrayEnv },
+  { code: `arr[1] instanceof Punkt`, output: { type: 'boolean', value: false }, env: punktArrayEnv },
+  { code: `arr[1] == null`, output: { type: 'boolean', value: true }, env: punktArrayEnv },
+  { code: `arr.length`, output: { type: 'int', value: 2 }, env: punktArrayEnv },
+  // ------------------------- fields meet boxed values -------------------------
+  { code: `this.x == i`, output: { type: 'boolean', value: true }, env: boxedLocalEnv },
+  { code: `i == this.x`, output: { type: 'boolean', value: true }, env: boxedLocalEnv },
+  { code: `this.x + i`, output: { type: 'int', value: 2 }, env: boxedLocalEnv },
+  { code: `this.summe() > i`, output: { type: 'boolean', value: true }, env: boxedLocalEnv },
   // ------------------------- compile errors -------------------------
   { code: `this.z == 1`, error: 'compile', env: punktEnv({ x: 1, y: 2 }) },
   { code: `this.istGleich()`, error: 'compile', env: punktEnv({ x: 1, y: 2 }) },
@@ -344,4 +430,19 @@ export const contextClass: TestSuiteEntry[] = [
   { code: `this.istGleich(null, null)`, error: 'compile', env: punktEnv({ x: 1, y: 2 }) },
   { code: `null.istGleich(this)`, error: 'compile', env: punktEnv({ x: 1, y: 2 }) },
   { code: `this.x.istGleich(this)`, error: 'compile', env: punktEnv({ x: 1, y: 2 }) },
+  // unqualified int field is not a reference
+  { code: `x instanceof Punkt`, error: 'compile', env: punktEnv({ x: 1, y: 2 }) },
+  // unknown class name
+  { code: `this instanceof PunktPunkt`, error: 'compile', env: punktEnv({ x: 1, y: 2 }) },
+  // the right-hand side must be a type, not an expression
+  { code: `this instanceof 5`, error: 'compile', env: punktEnv({ x: 1, y: 2 }) },
+  // casts across the boolean/numeric divide
+  { code: `(boolean) this.x`, error: 'compile', env: punktEnv({ x: 1, y: 2 }) },
+  { code: `(int) this.istUrsprung()`, error: 'compile', env: punktEnv({ x: 1, y: 2 }) },
+  // an int is not a reference for instanceof
+  { code: `this.x instanceof Object`, error: 'compile', env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this.summe() instanceof Object`, error: 'compile', env: punktEnv({ x: 1, y: 2 }) },
+  // booleans do not take part in arithmetic / logical-with-int
+  { code: `this.istUrsprung() + 1`, error: 'compile', env: punktEnv({ x: 1, y: 2 }) },
+  { code: `this.istUrsprung() && this.x`, error: 'compile', env: punktEnv({ x: 1, y: 2 }) },
 ]

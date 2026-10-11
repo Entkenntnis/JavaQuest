@@ -14,8 +14,9 @@ import {
 // ==================== CONTEXT CLASSES: Rechteck / Person / Mix ====================
 // Second batch around additional hand-supplied classes: nested field access and
 // null corners (`Rechteck`), String fields and a field/method name collision
-// (`Person`), and every primitive field type (`Mix`). Validated by the cross-check
-// against real Java; interpreted support comes later.
+// (`Person`), and every primitive field type (`Mix`). Includes `instanceof` edges
+// (null corners, unrelated classes) and is validated by `npm run cross-check`
+// against real Java.
 
 export const contextClasses: TestSuiteEntry[] = [
   // ------------------------- Rechteck: nested field access -------------------------
@@ -740,6 +741,356 @@ export const contextClasses: TestSuiteEntry[] = [
   {
     code: `gross > 0 && ok`,
     output: { type: 'boolean', value: true },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+
+  // ------------------------- Rechteck: instanceof with null corners -------------------------
+  {
+    code: `this.a instanceof Punkt`,
+    output: { type: 'boolean', value: true },
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+  {
+    code: `this.a instanceof Punkt`,
+    output: { type: 'boolean', value: false },
+    env: rechteckEnv({ a: null, b: null }),
+  },
+  {
+    code: `this.a instanceof Object`,
+    output: { type: 'boolean', value: true },
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+  {
+    code: `this.a instanceof Object`,
+    output: { type: 'boolean', value: false },
+    env: rechteckEnv({ a: null, b: { x: 1, y: 2 } }),
+  },
+  {
+    code: `this.b instanceof Punkt`,
+    output: { type: 'boolean', value: true },
+    env: rechteckEnv({ a: null, b: { x: 1, y: 2 } }),
+  },
+  {
+    code: `this.eckeA() instanceof Punkt`,
+    output: { type: 'boolean', value: true },
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+  {
+    code: `this.eckeA() instanceof Punkt`,
+    output: { type: 'boolean', value: false },
+    env: rechteckEnv({ a: null, b: null }),
+  },
+  {
+    code: `this.eckeA() instanceof Object`,
+    output: { type: 'boolean', value: false },
+    env: rechteckEnv({ a: null, b: null }),
+  },
+  {
+    code: `this instanceof Rechteck`,
+    output: { type: 'boolean', value: true },
+    env: rechteckEnv({ a: null, b: null }),
+  },
+  {
+    code: `this instanceof Punkt`,
+    error: 'compile',
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+  // distinct corners are neither identical nor equal by content
+  {
+    code: `this.a == this.b`,
+    output: { type: 'boolean', value: false },
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+  {
+    code: `this.a != this.b`,
+    output: { type: 'boolean', value: true },
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+  // ------------------------- Rechteck: null reference arguments throw NPE -------------------------
+  {
+    code: `this.istGleich(null)`,
+    error: 'runtime',
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+  {
+    code: `this.a.istGleich(null)`,
+    error: 'runtime',
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+  {
+    code: `this.eckeA().istGleich(null)`,
+    error: 'runtime',
+    env: rechteckEnv({ a: null, b: null }),
+  },
+
+  // ------------------------- Person: instanceof and the null name -------------------------
+  {
+    code: `this.name instanceof Object`,
+    output: { type: 'boolean', value: true },
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+  {
+    code: `this.name instanceof Object`,
+    output: { type: 'boolean', value: false },
+    env: contextEnv('self', { self: person(nul, 30) }),
+  },
+  {
+    code: `this.name instanceof String`,
+    output: { type: 'boolean', value: true },
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+  {
+    code: `this.name instanceof String`,
+    output: { type: 'boolean', value: false },
+    env: contextEnv('self', { self: person(nul, 30) }),
+  },
+  {
+    code: `this.name() instanceof Object`,
+    output: { type: 'boolean', value: true },
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+  {
+    code: `this.name() instanceof Object`,
+    output: { type: 'boolean', value: false },
+    env: contextEnv('self', { self: person(nul, 30) }),
+  },
+  {
+    code: `null instanceof String`,
+    output: { type: 'boolean', value: false },
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+
+  // ------------------------- Mix: a primitive is not a reference -------------------------
+  {
+    code: `this.gross instanceof Object`,
+    error: 'compile',
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `this.ok instanceof Object`,
+    error: 'compile',
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  // char widens to long for the parameter
+  {
+    code: `this.passt(this.zeichen)`,
+    output: { type: 'boolean', value: true },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 120, ok: true }),
+  },
+
+  // ------------------------- compile: an int is not a reference (other classes) -------------------------
+  {
+    code: `this.a.x instanceof Punkt`,
+    error: 'compile',
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+  {
+    code: `this.name.length() instanceof Object`,
+    error: 'compile',
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+
+  // ------------------------- Rechteck meets the other features -------------------------
+  // a fresh copy is never identical, but equal by content
+  {
+    code: `this.a.kopie() == this.a`,
+    output: { type: 'boolean', value: false },
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+  {
+    code: `this.a.kopie().istGleich(this.a)`,
+    output: { type: 'boolean', value: true },
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+  {
+    code: `this.eckeA().kopie().istGleich(this.a)`,
+    output: { type: 'boolean', value: true },
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+  // a ternary over two reference fields, then a field read on the result
+  {
+    code: `(this.a == null ? this.b : this.a).x`,
+    output: { type: 'int', value: 1 },
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+  // cast on a nested field
+  {
+    code: `(int) this.a.x`,
+    output: { type: 'int', value: 1 },
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+  {
+    code: `this.flaeche() > 0`,
+    output: { type: 'boolean', value: true },
+    env: rechteckEnv({ a: { x: 1, y: 2 }, b: { x: 4, y: 6 } }),
+  },
+
+  // ------------------------- Person meets the other features -------------------------
+  {
+    code: `this.name + this.alter`,
+    output: { type: '__str', value: 'Alice30' },
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+  {
+    code: `this.name == this.name()`,
+    output: { type: 'boolean', value: true },
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+  {
+    code: `this.name.equals(this.name())`,
+    output: { type: 'boolean', value: true },
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+  {
+    code: `this.name.contains(this.name())`,
+    output: { type: 'boolean', value: true },
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+  {
+    code: `this.name.equalsIgnoreCase(this.name())`,
+    output: { type: 'boolean', value: true },
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+  {
+    code: `this.heisst(this.name + "")`,
+    output: { type: 'boolean', value: true },
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+  {
+    code: `this.name.length() + this.alter`,
+    output: { type: 'int', value: 35 },
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+  {
+    code: `this.alterInMonaten() / 12`,
+    output: { type: 'int', value: 30 },
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+  // ternary yielding a String (either the field or a literal)
+  {
+    code: `this.alter >= 18 ? this.name : "minderjaehrig"`,
+    output: { type: '__str', value: 'Alice' },
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+  {
+    code: `this.name == null ? "leer" : this.name`,
+    output: { type: '__str', value: 'Alice' },
+    env: personEnv({ name: 'Alice', alter: 30 }),
+  },
+  {
+    code: `this.name == null ? "leer" : this.name`,
+    output: { type: '__str', value: 'leer' },
+    env: contextEnv('self', { self: person(nul, 30) }),
+  },
+
+  // ------------------------- Mix meets the other features -------------------------
+  {
+    code: `(byte) this.gross`,
+    output: { type: 'byte', value: 100 },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `(char) this.gross`,
+    output: { type: 'char', value: 100 },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `(long) this.zeichen`,
+    output: { type: 'long', value: '97' },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `(int) this.anteil`,
+    output: { type: 'int', value: 1 },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `(long) this.anteil`,
+    output: { type: 'long', value: '1' },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `(float) this.gross`,
+    output: { type: 'float', value: 100 },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `(double) this.gross`,
+    output: { type: 'double', value: 100 },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  // binary numeric promotion across field types
+  {
+    code: `this.gross + this.anteil`,
+    output: { type: 'double', value: 101.5 },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `this.gross + this.zeichen`,
+    output: { type: 'long', value: '197' },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `this.zeichen + this.zeichen()`,
+    output: { type: 'int', value: 194 },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  // ternary over mixed primitive fields
+  {
+    code: `this.ok ? this.gross : 0`,
+    output: { type: 'long', value: '100' },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `this.ok ? this.anteil : 1`,
+    output: { type: 'double', value: 1.5 },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `this.ok ? this.zeichen : this.gross`,
+    output: { type: 'long', value: '97' },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  // unary / bitwise over a long field
+  {
+    code: `-this.gross`,
+    output: { type: 'long', value: '-100' },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `~this.gross`,
+    output: { type: 'long', value: '-101' },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `this.gross >> 2`,
+    output: { type: 'long', value: '25' },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `this.gross & this.zeichen`,
+    output: { type: 'long', value: '96' },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `Math.abs(this.gross)`,
+    output: { type: 'long', value: '100' },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `this.gross > this.zeichen`,
+    output: { type: 'boolean', value: true },
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  // compile: boolean cannot be cast to a number / combined with a long
+  {
+    code: `(boolean) this.gross`,
+    error: 'compile',
+    env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
+  },
+  {
+    code: `this.gross + this.ok`,
+    error: 'compile',
     env: mixEnv({ gross: 100, anteil: 1.5, zeichen: 97, ok: true }),
   },
 ]
