@@ -95,16 +95,6 @@ export function ChapterDoodle({ index, className }: ChapterDoodleProps) {
           <path d="M12.7 18 h6.6" />
         </svg>
       )
-    // 8 – Ternärer Operator ? :
-    case 8:
-      return (
-        <svg {...common} className={className}>
-          <path d="M7.5 11 a3.5 3.5 0 1 1 4.8 3.2 c -1.2 0.5 -1.3 1.3 -1.3 2.4" />
-          <circle cx="11" cy="21" r="0.9" fill="currentColor" stroke="none" />
-          <circle cx="22" cy="12.5" r="0.9" fill="currentColor" stroke="none" />
-          <circle cx="22" cy="19.5" r="0.9" fill="currentColor" stroke="none" />
-        </svg>
-      )
     // 9 – Finale: Flagge
     default:
       return (

@@ -168,19 +168,6 @@ export const chaptersData: ChapterData[] = [
     ),
   },
   {
-    title: 'Nicht-binäre Operatoren',
-    quests: [],
-    description: () => (
-      <>
-        <p>
-          Ternärer Operator <code>? :</code> für integriertes if-else. Außerdem
-          Inkrement/Dekrement um inline Daten zu verändern. Mit Hinweis, dass
-          man da aufpassen muss, dass man sich nicht ins Knie schießt.
-        </p>
-      </>
-    ),
-  },
-  {
     title: 'Finale mit Vertiefungen',
     quests: [],
     description: () => (

@@ -697,11 +697,18 @@ export type JavaHeapObject =
   | JavaObject
   | JavaWrapperObject
   | JavaArrayHeapObject
+// | JavaInstanceObject
 
 export interface JavaStringHeapObject {
   class: 'java.lang.String'
   value: string
   isInterned?: boolean
+}
+
+export interface JavaInstanceObject {
+  class: string
+  isInstance: true
+  fields: Record<string, JavaValue>
 }
 
 export interface JavaWrapperObject {
