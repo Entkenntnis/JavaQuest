@@ -316,18 +316,18 @@ try {
 const results = new Array(entries.length)
 let done = 0
 
-// Collects the Java sources of every synthetic class an entry needs: the classes
-// named in `env.contextMeta` plus every heap object that is a custom instance. The
-// sources come from the shared registry so the interpreter meta and the Java text
-// stay next to each other.
-function collectSyntheticSources(entry) {
+// Collects every synthetic class an entry needs (classes named in
+// `env.contextMeta` plus every heap object that is a custom instance), together
+// with its Java source. The sources come from the shared registry so the
+// interpreter meta and the Java text stay next to each other.
+function collectSyntheticClasses(entry) {
   const env = (entry.env) || {}
   const names = new Set()
   for (const name of Object.keys(env.contextMeta || {})) names.add(name)
   for (const obj of Object.values(env.heap || {})) {
     if (obj && obj.isInstance) names.add(obj.class)
   }
-  const sources = []
+  const classes = []
   for (const name of names) {
     const synthetic = syntheticClasses[name]
     if (!synthetic) {
@@ -335,25 +335,40 @@ function collectSyntheticSources(entry) {
         `no Java source registered for synthetic class "${name}" (see tests/support/context-fixtures.ts)`,
       )
     }
-    sources.push(synthetic.javaSource)
+    classes.push({ name, source: synthetic.javaSource })
   }
-  return sources
+  return classes
+}
+
+function classBlock(classes) {
+  return classes.length ? classes.map((c) => c.source).join('\n\n') + '\n\n' : ''
+}
+
+// The context expression has to run in an instance method, but Java cannot add a
+// method to the already-written synthetic class. Subclassing would make `this` a
+// wrapper type (breaking getClass/identity/final), so the method is spliced into
+// the context class source itself and `this` stays the real class. The fixtures
+// are single top-level classes, so inserting before the last `}` is safe.
+function injectEvalMethod(javaSource, methodText) {
+  const close = javaSource.lastIndexOf('}')
+  if (close < 0) {
+    throw new Error('synthetic class source has no closing brace to inject into')
+  }
+  return `${javaSource.slice(0, close)}${methodText}\n${javaSource.slice(close)}`
 }
 
 // Builds the complete Java compilation unit for an entry.
 //
 // Without a context instance the expression is evaluated directly in `main`.
-// With `env.contextInstance` the wrapper extends the context class and evaluates
-// the expression in an instance method, so `this` is the context object and its
-// fields/methods are reachable.
+// With `env.contextInstance` the expression becomes an `__jqEval()` instance
+// method injected into the context class, and a driver constructs the context
+// object and prints the result. `this` is therefore the real context class.
 function buildSource(entry) {
   const env = (entry.env) || { local: {}, heap: {} }
-  const synthetic = collectSyntheticSources(entry)
-  const classesBlock = synthetic.length ? synthetic.join('\n\n') + '\n\n' : ''
   const context = env.contextInstance
 
   if (!context) {
-    return `${classesBlock}public class JqHarness {
+    return `${classBlock(collectSyntheticClasses(entry))}public class JqHarness {
   public static void main(String[] __jqHarnessArgs) {
 ${renderDecls(entry)}
     Harness.out( ${entry.code} );
@@ -368,21 +383,25 @@ ${renderDecls(entry)}
     )
   }
   const contextClass = contextObj.class
-  const mainLines = [`JqHarness __jqSelf = new JqHarness();`]
+  const mainLines = [`${contextClass} __jqSelf = new ${contextClass}();`]
   const renderedRefs = new Map()
   for (const [field, value] of Object.entries(contextObj.fields || {})) {
     const expr = renderJavaValue(value, env.heap, mainLines, renderedRefs)
     mainLines.push(`__jqSelf.${field} = ${expr};`)
   }
-  const decls = renderDecls(entry)
-  return `${classesBlock}public class JqHarness extends ${contextClass} {
+  const evalMethod = `  Object __jqEval() {
+${renderDecls(entry)}
+    return ( ${entry.code} );
+  }`
+  const classes = collectSyntheticClasses(entry).map((cls) =>
+    cls.name == contextClass
+      ? { name: cls.name, source: injectEvalMethod(cls.source, evalMethod) }
+      : cls,
+  )
+  return `${classBlock(classes)}public class JqHarness {
   public static void main(String[] __jqHarnessArgs) {
 ${mainLines.join('\n')}
     Harness.out(__jqSelf.__jqEval());
-  }
-  Object __jqEval() {
-${decls}
-    return ( ${entry.code} );
   }
 }`
 }

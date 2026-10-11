@@ -43,6 +43,7 @@ import { arrayLength } from './tests/array-length.ts'
 import { arraysRef } from './tests/arrays-ref.ts'
 import { fieldAccess } from './tests/field-access.ts'
 import { contextClass } from './tests/context-class.ts'
+import { contextClasses } from './tests/context-classes.ts'
 
 export const testSuite: TestSuiteEntry[] = [
   ...literals,
@@ -89,4 +90,5 @@ export const testSuite: TestSuiteEntry[] = [
   ...arraysRef,
   ...fieldAccess,
   ...contextClass,
+  ...contextClasses,
 ]

@@ -7,7 +7,7 @@ export default defineConfig({
   publicDir: '../public',
   build: {
     target: 'es2020',
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1500,
     outDir: '../dist',
     emptyOutDir: true,
   },
