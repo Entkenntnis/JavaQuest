@@ -690,6 +690,8 @@ export type TypeData = TypecheckResult[2]
 export interface JavaEnvironment {
   local: Record<string, JavaValue>
   heap: Record<string, JavaHeapObject>
+  contextMeta?: Record<string, ClassMetaData>
+  contextInstance?: JavaReferenceValue
 }
 
 export type JavaHeapObject =

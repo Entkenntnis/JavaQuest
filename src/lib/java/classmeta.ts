@@ -93,7 +93,7 @@ export const classMetaData: Record<string, ClassMetaData> = {
         sig: { params: [], ret: { kind: 'primitive', prim: 'boolean' } },
         handler(owner, _args, env) {
           const obj = env.heap[owner.ref]
-          if (obj.class != 'java.lang.String') {
+          if (!('stringValue' in obj)) {
             throw 'Interner Systemfehler: ungültiger String-Aufruf'
           }
           return { type: 'boolean', value: obj.stringValue.length === 0 }
@@ -107,7 +107,7 @@ export const classMetaData: Record<string, ClassMetaData> = {
         },
         handler(owner, args, env) {
           const own = env.heap[owner.ref]
-          if (own.class != 'java.lang.String') {
+          if (!('stringValue' in own)) {
             throw 'Interner Systemfehler: ungültiger String-Aufruf'
           }
           const other = args[0]
@@ -115,7 +115,7 @@ export const classMetaData: Record<string, ClassMetaData> = {
             throw new Error('java.lang.NullPointerException')
           }
           const obj = env.heap[other.ref]
-          if (obj.class != 'java.lang.String') {
+          if (!('stringValue' in obj)) {
             throw 'Interner Systemfehler: ungültiger String-Aufruf'
           }
           return {
@@ -132,7 +132,7 @@ export const classMetaData: Record<string, ClassMetaData> = {
         },
         handler(owner, args, env) {
           const own = env.heap[owner.ref]
-          if (own.class != 'java.lang.String') {
+          if (!('stringValue' in own)) {
             throw 'Interner Systemfehler: ungültiger String-Aufruf'
           }
           const other = args[0]
@@ -140,7 +140,7 @@ export const classMetaData: Record<string, ClassMetaData> = {
             return { type: 'boolean', value: false }
           }
           const obj = env.heap[other.ref]
-          if (obj.class != 'java.lang.String') {
+          if (!('stringValue' in obj)) {
             throw 'Interner Systemfehler: ungültiger String-Aufruf'
           }
           return {
@@ -248,14 +248,14 @@ function buildEqualsHandler(className: JavaWrapperObject['class']) {
     env: JavaEnvironment,
   ): JavaValue => {
     const own = env.heap[owner.ref]
-    if (own.class != className)
+    if (!('isWrapper' in own) || own.class != className)
       throw 'Interner Systemfehler: unerwartete Wrapper-Klasse'
     let other = args[0]
     if (other.type != 'reference') {
       return { type: 'boolean', value: false }
     }
     const obj = env.heap[other.ref]
-    if (obj.class != className) {
+    if (!('isWrapper' in obj) || obj.class != className) {
       return { type: 'boolean', value: false }
     }
     return {
@@ -277,7 +277,7 @@ function buildToStringHandler(
     handler: (owner, _args, env) => {
       const ref = freshHeapRef(env)
       const obj = env.heap[owner.ref]
-      if (obj.class == className) {
+      if ('isWrapper' in obj && obj.class == className) {
         env.heap[ref] = {
           class: 'java.lang.String',
           stringValue: javaValueToString(obj.value, env),
