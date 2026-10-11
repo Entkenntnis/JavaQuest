@@ -20,7 +20,12 @@ import type {
   TypedIndexNode,
   Location,
 } from '../state/types'
-import { findMethod, isPrimitive, typeToWrapper } from './helper/typing.ts'
+import {
+  findMethod,
+  isPrimitive,
+  isSubtype,
+  typeToWrapper,
+} from './helper/typing.ts'
 import {
   primitiveValueIntoHeap,
   boxCacheRef,
@@ -530,6 +535,13 @@ function evaluate_internal(
       if ('isArray' in obj && obj.isArray && node.name == 'length') {
         return { type: 'int', value: obj.elements.length }
       }
+      if ('isInstance' in obj && obj.isInstance) {
+        const field = obj.fields[node.name]
+        if (!field) {
+          throw `Interner Systemfehler: Feld ${node.name} nicht gefunden`
+        }
+        return field
+      }
       throw 'Interner Systemfehler: unbekanntes Feld'
     }
     case 'ternary': {
@@ -563,10 +575,21 @@ function evaluate_internal(
       return raw
     }
     case 'this': {
-      throw 'Interner Systemfehler: TODO THIS EVAL'
+      if (!env.contextInstance) {
+        throw 'Interner Systemfehler: Kontextobjekt hätte da sein sollen'
+      }
+      return env.contextInstance
     }
     case 'instanceof': {
-      throw 'Interner Systemfehler: TODO INSTANCEOF EVAL'
+      const value = evaluate(node.expression, env)
+      if (value.type == 'null') {
+        return { type: 'boolean', value: false }
+      }
+      const obj = env.heap[value.ref]
+      return {
+        type: 'boolean',
+        value: isSubtype(obj.class, node.className, env),
+      }
     }
   }
 }

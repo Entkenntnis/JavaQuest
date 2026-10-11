@@ -49,9 +49,13 @@ import type {
   BinaryExpressionAstNode,
   TypeWithNull,
   TypedFieldAccessNode,
+  TypedThisNode,
+  TypedInstanceofNode,
 } from '../state/types'
 import { foldConstants } from './fold'
 import {
+  classExists,
+  findField,
   findMethod,
   hasMethodNamed,
   isAssignable,
@@ -683,7 +687,25 @@ function typecheck_internal(
       )
     }
     case 'identifier': {
-      const value = lookupLocal(node.name, env)
+      const value = env.local[node.name]
+      if (!value) {
+        if (env.contextInstance) {
+          const context = env.heap[env.contextInstance.ref]
+          if ('isInstance' in context) {
+            const field = findField(context.class, node.name, env)
+            if (field) {
+              const thisNode: TypedThisNode = { kind: 'this' }
+              const tn: TypedFieldAccessNode = {
+                kind: 'field',
+                target: thisNode,
+                name: node.name,
+              }
+              return resultFromType(field.type, tn)
+            }
+          }
+        }
+        throw new Error(`Symbol nicht gefunden: Variable ${node.name}`)
+      }
       if (value.type == 'reference') {
         const obj = env.heap[value.ref]
         if ('isArray' in obj && obj.isArray) {
@@ -834,6 +856,18 @@ function typecheck_internal(
         throw new Error(
           `${printType(strDatToDisplType(targetT, targetData))} kann nicht dereferenziert werden`,
         )
+      }
+
+      if (targetData && targetData.kind == 'class') {
+        const field = findField(targetData.name, node.name, env)
+        if (field) {
+          const tn: TypedFieldAccessNode = {
+            kind: 'field',
+            target: targetNode,
+            name: node.name,
+          }
+          return resultFromType(field.type, tn)
+        }
       }
 
       throw new Error(`Symbol nicht gefunden: Feld ${node.name}`)
@@ -1051,10 +1085,32 @@ function typecheck_internal(
       return ['reference', tn, { kind: 'class', name: 'java.lang.Object' }]
     }
     case 'this': {
-      throw 'Interner Systemfehler: TODO THIS TC'
+      if (!env.contextInstance) {
+        throw new Error('this kann in diesem Kontext nicht verwendet werden')
+      }
+      const obj = env.heap[env.contextInstance.ref]
+      if (!('isInstance' in obj)) {
+        throw 'Interner Systemfehler: this ist keine Instanz'
+      }
+      const tn: TypedThisNode = { kind: 'this' }
+      return ['reference', tn, { kind: 'class', name: obj.class }]
     }
     case 'instanceof': {
-      throw 'Interner Systemfehler: TODO INSTANCEOF TC'
+      const [type, inner, data] = typecheck_internal(node.expression, env)
+      if (type != 'reference' && type != 'null') {
+        throw new Error(
+          `Inkompatible Typen: ${printType(strDatToDisplType(type, data))} kann nicht mit instanceof verwendet werden`,
+        )
+      }
+      if (!classExists(node.className, env)) {
+        throw new Error(`Symbol nicht gefunden: Klasse ${node.className}`)
+      }
+      const tn: TypedInstanceofNode = {
+        kind: 'instanceof',
+        expression: inner,
+        className: node.className,
+      }
+      return ['boolean', tn]
     }
   }
 }
@@ -1087,14 +1143,6 @@ function constructLiteralNodeResult(node: LiteralAstNode): TypecheckResult {
     case 'null':
       return ['null', typedLiteral(node.value)]
   }
-}
-
-function lookupLocal(name: string, env: JavaEnvironment): JavaValue {
-  const value = env.local[name]
-  if (!value) {
-    throw new Error(`Symbol nicht gefunden: Variable ${name}`)
-  }
-  return value
 }
 
 function canConstantNarrow(
