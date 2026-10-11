@@ -72,7 +72,9 @@ export function refArray(
     class: `${componentName(component)}[]`,
     isArray: true,
     type: component,
-    elements: elements.map((element) => element ?? { type: 'null', value: null }),
+    elements: elements.map(
+      (element) => element ?? { type: 'null', value: null },
+    ),
   }
 }
 
@@ -82,7 +84,7 @@ export function stringObject(
   value: string,
   interned = true,
 ): JavaStringHeapObject {
-  return { class: 'java.lang.String', value, isInterned: interned }
+  return { class: 'java.lang.String', stringValue: value, isInterned: interned }
 }
 
 // A String[] whose elements point at named String objects (registered as locals in the

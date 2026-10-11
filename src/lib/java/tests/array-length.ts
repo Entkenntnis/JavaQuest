@@ -60,9 +60,21 @@ export const arrayLength: TestSuiteEntry[] = [
     env: arrayEnv({ a, b }),
   },
   // ------------------------- arithmetic on the int result -------------------------
-  { code: `a.length + 1`, output: { type: 'int', value: 4 }, env: arrayEnv({ a }) },
-  { code: `a.length - 1`, output: { type: 'int', value: 2 }, env: arrayEnv({ a }) },
-  { code: `a.length * 2`, output: { type: 'int', value: 6 }, env: arrayEnv({ a }) },
+  {
+    code: `a.length + 1`,
+    output: { type: 'int', value: 4 },
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `a.length - 1`,
+    output: { type: 'int', value: 2 },
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `a.length * 2`,
+    output: { type: 'int', value: 6 },
+    env: arrayEnv({ a }),
+  },
   {
     code: `b.length / a.length`,
     output: { type: 'int', value: 1 },
@@ -79,11 +91,31 @@ export const arrayLength: TestSuiteEntry[] = [
     env: arrayEnv({ a, b }),
   },
   // ------------------------- unary / bitwise / shift -------------------------
-  { code: `-a.length`, output: { type: 'int', value: -3 }, env: arrayEnv({ a }) },
-  { code: `+a.length`, output: { type: 'int', value: 3 }, env: arrayEnv({ a }) },
-  { code: `~a.length`, output: { type: 'int', value: -4 }, env: arrayEnv({ a }) },
-  { code: `a.length << 1`, output: { type: 'int', value: 6 }, env: arrayEnv({ a }) },
-  { code: `a.length >> 1`, output: { type: 'int', value: 1 }, env: arrayEnv({ a }) },
+  {
+    code: `-a.length`,
+    output: { type: 'int', value: -3 },
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `+a.length`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `~a.length`,
+    output: { type: 'int', value: -4 },
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `a.length << 1`,
+    output: { type: 'int', value: 6 },
+    env: arrayEnv({ a }),
+  },
+  {
+    code: `a.length >> 1`,
+    output: { type: 'int', value: 1 },
+    env: arrayEnv({ a }),
+  },
   {
     code: `a.length & b.length`,
     output: { type: 'int', value: 0 },
@@ -303,13 +335,21 @@ export const arrayLength: TestSuiteEntry[] = [
     env: arrayEnv({ a, b }),
   },
   // ------------------------- parenthesized / spaced / commented field access -------------------------
-  { code: `(a.length)`, output: { type: 'int', value: 3 }, env: arrayEnv({ a }) },
+  {
+    code: `(a.length)`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnv({ a }),
+  },
   {
     code: `((a.length))`,
     output: { type: 'int', value: 3 },
     env: arrayEnv({ a }),
   },
-  { code: `a . length`, output: { type: 'int', value: 3 }, env: arrayEnv({ a }) },
+  {
+    code: `a . length`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnv({ a }),
+  },
   {
     code: `a./* still the field */length`,
     output: { type: 'int', value: 3 },
@@ -561,7 +601,11 @@ export const arrayLength: TestSuiteEntry[] = [
     env: arrayEnvWithLocals({}, { n: { type: 'null', value: null } }),
   },
   // an element is an int, not an array
-  { code: `true || (a[0].length == 0)`, error: 'compile', env: arrayEnv({ a }) },
+  {
+    code: `true || (a[0].length == 0)`,
+    error: 'compile',
+    env: arrayEnv({ a }),
+  },
   // ------------------------- compile: a String exposes length() as a method, not a field -------------------------
   { code: `true || ("abc".length == 0)`, error: 'compile', env: arrayEnv({}) },
   {
@@ -569,7 +613,7 @@ export const arrayLength: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
   },
 ]

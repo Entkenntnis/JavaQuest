@@ -61,13 +61,10 @@ export const classMetaData: Record<string, ClassMetaData> = {
             return { type: 'boolean', value: false }
           }
           const obj = env.heap[other.ref]
-          if (
-            obj.class != 'java.lang.String' ||
-            own.class != 'java.lang.String'
-          ) {
+          if (!('stringValue' in obj) || !('stringValue' in own)) {
             return { type: 'boolean', value: false }
           }
-          return { type: 'boolean', value: obj.value == own.value }
+          return { type: 'boolean', value: obj.stringValue == own.stringValue }
         },
       },
       {
@@ -85,10 +82,10 @@ export const classMetaData: Record<string, ClassMetaData> = {
         sig: { params: [], ret: { kind: 'primitive', prim: 'int' } },
         handler(owner, _args, env) {
           const obj = env.heap[owner.ref]
-          if (obj.class != 'java.lang.String') {
+          if (!('stringValue' in obj)) {
             throw 'Interner Systemfehler: ungültiger String-Aufruf'
           }
-          return { type: 'int', value: obj.value.length }
+          return { type: 'int', value: obj.stringValue.length }
         },
       },
       {
@@ -99,7 +96,7 @@ export const classMetaData: Record<string, ClassMetaData> = {
           if (obj.class != 'java.lang.String') {
             throw 'Interner Systemfehler: ungültiger String-Aufruf'
           }
-          return { type: 'boolean', value: obj.value.length === 0 }
+          return { type: 'boolean', value: obj.stringValue.length === 0 }
         },
       },
       {
@@ -121,7 +118,10 @@ export const classMetaData: Record<string, ClassMetaData> = {
           if (obj.class != 'java.lang.String') {
             throw 'Interner Systemfehler: ungültiger String-Aufruf'
           }
-          return { type: 'boolean', value: own.value.includes(obj.value) }
+          return {
+            type: 'boolean',
+            value: own.stringValue.includes(obj.stringValue),
+          }
         },
       },
       {
@@ -145,7 +145,7 @@ export const classMetaData: Record<string, ClassMetaData> = {
           }
           return {
             type: 'boolean',
-            value: equalsIgnoreCase(own.value, obj.value),
+            value: equalsIgnoreCase(own.stringValue, obj.stringValue),
           }
         },
       },
@@ -280,7 +280,7 @@ function buildToStringHandler(
       if (obj.class == className) {
         env.heap[ref] = {
           class: 'java.lang.String',
-          value: javaValueToString(obj.value, env),
+          stringValue: javaValueToString(obj.value, env),
         }
         return { type: 'reference', ref }
       }

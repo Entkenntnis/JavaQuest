@@ -61,10 +61,10 @@ function collapse(
 
   if (value.type == 'reference') {
     const obj = scratch.heap[value.ref]
-    if (obj.class != 'java.lang.String') {
-      return rebuilt
+    if ('stringValue' in obj) {
+      return { kind: 'string-literal', value: obj.stringValue }
     }
-    return { kind: 'string-literal', value: obj.value }
+    return rebuilt
   }
 
   return { kind: 'literal', value } as TypedNode<JavaValue>

@@ -37,7 +37,7 @@ export const methodInvocation: TestSuiteEntry[] = [
     code: `s.equals("abc")`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
     output: { type: 'boolean', value: true },
   },
@@ -50,8 +50,8 @@ export const methodInvocation: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'heap1' },
       },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'abc' },
-        heap1: { class: 'java.lang.String', value: 'abc' },
+        heap0: { class: 'java.lang.String', stringValue: 'abc' },
+        heap1: { class: 'java.lang.String', stringValue: 'abc' },
       },
     },
     output: { type: 'boolean', value: true },
@@ -61,7 +61,7 @@ export const methodInvocation: TestSuiteEntry[] = [
     code: `s == "abc"`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
     output: { type: 'boolean', value: false },
   },
@@ -73,8 +73,8 @@ export const methodInvocation: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'heap1' },
       },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'abc' },
-        heap1: { class: 'java.lang.String', value: 'abd' },
+        heap0: { class: 'java.lang.String', stringValue: 'abc' },
+        heap1: { class: 'java.lang.String', stringValue: 'abd' },
       },
     },
     output: { type: 'boolean', value: false },
@@ -84,7 +84,7 @@ export const methodInvocation: TestSuiteEntry[] = [
     code: `"abc".equals(s)`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
     output: { type: 'boolean', value: true },
   },
@@ -94,7 +94,11 @@ export const methodInvocation: TestSuiteEntry[] = [
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'abc', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'abc',
+          isInterned: true,
+        },
       },
     },
     output: { type: 'boolean', value: true },

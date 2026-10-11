@@ -272,17 +272,26 @@ export const compoundAssignment: TestSuiteEntry[] = [
   {
     code: `a += 1L`,
     output: { type: 'long', value: '-9223372036854775808' },
-    env: { local: { a: { type: 'long', value: '9223372036854775807' } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '9223372036854775807' } },
+      heap: {},
+    },
   },
   {
     code: `a -= 1L`,
     output: { type: 'long', value: '9223372036854775807' },
-    env: { local: { a: { type: 'long', value: '-9223372036854775808' } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '-9223372036854775808' } },
+      heap: {},
+    },
   },
   {
     code: `a *= 2L`,
     output: { type: 'long', value: '-2' },
-    env: { local: { a: { type: 'long', value: '9223372036854775807' } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '9223372036854775807' } },
+      heap: {},
+    },
   },
   // ------------------------- self reference -------------------------
   {
@@ -405,7 +414,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abcx' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -413,7 +424,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abcabc' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -421,7 +434,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abc5' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -429,7 +444,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abc-5' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -437,7 +454,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abc1.5' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -445,7 +464,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abc1.5' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -453,7 +474,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abc-56' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -461,7 +484,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abcA' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -469,7 +494,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abctrue' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -477,7 +504,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abcnull' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -485,7 +514,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abc9223372036854775807' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -493,7 +524,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abc3' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -501,7 +534,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abcx1' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -509,7 +544,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abc1x' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -517,7 +554,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: '__str', value: 'abc1' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -525,7 +564,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -537,8 +578,8 @@ export const compoundAssignment: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'ht' },
       },
       heap: {
-        hs: { class: 'java.lang.String', value: 'a', isInterned: true },
-        ht: { class: 'java.lang.String', value: 'a', isInterned: true },
+        hs: { class: 'java.lang.String', stringValue: 'a', isInterned: true },
+        ht: { class: 'java.lang.String', stringValue: 'a', isInterned: true },
       },
     },
   },
@@ -551,8 +592,8 @@ export const compoundAssignment: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'ht' },
       },
       heap: {
-        hs: { class: 'java.lang.String', value: 'abc', isInterned: true },
-        ht: { class: 'java.lang.String', value: 'XY', isInterned: true },
+        hs: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+        ht: { class: 'java.lang.String', stringValue: 'XY', isInterned: true },
       },
     },
   },
@@ -562,7 +603,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -570,7 +613,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -578,7 +623,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   {
@@ -586,7 +633,9 @@ export const compoundAssignment: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'abc', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'abc', isInterned: true },
+      },
     },
   },
   // ------------------------- invalid operands -------------------------
@@ -780,42 +829,66 @@ export const compoundAssignment: TestSuiteEntry[] = [
   {
     code: `a += 1`,
     output: { type: 'long', value: '1001' },
-    env: { local: { a: { type: 'long', value: '1000', boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '1000', boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a += 1L`,
     output: { type: 'long', value: '1001' },
-    env: { local: { a: { type: 'long', value: '1000', boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '1000', boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a *= 2`,
     output: { type: 'long', value: '2000' },
-    env: { local: { a: { type: 'long', value: '1000', boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '1000', boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a += 1.5`,
     error: 'compile',
-    env: { local: { a: { type: 'long', value: '1000', boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '1000', boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a += 1`,
     output: { type: 'double', value: 1001 },
-    env: { local: { a: { type: 'double', value: 1000, boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'double', value: 1000, boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a += 1.5f`,
     output: { type: 'double', value: 1001.5 },
-    env: { local: { a: { type: 'double', value: 1000, boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'double', value: 1000, boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a += 1`,
     output: { type: 'float', value: 1001 },
-    env: { local: { a: { type: 'float', value: 1000, boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'float', value: 1000, boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a += 1.5`,
     error: 'compile',
-    env: { local: { a: { type: 'float', value: 1000, boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'float', value: 1000, boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a += 1`,

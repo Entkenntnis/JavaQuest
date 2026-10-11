@@ -87,7 +87,7 @@ export const stringMethods: TestSuiteEntry[] = [
     code: `s.length()`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abcdef' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abcdef' } },
     },
     output: { type: 'int', value: 6 },
   },
@@ -96,7 +96,7 @@ export const stringMethods: TestSuiteEntry[] = [
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
       heap: {
-        heap0: { class: 'java.lang.String', value: '', isInterned: true },
+        heap0: { class: 'java.lang.String', stringValue: '', isInterned: true },
       },
     },
     output: { type: 'int', value: 0 },
@@ -140,7 +140,7 @@ export const stringMethods: TestSuiteEntry[] = [
     code: `s.isEmpty()`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: '' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: '' } },
     },
     output: { type: 'boolean', value: true },
   },
@@ -149,7 +149,11 @@ export const stringMethods: TestSuiteEntry[] = [
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'x', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'x',
+          isInterned: true,
+        },
       },
     },
     output: { type: 'boolean', value: false },
@@ -226,8 +230,8 @@ export const stringMethods: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'heap1' },
       },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'Hello World' },
-        heap1: { class: 'java.lang.String', value: 'World' },
+        heap0: { class: 'java.lang.String', stringValue: 'Hello World' },
+        heap1: { class: 'java.lang.String', stringValue: 'World' },
       },
     },
     output: { type: 'boolean', value: true },
@@ -240,8 +244,8 @@ export const stringMethods: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'heap1' },
       },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'Hello World' },
-        heap1: { class: 'java.lang.String', value: 'world' },
+        heap0: { class: 'java.lang.String', stringValue: 'Hello World' },
+        heap1: { class: 'java.lang.String', stringValue: 'world' },
       },
     },
     output: { type: 'boolean', value: false },
@@ -250,7 +254,9 @@ export const stringMethods: TestSuiteEntry[] = [
     code: `s.contains("lo W")`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'Hello World' } },
+      heap: {
+        heap0: { class: 'java.lang.String', stringValue: 'Hello World' },
+      },
     },
     output: { type: 'boolean', value: true },
   },
@@ -258,7 +264,7 @@ export const stringMethods: TestSuiteEntry[] = [
     code: `"Hello".contains(s)`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'ell' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'ell' } },
     },
     output: { type: 'boolean', value: true },
   },
@@ -367,8 +373,8 @@ export const stringMethods: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'heap1' },
       },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'Hallo' },
-        heap1: { class: 'java.lang.String', value: 'hALLO' },
+        heap0: { class: 'java.lang.String', stringValue: 'Hallo' },
+        heap1: { class: 'java.lang.String', stringValue: 'hALLO' },
       },
     },
     output: { type: 'boolean', value: true },
@@ -381,8 +387,8 @@ export const stringMethods: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'heap1' },
       },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'Hallo' },
-        heap1: { class: 'java.lang.String', value: 'Halle' },
+        heap0: { class: 'java.lang.String', stringValue: 'Hallo' },
+        heap1: { class: 'java.lang.String', stringValue: 'Halle' },
       },
     },
     output: { type: 'boolean', value: false },
@@ -391,7 +397,7 @@ export const stringMethods: TestSuiteEntry[] = [
     code: `"BERLIN".equalsIgnoreCase(s)`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'berlin' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'berlin' } },
     },
     output: { type: 'boolean', value: true },
   },
@@ -402,7 +408,7 @@ export const stringMethods: TestSuiteEntry[] = [
     code: `s.equals("abc")`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
     output: { type: 'boolean', value: true },
   },
@@ -410,7 +416,7 @@ export const stringMethods: TestSuiteEntry[] = [
     code: `s == "abc"`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
     output: { type: 'boolean', value: false },
   },
@@ -419,7 +425,11 @@ export const stringMethods: TestSuiteEntry[] = [
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'abc', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'abc',
+          isInterned: true,
+        },
       },
     },
     output: { type: 'boolean', value: true },
@@ -534,7 +544,7 @@ export const stringMethods: TestSuiteEntry[] = [
     code: `s.length()`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'e\u0301' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'e\u0301' } },
     },
     output: { type: 'int', value: 2 },
   },
@@ -542,7 +552,7 @@ export const stringMethods: TestSuiteEntry[] = [
     code: `s.isEmpty()`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'e\u0301' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'e\u0301' } },
     },
     output: { type: 'boolean', value: false },
   },
@@ -593,7 +603,7 @@ export const stringMethods: TestSuiteEntry[] = [
     code: `(s + "b").length()`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'a' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'a' } },
     },
     output: { type: 'int', value: 2 },
   },
@@ -705,7 +715,7 @@ export const stringMethods: TestSuiteEntry[] = [
     code: `s.equalsIgnoreCase(s)`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'Berlin' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'Berlin' } },
     },
     output: { type: 'boolean', value: true },
   },
@@ -814,7 +824,7 @@ export const stringMethods: TestSuiteEntry[] = [
     code: `s.length() > 0 && s.contains("er") && s.equalsIgnoreCase("BERLIN")`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'Berlin' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'Berlin' } },
     },
     output: { type: 'boolean', value: true },
   },

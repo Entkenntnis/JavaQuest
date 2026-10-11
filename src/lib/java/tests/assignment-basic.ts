@@ -340,7 +340,9 @@ export const assignmentBasic: TestSuiteEntry[] = [
     output: { type: '__str', value: 'x' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'old', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'old', isInterned: true },
+      },
     },
   },
   {
@@ -348,7 +350,9 @@ export const assignmentBasic: TestSuiteEntry[] = [
     output: { type: '__str', value: '' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'old', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'old', isInterned: true },
+      },
     },
   },
   {
@@ -356,7 +360,9 @@ export const assignmentBasic: TestSuiteEntry[] = [
     output: { type: '__str', value: 'ab' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'old', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'old', isInterned: true },
+      },
     },
   },
   {
@@ -364,7 +370,9 @@ export const assignmentBasic: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'old', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'old', isInterned: true },
+      },
     },
   },
   {
@@ -372,7 +380,9 @@ export const assignmentBasic: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'old', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'old', isInterned: true },
+      },
     },
   },
   {
@@ -380,7 +390,9 @@ export const assignmentBasic: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'old', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'old', isInterned: true },
+      },
     },
   },
   {
@@ -704,8 +716,8 @@ export const assignmentBasic: TestSuiteEntry[] = [
         b: { type: 'reference', ref: 'hb' },
       },
       heap: {
-        ha: { class: 'java.lang.String', value: 'old', isInterned: true },
-        hb: { class: 'java.lang.String', value: 'hi', isInterned: true },
+        ha: { class: 'java.lang.String', stringValue: 'old', isInterned: true },
+        hb: { class: 'java.lang.String', stringValue: 'hi', isInterned: true },
       },
     },
   },
@@ -717,7 +729,9 @@ export const assignmentBasic: TestSuiteEntry[] = [
         a: { type: 'int', value: 0 },
         b: { type: 'reference', ref: 'hb' },
       },
-      heap: { hb: { class: 'java.lang.String', value: 'hi', isInterned: true } },
+      heap: {
+        hb: { class: 'java.lang.String', stringValue: 'hi', isInterned: true },
+      },
     },
   },
   {
@@ -728,7 +742,9 @@ export const assignmentBasic: TestSuiteEntry[] = [
         a: { type: 'reference', ref: 'ha' },
         b: { type: 'int', value: 5 },
       },
-      heap: { ha: { class: 'java.lang.String', value: 'old', isInterned: true } },
+      heap: {
+        ha: { class: 'java.lang.String', stringValue: 'old', isInterned: true },
+      },
     },
   },
   // ------------------------- boxing / unboxing through identifiers -------------------------
@@ -867,12 +883,18 @@ export const assignmentBasic: TestSuiteEntry[] = [
   {
     code: `a = true`,
     output: { type: 'boolean', value: true },
-    env: { local: { a: { type: 'boolean', value: false, boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'boolean', value: false, boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a = 1`,
     error: 'compile',
-    env: { local: { a: { type: 'boolean', value: false, boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'boolean', value: false, boxed: true } },
+      heap: {},
+    },
   },
   // ------------------------- invalid left-hand sides -------------------------
   {

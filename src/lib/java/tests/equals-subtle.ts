@@ -264,7 +264,7 @@ export const equalsSubtle: TestSuiteEntry[] = [
     code: `(s + "d").equals("abcd")`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
     output: { type: 'boolean', value: true },
   },
@@ -272,7 +272,7 @@ export const equalsSubtle: TestSuiteEntry[] = [
     code: `"abcd".equals(s + "d")`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
     output: { type: 'boolean', value: true },
   },
@@ -281,7 +281,7 @@ export const equalsSubtle: TestSuiteEntry[] = [
     code: `(s + "d") == "abcd"`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
     output: { type: 'boolean', value: false },
   },

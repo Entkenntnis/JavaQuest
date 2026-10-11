@@ -451,7 +451,10 @@ export const assignmentBoxed: TestSuiteEntry[] = [
   {
     code: `a--`,
     output: { type: 'long', value: '100' },
-    env: { local: { a: { type: 'long', value: '100', boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '100', boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a++`,
@@ -466,12 +469,18 @@ export const assignmentBoxed: TestSuiteEntry[] = [
   {
     code: `a++`,
     output: { type: 'double', value: 1.5 },
-    env: { local: { a: { type: 'double', value: 1.5, boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'double', value: 1.5, boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a++ + a`,
     output: { type: 'double', value: 4 },
-    env: { local: { a: { type: 'double', value: 1.5, boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'double', value: 1.5, boxed: true } },
+      heap: {},
+    },
   },
   // ------------------------- assignment result values & types -------------------------
   {
@@ -517,7 +526,10 @@ export const assignmentBoxed: TestSuiteEntry[] = [
   {
     code: `a = true`,
     output: { type: 'boolean', value: true },
-    env: { local: { a: { type: 'boolean', value: false, boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'boolean', value: false, boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a = 1.5f`,
@@ -562,7 +574,9 @@ export const assignmentBoxed: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'old', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'old', isInterned: true },
+      },
     },
   },
   {
@@ -570,7 +584,9 @@ export const assignmentBoxed: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'old', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'old', isInterned: true },
+      },
     },
   },
   {
@@ -582,8 +598,8 @@ export const assignmentBoxed: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'ht' },
       },
       heap: {
-        hs: { class: 'java.lang.String', value: 'a', isInterned: true },
-        ht: { class: 'java.lang.String', value: 'xy', isInterned: true },
+        hs: { class: 'java.lang.String', stringValue: 'a', isInterned: true },
+        ht: { class: 'java.lang.String', stringValue: 'xy', isInterned: true },
       },
     },
   },
@@ -592,7 +608,9 @@ export const assignmentBoxed: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'old', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'old', isInterned: true },
+      },
     },
   },
   // ------------------------- boxed assignment compile errors -------------------------
@@ -629,7 +647,10 @@ export const assignmentBoxed: TestSuiteEntry[] = [
   {
     code: `a = 1`,
     error: 'compile',
-    env: { local: { a: { type: 'boolean', value: false, boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'boolean', value: false, boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a = 'A'`,

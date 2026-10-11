@@ -89,7 +89,11 @@ export function stringEnv(...entries: [string, string][]): JavaEnvironment {
   const result: JavaEnvironment = { local: {}, heap: {} }
   for (const [name, value] of entries) {
     const ref = `heap${Object.keys(result.heap).length}`
-    result.heap[ref] = { class: 'java.lang.String', value, isInterned: true }
+    result.heap[ref] = {
+      class: 'java.lang.String',
+      stringValue: value,
+      isInterned: true,
+    }
     result.local[name] = { type: 'reference', ref }
   }
   return result
@@ -99,13 +103,11 @@ export function stringEnv(...entries: [string, string][]): JavaEnvironment {
 // heap reference. This keeps reference equality (==) from accidentally matching
 // equal content, which is exactly what the String chapter wants to contrast
 // against content equality (equals).
-export function rawStringsEnv(
-  ...entries: [string, string][]
-): JavaEnvironment {
+export function rawStringsEnv(...entries: [string, string][]): JavaEnvironment {
   const result: JavaEnvironment = { local: {}, heap: {} }
   for (const [name, value] of entries) {
     const ref = `heap${Object.keys(result.heap).length}`
-    result.heap[ref] = { class: 'java.lang.String', value }
+    result.heap[ref] = { class: 'java.lang.String', stringValue: value }
     result.local[name] = { type: 'reference', ref }
   }
   return result
@@ -113,12 +115,19 @@ export function rawStringsEnv(
 
 // A String[] on the heap, with each element pointing at its own String object.
 // Used by quests that read a command-line argument array (e.g. args.length).
-export function stringArrayEnv(name: string, values: string[]): JavaEnvironment {
+export function stringArrayEnv(
+  name: string,
+  values: string[],
+): JavaEnvironment {
   const ref = `array_${name}`
   const heap: JavaEnvironment['heap'] = {}
   const elements = values.map((value, i): JavaValue => {
     const objRef = `array_${name}_${i}`
-    heap[objRef] = { class: 'java.lang.String', value, isInterned: true }
+    heap[objRef] = {
+      class: 'java.lang.String',
+      stringValue: value,
+      isInterned: true,
+    }
     return { type: 'reference', ref: objRef }
   })
   heap[ref] = {
@@ -173,7 +182,7 @@ export function readStringLocal(
   const v = env.local[name]
   if (v && v.type == 'reference') {
     const obj = env.heap[v.ref]
-    if (obj && obj.class == 'java.lang.String') return obj.value
+    if (obj && 'stringValue' in obj) return obj.stringValue
   }
   return fallback
 }

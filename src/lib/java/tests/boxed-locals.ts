@@ -751,7 +751,11 @@ export const boxedLocals: TestSuiteEntry[] = [
         s: { type: 'reference', ref: 'heap0' },
       },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'a', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'a',
+          isInterned: true,
+        },
       },
     },
   },

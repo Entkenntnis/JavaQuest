@@ -69,7 +69,7 @@ export const identifiersAndCasts: TestSuiteEntry[] = [
     output: { type: '__str', value: 'JavaQuest' },
     env: {
       local: { str: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'JavaQuest' } },
     },
   },
   // ==================== UNARY OPERATORS & CASTS ====================

@@ -261,27 +261,42 @@ export const incrementDecrement: TestSuiteEntry[] = [
   {
     code: `a++ + a`,
     output: { type: 'long', value: '-1' },
-    env: { local: { a: { type: 'long', value: '9223372036854775807' } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '9223372036854775807' } },
+      heap: {},
+    },
   },
   {
     code: `++a`,
     output: { type: 'long', value: '-9223372036854775808' },
-    env: { local: { a: { type: 'long', value: '9223372036854775807' } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '9223372036854775807' } },
+      heap: {},
+    },
   },
   {
     code: `a++`,
     output: { type: 'long', value: '9223372036854775807' },
-    env: { local: { a: { type: 'long', value: '9223372036854775807' } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '9223372036854775807' } },
+      heap: {},
+    },
   },
   {
     code: `a-- + a`,
     output: { type: 'long', value: '-1' },
-    env: { local: { a: { type: 'long', value: '-9223372036854775808' } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '-9223372036854775808' } },
+      heap: {},
+    },
   },
   {
     code: `--a`,
     output: { type: 'long', value: '9223372036854775807' },
-    env: { local: { a: { type: 'long', value: '-9223372036854775808' } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '-9223372036854775808' } },
+      heap: {},
+    },
   },
   // ------------------------- byte -------------------------
   {
@@ -471,17 +486,26 @@ export const incrementDecrement: TestSuiteEntry[] = [
   {
     code: `a++`,
     output: { type: 'long', value: '100' },
-    env: { local: { a: { type: 'long', value: '100', boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '100', boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a++ + a`,
     output: { type: 'long', value: '201' },
-    env: { local: { a: { type: 'long', value: '100', boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'long', value: '100', boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a++ + a`,
     output: { type: 'int', value: -1 },
-    env: { local: { a: { type: 'int', value: 2147483647, boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'int', value: 2147483647, boxed: true } },
+      heap: {},
+    },
   },
   // ------------------------- invalid targets / operands -------------------------
   {
@@ -522,7 +546,9 @@ export const incrementDecrement: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: { a: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'x', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'x', isInterned: true },
+      },
     },
   },
   {

@@ -90,8 +90,12 @@ export const assignmentEdgeCases: TestSuiteEntry[] = [
         b: { type: 'reference', ref: 'hb' },
       },
       heap: {
-        ha: { class: 'java.lang.String', value: 'old', isInterned: true },
-        hb: { class: 'java.lang.String', value: 'older', isInterned: true },
+        ha: { class: 'java.lang.String', stringValue: 'old', isInterned: true },
+        hb: {
+          class: 'java.lang.String',
+          stringValue: 'older',
+          isInterned: true,
+        },
       },
     },
   },
@@ -104,8 +108,12 @@ export const assignmentEdgeCases: TestSuiteEntry[] = [
         b: { type: 'reference', ref: 'hb' },
       },
       heap: {
-        ha: { class: 'java.lang.String', value: 'old', isInterned: true },
-        hb: { class: 'java.lang.String', value: 'older', isInterned: true },
+        ha: { class: 'java.lang.String', stringValue: 'old', isInterned: true },
+        hb: {
+          class: 'java.lang.String',
+          stringValue: 'older',
+          isInterned: true,
+        },
       },
     },
   },
@@ -266,7 +274,9 @@ export const assignmentEdgeCases: TestSuiteEntry[] = [
     output: { type: '__str', value: 'aax' },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'a', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'a', isInterned: true },
+      },
     },
   },
   {
@@ -274,7 +284,9 @@ export const assignmentEdgeCases: TestSuiteEntry[] = [
     output: { type: 'boolean', value: false },
     env: {
       local: { s: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'a', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'a', isInterned: true },
+      },
     },
   },
   {
@@ -286,8 +298,8 @@ export const assignmentEdgeCases: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'ht' },
       },
       heap: {
-        hs: { class: 'java.lang.String', value: 'a', isInterned: true },
-        ht: { class: 'java.lang.String', value: 'old', isInterned: true },
+        hs: { class: 'java.lang.String', stringValue: 'a', isInterned: true },
+        ht: { class: 'java.lang.String', stringValue: 'old', isInterned: true },
       },
     },
   },
@@ -462,7 +474,9 @@ export const assignmentEdgeCases: TestSuiteEntry[] = [
         s: { type: 'reference', ref: 'hs' },
         a: { type: 'int', value: 5, boxed: true },
       },
-      heap: { hs: { class: 'java.lang.String', value: 'x', isInterned: true } },
+      heap: {
+        hs: { class: 'java.lang.String', stringValue: 'x', isInterned: true },
+      },
     },
   },
   {
@@ -473,7 +487,9 @@ export const assignmentEdgeCases: TestSuiteEntry[] = [
         s: { type: 'reference', ref: 'hs' },
         a: { type: 'boolean', value: true, boxed: true },
       },
-      heap: { hs: { class: 'java.lang.String', value: 'x', isInterned: true } },
+      heap: {
+        hs: { class: 'java.lang.String', stringValue: 'x', isInterned: true },
+      },
     },
   },
   {
@@ -484,7 +500,9 @@ export const assignmentEdgeCases: TestSuiteEntry[] = [
         s: { type: 'reference', ref: 'hs' },
         a: { type: 'char', value: 65, boxed: true },
       },
-      heap: { hs: { class: 'java.lang.String', value: 'x', isInterned: true } },
+      heap: {
+        hs: { class: 'java.lang.String', stringValue: 'x', isInterned: true },
+      },
     },
   },
   {
@@ -495,7 +513,9 @@ export const assignmentEdgeCases: TestSuiteEntry[] = [
         s: { type: 'reference', ref: 'hs' },
         a: { type: 'long', value: '5', boxed: true },
       },
-      heap: { hs: { class: 'java.lang.String', value: 'x', isInterned: true } },
+      heap: {
+        hs: { class: 'java.lang.String', stringValue: 'x', isInterned: true },
+      },
     },
   },
   // null flows into concatenation as the literal text "null".
@@ -507,7 +527,9 @@ export const assignmentEdgeCases: TestSuiteEntry[] = [
         s: { type: 'reference', ref: 'hs' },
         a: { type: 'int', value: 5, boxed: true },
       },
-      heap: { hs: { class: 'java.lang.String', value: 'x', isInterned: true } },
+      heap: {
+        hs: { class: 'java.lang.String', stringValue: 'x', isInterned: true },
+      },
     },
   },
   {
@@ -518,7 +540,9 @@ export const assignmentEdgeCases: TestSuiteEntry[] = [
         s: { type: 'reference', ref: 'hs' },
         a: { type: 'int', value: 5 },
       },
-      heap: { hs: { class: 'java.lang.String', value: 'x', isInterned: true } },
+      heap: {
+        hs: { class: 'java.lang.String', stringValue: 'x', isInterned: true },
+      },
     },
   },
   {
@@ -529,7 +553,9 @@ export const assignmentEdgeCases: TestSuiteEntry[] = [
         a: { type: 'int', value: 5, boxed: true },
         s: { type: 'reference', ref: 'hs' },
       },
-      heap: { hs: { class: 'java.lang.String', value: 'x', isInterned: true } },
+      heap: {
+        hs: { class: 'java.lang.String', stringValue: 'x', isInterned: true },
+      },
     },
   },
   // ------------------------- chaining & result typing -------------------------

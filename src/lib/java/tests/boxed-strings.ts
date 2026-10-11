@@ -142,7 +142,11 @@ export const boxedStrings: TestSuiteEntry[] = [
         s: { type: 'reference', ref: 'heap0' },
       },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'x', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'x',
+          isInterned: true,
+        },
       },
     },
   },
@@ -155,7 +159,11 @@ export const boxedStrings: TestSuiteEntry[] = [
         s: { type: 'reference', ref: 'heap0' },
       },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'x', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'x',
+          isInterned: true,
+        },
       },
     },
   },

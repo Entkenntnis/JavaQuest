@@ -75,7 +75,11 @@ export const stringObjectModel: TestSuiteEntry[] = [
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'a', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'a',
+          isInterned: true,
+        },
       },
     },
   },
@@ -85,7 +89,11 @@ export const stringObjectModel: TestSuiteEntry[] = [
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'a', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'a',
+          isInterned: true,
+        },
       },
     },
   },
@@ -95,7 +103,11 @@ export const stringObjectModel: TestSuiteEntry[] = [
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'a', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'a',
+          isInterned: true,
+        },
       },
     },
   },
@@ -105,7 +117,11 @@ export const stringObjectModel: TestSuiteEntry[] = [
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'ab', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'ab',
+          isInterned: true,
+        },
       },
     },
   },
@@ -115,7 +131,11 @@ export const stringObjectModel: TestSuiteEntry[] = [
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'ab', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'ab',
+          isInterned: true,
+        },
       },
     },
   },
@@ -128,8 +148,16 @@ export const stringObjectModel: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'heap1' },
       },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'ab', isInterned: true },
-        heap1: { class: 'java.lang.String', value: 'cd', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'ab',
+          isInterned: true,
+        },
+        heap1: {
+          class: 'java.lang.String',
+          stringValue: 'cd',
+          isInterned: true,
+        },
       },
     },
   },
@@ -139,7 +167,11 @@ export const stringObjectModel: TestSuiteEntry[] = [
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'ab', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'ab',
+          isInterned: true,
+        },
       },
     },
   },
@@ -151,7 +183,7 @@ export const stringObjectModel: TestSuiteEntry[] = [
     output: { type: 'boolean', value: false },
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'a' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'a' } },
     },
   },
   {
@@ -160,7 +192,11 @@ export const stringObjectModel: TestSuiteEntry[] = [
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'a', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'a',
+          isInterned: true,
+        },
       },
     },
   },
@@ -173,8 +209,8 @@ export const stringObjectModel: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'heap1' },
       },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'a' },
-        heap1: { class: 'java.lang.String', value: 'a' },
+        heap0: { class: 'java.lang.String', stringValue: 'a' },
+        heap1: { class: 'java.lang.String', stringValue: 'a' },
       },
     },
   },
@@ -187,8 +223,12 @@ export const stringObjectModel: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'heap1' },
       },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'a', isInterned: true },
-        heap1: { class: 'java.lang.String', value: 'a' },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'a',
+          isInterned: true,
+        },
+        heap1: { class: 'java.lang.String', stringValue: 'a' },
       },
     },
   },
@@ -201,8 +241,8 @@ export const stringObjectModel: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'heap1' },
       },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'a' },
-        heap1: { class: 'java.lang.String', value: 'b' },
+        heap0: { class: 'java.lang.String', stringValue: 'a' },
+        heap1: { class: 'java.lang.String', stringValue: 'b' },
       },
     },
   },
@@ -215,8 +255,16 @@ export const stringObjectModel: TestSuiteEntry[] = [
         t: { type: 'reference', ref: 'heap1' },
       },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'a', isInterned: true },
-        heap1: { class: 'java.lang.String', value: 'b', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'a',
+          isInterned: true,
+        },
+        heap1: {
+          class: 'java.lang.String',
+          stringValue: 'b',
+          isInterned: true,
+        },
       },
     },
   },
@@ -225,7 +273,7 @@ export const stringObjectModel: TestSuiteEntry[] = [
     output: { type: 'boolean', value: true },
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'a' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'a' } },
     },
   },
   {
@@ -234,7 +282,11 @@ export const stringObjectModel: TestSuiteEntry[] = [
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
       heap: {
-        heap0: { class: 'java.lang.String', value: 'a', isInterned: true },
+        heap0: {
+          class: 'java.lang.String',
+          stringValue: 'a',
+          isInterned: true,
+        },
       },
     },
   },
@@ -243,7 +295,7 @@ export const stringObjectModel: TestSuiteEntry[] = [
     output: { type: 'boolean', value: false },
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'a' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'a' } },
     },
   },
   // ------------------------- constant folding: numeric overflow & compile-time evaluation -------------------------

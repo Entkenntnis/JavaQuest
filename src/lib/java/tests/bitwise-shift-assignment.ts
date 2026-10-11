@@ -370,12 +370,18 @@ export const bitwiseShiftAssignment: TestSuiteEntry[] = [
   {
     code: `a &= false`,
     output: { type: 'boolean', value: false },
-    env: { local: { a: { type: 'boolean', value: true, boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'boolean', value: true, boxed: true } },
+      heap: {},
+    },
   },
   {
     code: `a |= true`,
     output: { type: 'boolean', value: true },
-    env: { local: { a: { type: 'boolean', value: false, boxed: true } }, heap: {} },
+    env: {
+      local: { a: { type: 'boolean', value: false, boxed: true } },
+      heap: {},
+    },
   },
   // ------------------------- mixed-width / boxed RHS -------------------------
   {
@@ -497,7 +503,9 @@ export const bitwiseShiftAssignment: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: { a: { type: 'reference', ref: 'h' } },
-      heap: { h: { class: 'java.lang.String', value: 'x', isInterned: true } },
+      heap: {
+        h: { class: 'java.lang.String', stringValue: 'x', isInterned: true },
+      },
     },
   },
   {

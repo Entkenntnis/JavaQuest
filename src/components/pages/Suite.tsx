@@ -50,9 +50,9 @@ function runCase(code: string, env: JavaEnvironment): SuiteResult {
     const value = evaluate(foldConstants(typed), env)
     if (value.type == 'reference') {
       const obj = env.heap[value.ref]
-      if (obj.class == 'java.lang.String') {
+      if ('stringValue' in obj) {
         return {
-          value: { type: '__str', value: obj.value },
+          value: { type: '__str', value: obj.stringValue },
         }
       }
       // auto unboxing, like in cross check harness

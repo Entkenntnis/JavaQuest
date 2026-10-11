@@ -64,8 +64,8 @@ function evaluate_internal(
       // walk the heap
       for (const [key, val] of Object.entries(env.heap)) {
         if (
-          val.class == 'java.lang.String' &&
-          val.value == node.value &&
+          'stringValue' in val &&
+          val.stringValue == node.value &&
           val.isInterned
         ) {
           return { type: 'reference', ref: key }
@@ -75,7 +75,7 @@ function evaluate_internal(
       const ref = freshHeapRef(env)
       env.heap[ref] = {
         class: 'java.lang.String',
-        value: node.value,
+        stringValue: node.value,
         isInterned: true,
       }
       return { type: 'reference', ref }
@@ -293,7 +293,7 @@ function evaluate_internal(
           const ref = freshHeapRef(env)
           env.heap[ref] = {
             class: 'java.lang.String',
-            value,
+            stringValue: value,
           }
           return { type: 'reference', ref }
         }
@@ -464,7 +464,7 @@ function evaluate_internal(
           throw new Error('java.lang.NullPointerException: Entpacken von null')
         }
         const obj = env.heap[inner.ref]
-        if (obj.class == typeToWrapper[node.type]) {
+        if ('isWrapper' in obj && obj.class == typeToWrapper[node.type]) {
           return obj.value
         }
         throw new Error(

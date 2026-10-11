@@ -22,8 +22,8 @@ export function javaValueToString(
       return printDouble(val.value)
     case 'reference':
       const obj = env.heap[val.ref]
-      if (obj.class == 'java.lang.String') {
-        return obj.value
+      if ('stringValue' in obj) {
+        return obj.stringValue
       }
       if ('isWrapper' in obj) {
         return javaValueToString(obj.value, env)

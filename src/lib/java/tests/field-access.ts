@@ -27,7 +27,11 @@ const c = arrayObject('long', longs(['100', '200', '300']))
 
 export const fieldAccess: TestSuiteEntry[] = [
   // ------------------------- parenthesized receivers are still fields (valid) -------------------------
-  { code: `(a).length`, output: { type: 'int', value: 3 }, env: arrayEnv({ a }) },
+  {
+    code: `(a).length`,
+    output: { type: 'int', value: 3 },
+    env: arrayEnv({ a }),
+  },
   {
     code: `((a)).length`,
     output: { type: 'int', value: 3 },
@@ -58,7 +62,11 @@ export const fieldAccess: TestSuiteEntry[] = [
   },
   // ------------------------- `length` is final, cannot be assigned -------------------------
   { code: `true || (a.length = 5)`, error: 'compile', env: arrayEnv({ a }) },
-  { code: `true || (a.length = b.length)`, error: 'compile', env: arrayEnv({ a, b }) },
+  {
+    code: `true || (a.length = b.length)`,
+    error: 'compile',
+    env: arrayEnv({ a, b }),
+  },
   { code: `true || (a.length += 1)`, error: 'compile', env: arrayEnv({ a }) },
   { code: `true || (a.length -= 1)`, error: 'compile', env: arrayEnv({ a }) },
   { code: `true || (a.length++)`, error: 'compile', env: arrayEnv({ a }) },
@@ -149,7 +157,7 @@ export const fieldAccess: TestSuiteEntry[] = [
     error: 'compile',
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
   },
   // ------------------------- `.length` on non-array expression results -------------------------
@@ -180,7 +188,11 @@ export const fieldAccess: TestSuiteEntry[] = [
     error: 'compile',
     env: arrayEnv({ a }),
   },
-  { code: `true || (a.length[0] == 0)`, error: 'compile', env: arrayEnv({ a }) },
+  {
+    code: `true || (a.length[0] == 0)`,
+    error: 'compile',
+    env: arrayEnv({ a }),
+  },
   // ------------------------- the int result is incompatible with boolean / String / null -------------------------
   {
     code: `true || (a.length == true)`,

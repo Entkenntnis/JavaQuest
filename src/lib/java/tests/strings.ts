@@ -437,7 +437,7 @@ export const strings: TestSuiteEntry[] = [
         str: { type: 'reference', ref: 'heap0' },
         a: { type: 'int', value: 5 },
       },
-      heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'JavaQuest' } },
     },
   },
   {
@@ -448,7 +448,7 @@ export const strings: TestSuiteEntry[] = [
         str: { type: 'reference', ref: 'heap0' },
         xl: { type: 'long', value: '123' },
       },
-      heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'JavaQuest' } },
     },
   },
   {
@@ -459,7 +459,7 @@ export const strings: TestSuiteEntry[] = [
         str: { type: 'reference', ref: 'heap0' },
         ch: { type: 'char', value: 65 },
       },
-      heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'JavaQuest' } },
     },
   },
   {
@@ -470,7 +470,7 @@ export const strings: TestSuiteEntry[] = [
         str: { type: 'reference', ref: 'heap0' },
         flag: { type: 'boolean', value: true },
       },
-      heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'JavaQuest' } },
     },
   },
   {
@@ -481,7 +481,7 @@ export const strings: TestSuiteEntry[] = [
         a: { type: 'int', value: 5 },
         str: { type: 'reference', ref: 'heap0' },
       },
-      heap: { heap0: { class: 'java.lang.String', value: 'JavaQuest' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'JavaQuest' } },
     },
   },
   // ------------------------- identifiers: logical operators & equality -------------------------

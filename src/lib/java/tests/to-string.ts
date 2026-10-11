@@ -20,7 +20,7 @@ export const toStringCases: TestSuiteEntry[] = [
     code: `s.toString()`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
     output: { type: '__str', value: 'abc' },
   },
@@ -34,7 +34,7 @@ export const toStringCases: TestSuiteEntry[] = [
     code: `s.toString() == s`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
     output: { type: 'boolean', value: true },
   },
@@ -42,7 +42,7 @@ export const toStringCases: TestSuiteEntry[] = [
     code: `"abc".toString() == s`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
     output: { type: 'boolean', value: false },
   },
@@ -55,7 +55,7 @@ export const toStringCases: TestSuiteEntry[] = [
     code: `s.toString().equals(s)`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
     output: { type: 'boolean', value: true },
   },
@@ -181,7 +181,10 @@ export const toStringCases: TestSuiteEntry[] = [
   },
   {
     code: `d.toString()`,
-    env: { local: { d: { type: 'double', value: 0.0, boxed: true } }, heap: {} },
+    env: {
+      local: { d: { type: 'double', value: 0.0, boxed: true } },
+      heap: {},
+    },
     output: { type: '__str', value: '0.0' },
   },
   {
@@ -196,7 +199,9 @@ export const toStringCases: TestSuiteEntry[] = [
   {
     code: `d.toString()`,
     env: {
-      local: { d: { type: 'double', value: 1.7976931348623157e308, boxed: true } },
+      local: {
+        d: { type: 'double', value: 1.7976931348623157e308, boxed: true },
+      },
       heap: {},
     },
     output: { type: '__str', value: '1.7976931348623157E308' },
@@ -343,7 +348,7 @@ export const toStringCases: TestSuiteEntry[] = [
     code: `"abc".equals(s.toString())`,
     env: {
       local: { s: { type: 'reference', ref: 'heap0' } },
-      heap: { heap0: { class: 'java.lang.String', value: 'abc' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: 'abc' } },
     },
     output: { type: 'boolean', value: true },
   },
@@ -481,7 +486,7 @@ export const toStringCases: TestSuiteEntry[] = [
         a: { type: 'int', value: 1000, boxed: true },
         s: { type: 'reference', ref: 'heap0' },
       },
-      heap: { heap0: { class: 'java.lang.String', value: '1000' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: '1000' } },
     },
     output: { type: 'boolean', value: true },
   },
@@ -492,7 +497,7 @@ export const toStringCases: TestSuiteEntry[] = [
         a: { type: 'int', value: 1000, boxed: true },
         s: { type: 'reference', ref: 'heap0' },
       },
-      heap: { heap0: { class: 'java.lang.String', value: '1000' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: '1000' } },
     },
     output: { type: 'boolean', value: true },
   },
@@ -503,7 +508,7 @@ export const toStringCases: TestSuiteEntry[] = [
         a: { type: 'int', value: 1000, boxed: true },
         s: { type: 'reference', ref: 'heap0' },
       },
-      heap: { heap0: { class: 'java.lang.String', value: '1000' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: '1000' } },
     },
     output: { type: 'boolean', value: false },
   },
@@ -514,7 +519,7 @@ export const toStringCases: TestSuiteEntry[] = [
         a: { type: 'int', value: 1000, boxed: true },
         s: { type: 'reference', ref: 'heap0' },
       },
-      heap: { heap0: { class: 'java.lang.String', value: '1000' } },
+      heap: { heap0: { class: 'java.lang.String', stringValue: '1000' } },
     },
     output: { type: 'boolean', value: false },
   },
