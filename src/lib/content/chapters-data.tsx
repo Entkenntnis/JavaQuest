@@ -139,16 +139,17 @@ export const chaptersData: ChapterData[] = [
     ),
   },
   {
-    title: 'OOP-ala',
-    quests: [],
+    title: 'OOP',
+    quests: [54],
     description: () => (
       <>
         <p>
-          Der wesentliche erste Punkt ist Umgang mit <code>null</code>, also
-          prüfen, ob null ist, das passiert häufiger. Daneben interessant könnte
-          der Zugriff auf lokale Variablen mit <code>this</code> sein. Auch der
-          Hinweis, dass natürlich innerhalb boolescher Ausdrücke auf alle
-          Methoden/Attribute der umliegenden Klasse zugegriffen werden kann.
+          Innerhalb eines boolescher Ausdruck kannst du zusätzlich zu den
+          Parametern auch auf alle verfügbaren Methoden und Attribute der
+          umgebenden Klasse zugreifen. Sollte der Name nicht eindeutig sein,
+          kannst du über <code>this</code> direkt auf das Attribut der aktuellen
+          Instanz zugreifen. Der spezielle Operator <code>instanceof</code>{' '}
+          hilft dabei, den Typ eines Objekts zur Laufzeit zu prüfen.
         </p>
       </>
     ),
