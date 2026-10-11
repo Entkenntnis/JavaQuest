@@ -338,6 +338,16 @@ export interface FieldAccessAstNode {
   name: string
 }
 
+export interface ThisExpressionAstNode {
+  kind: 'this'
+}
+
+export interface InstanceofExpressionAstNode {
+  kind: 'instanceof'
+  expression: AstNode
+  className: string
+}
+
 export type AstNode =
   | LiteralAstNode
   | LiteralStringAstNode
@@ -351,6 +361,8 @@ export type AstNode =
   | UpdateExpressionAstNode
   | IndexExpressionAstNode
   | FieldAccessAstNode
+  | ThisExpressionAstNode
+  | InstanceofExpressionAstNode
 
 // ----------------------------
 
@@ -384,6 +396,7 @@ export type TypedNode<T extends JavaValue> =
           | TypedStringConcatNodeL
           | TypedStringConcatNodeR
           | TypedClassReferenceNode
+          | TypedThisNode
       : never)
   | (T extends JavaNumericPrimitiveValue | JavaBooleanValue
       ? TypedUnboxCastNode
@@ -403,6 +416,7 @@ export type TypedNode<T extends JavaValue> =
           | TypedBoxedReferenceEqualsNode
           | TypedBooleanLogicalNode
           | TypedRelationalCompareNode
+          | TypedInstanceofNode
       : never)
   | (T extends JavaLongValue
       ? TypedNumericArithNodeBLL | TypedNumericArithNodeBLR
@@ -664,7 +678,17 @@ export interface TypedUpdateNode {
 export interface TypedFieldAccessNode {
   kind: 'field'
   target: TypedNode<JavaReferenceValue | JavaNullValue>
-  name: 'length' // <--- currently the only support operator
+  name: string
+}
+
+export interface TypedThisNode {
+  kind: 'this'
+}
+
+export interface TypedInstanceofNode {
+  kind: 'instanceof'
+  expression: TypedNode<JavaReferenceValue | JavaNullValue>
+  clasName: string
 }
 
 export type TypecheckResult =

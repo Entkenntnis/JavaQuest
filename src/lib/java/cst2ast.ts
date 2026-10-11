@@ -63,10 +63,13 @@ export function cst2ast(node: CstNode): AstNode {
   } else if (node.name == 'null') {
     return { kind: 'literal', value: { type: 'null', value: null } }
   } else if (node.name == 'MethodInvocation') {
-    const owner = cst2ast(node.children[0])
-    const name = node.children[2].text
+    const firstChild = node.children[0]
+    const owner: AstNode =
+      firstChild.name == 'MethodName' ? { kind: 'this' } : cst2ast(firstChild)
+    const name = node.children.find((c) => c.name == 'MethodName')!.text
+    const arglist = node.children.find((c) => c.name == 'ArgumentList')!
     const args = []
-    for (const child of node.children[3].children) {
+    for (const child of arglist.children) {
       if (child.name == '(' || child.name == ')' || child.name == ',') continue
       args.push(cst2ast(child))
     }
@@ -194,6 +197,15 @@ export function cst2ast(node: CstNode): AstNode {
     //   )
     // }
     return { kind: 'field', target: cst2ast(base), name: fieldNode.text }
+  } else if (node.name == 'this') {
+    return { kind: 'this' }
+  } else if (node.name == 'InstanceofExpression') {
+    const [expression, , typeNode] = node.children
+    return {
+      kind: 'instanceof',
+      expression: cst2ast(expression),
+      className: typeNode.text,
+    }
   }
   throw 'Interner Systemfehler: nicht unterstützter Ausdruck, ' + node.name
 }

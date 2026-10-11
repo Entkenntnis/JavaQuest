@@ -1050,6 +1050,12 @@ function typecheck_internal(
       tn.objectify = true
       return ['reference', tn, { kind: 'class', name: 'java.lang.Object' }]
     }
+    case 'this': {
+      throw 'Interner Systemfehler: TODO THIS TC'
+    }
+    case 'instanceof': {
+      throw 'Interner Systemfehler: TODO INSTANCEOF TC'
+    }
   }
 }
 

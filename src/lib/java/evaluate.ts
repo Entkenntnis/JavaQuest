@@ -561,6 +561,12 @@ function evaluate_internal(
       }
       return raw
     }
+    case 'this': {
+      throw 'Interner Systemfehler: TODO THIS EVAL'
+    }
+    case 'instanceof': {
+      throw 'Interner Systemfehler: TODO INSTANCEOF EVAL'
+    }
   }
 }
 
