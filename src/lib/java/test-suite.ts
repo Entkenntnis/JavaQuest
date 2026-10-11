@@ -42,6 +42,7 @@ import { arrayIdentity } from './tests/array-identity.ts'
 import { arrayLength } from './tests/array-length.ts'
 import { arraysRef } from './tests/arrays-ref.ts'
 import { fieldAccess } from './tests/field-access.ts'
+import { contextClass } from './tests/context-class.ts'
 
 export const testSuite: TestSuiteEntry[] = [
   ...literals,
@@ -87,4 +88,5 @@ export const testSuite: TestSuiteEntry[] = [
   ...arrayLength,
   ...arraysRef,
   ...fieldAccess,
+  ...contextClass,
 ]

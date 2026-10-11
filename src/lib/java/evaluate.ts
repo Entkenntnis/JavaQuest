@@ -1,32 +1,32 @@
-import {
-  type JavaSmallIntegerValue,
-  type JavaBooleanValue,
-  type JavaByteValue,
-  type JavaCharValue,
-  type JavaDoubleValue,
-  type JavaEnvironment,
-  type JavaFloatValue,
-  type JavaIntegerValue,
-  type JavaIntValue,
-  type JavaLongValue,
-  type JavaNullValue,
-  type JavaNumericPrimitiveValue,
-  type JavaReferenceValue,
-  type JavaShortValue,
-  type JavaValue,
-  type Type,
-  type TypedNode,
-  type TypedIdentifierNode,
-  type TypedIndexNode,
-  type Location,
+import type {
+  JavaSmallIntegerValue,
+  JavaBooleanValue,
+  JavaByteValue,
+  JavaCharValue,
+  JavaDoubleValue,
+  JavaEnvironment,
+  JavaFloatValue,
+  JavaIntegerValue,
+  JavaIntValue,
+  JavaLongValue,
+  JavaNullValue,
+  JavaNumericPrimitiveValue,
+  JavaReferenceValue,
+  JavaShortValue,
+  JavaValue,
+  Type,
+  TypedNode,
+  TypedIdentifierNode,
+  TypedIndexNode,
+  Location,
 } from '../state/types'
-import { findMethod, isPrimitive, typeToWrapper } from './helper/typing'
+import { findMethod, isPrimitive, typeToWrapper } from './helper/typing.ts'
 import {
   primitiveValueIntoHeap,
   boxCacheRef,
   freshHeapRef,
-} from './helper/heap'
-import { javaValueToString } from './helper/print'
+} from './helper/heap.ts'
+import { javaValueToString } from './helper/print.ts'
 
 export function evaluate<T extends JavaValue>(
   node: TypedNode<T>,

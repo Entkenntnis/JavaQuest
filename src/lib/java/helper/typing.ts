@@ -14,7 +14,7 @@ import type {
   TypeData,
   TypedNode,
 } from '../../state/types'
-import { classMetaData } from '../classmeta'
+import { classMetaData } from '../classmeta.ts'
 
 export function isIdentityOrWideningCast(
   from: JavaValue['type'],

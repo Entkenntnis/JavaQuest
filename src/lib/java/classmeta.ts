@@ -9,9 +9,9 @@ import type {
   JavaWrapperObject,
   MethodMetaData,
 } from '../state/types'
-import { equalsIgnoreCase } from './helper/equals-ignore-case'
-import { freshHeapRef } from './helper/heap'
-import { javaValueToString } from './helper/print'
+import { equalsIgnoreCase } from './helper/equals-ignore-case.ts'
+import { freshHeapRef } from './helper/heap.ts'
+import { javaValueToString } from './helper/print.ts'
 
 export const classMetaData: Record<string, ClassMetaData> = {
   'java.lang.Object': {

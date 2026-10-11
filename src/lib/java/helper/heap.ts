@@ -8,7 +8,7 @@ import type {
 // The JVM's autoboxing caches: Integer/Short/Long share the -128..127 instances,
 // Character the 0..127 ones, Byte the whole range and Boolean two singletons; Float and
 // Double are never cached. The returned name is the single source of truth for the heap
-import { typeToWrapper } from './typing'
+import { typeToWrapper } from './typing.ts'
 
 // entry of a cached wrapper, shared by autoboxing and by boxed env locals.
 export function boxCacheRef(

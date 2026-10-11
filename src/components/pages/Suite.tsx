@@ -83,7 +83,13 @@ const suiteResults = testSuite.map((el) => {
 })
 
 function cloneEnv(env: JavaEnvironment): JavaEnvironment {
-  return JSON.parse(JSON.stringify(env))
+  // Only local/heap are mutable data. contextMeta holds method handlers (functions)
+  // that JSON.stringify would drop, so it is kept by reference.
+  return {
+    ...env,
+    local: JSON.parse(JSON.stringify(env.local)),
+    heap: JSON.parse(JSON.stringify(env.heap)),
+  }
 }
 
 function isPass(entry: TestSuiteEntry, result: SuiteResult) {

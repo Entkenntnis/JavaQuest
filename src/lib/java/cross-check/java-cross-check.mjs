@@ -18,6 +18,10 @@ const { testSuite } = await import(
   join(__dirname, '../test-suite.ts') + `?t=${Date.now()}`
 )
 
+const { syntheticClasses } = await import(
+  join(__dirname, '../tests/support/context-fixtures.ts') + `?t=${Date.now()}`
+)
+
 const entries = testSuite
   .map((entry, index) => ({ entry, index }))
   .filter(({ entry }) => !filter || entry.code.includes(filter))
@@ -136,16 +140,32 @@ function renderRef(ref, heap, lines, renderedRefs) {
       .join(', ')
     lines.push(`${component}[] ${name} = new ${component}[] {${elements}};`)
   } else if (obj.class == 'java.lang.String') {
-    const literal = javaStringLiteral(obj.value)
+    const literal = javaStringLiteral(obj.stringValue)
     lines.push(
       obj.isInterned
         ? `String ${name} = ${literal};`
         : `String ${name} = new String(${literal});`,
     )
+  } else if (obj.isInstance) {
+    lines.push(`${obj.class} ${name} = new ${obj.class}();`)
+    for (const [field, value] of Object.entries(obj.fields || {})) {
+      const expr = renderJavaValue(value, heap, lines, renderedRefs)
+      lines.push(`${name}.${field} = ${expr};`)
+    }
   } else {
     throw new Error('comparison with reference not meaningful in test harness')
   }
   return name
+}
+
+// Renders a JavaValue as a Java expression usable in an initializer / assignment.
+// Primitives go through renderPrimitiveElement, references through renderRef.
+function renderJavaValue(value, heap, lines, renderedRefs) {
+  if (value.type == 'null') return 'null'
+  if (value.type == 'reference') {
+    return renderRef(value.ref, heap, lines, renderedRefs)
+  }
+  return renderPrimitiveElement(value)
 }
 
 // An env array heap object becomes a Java array declaration whose elements are built
@@ -172,10 +192,19 @@ function renderHeapValue(name, ref, heap) {
     return renderArrayDecl(name, obj, heap)
   }
   if (obj.class == 'java.lang.String') {
-    const literal = javaStringLiteral(obj.value)
+    const literal = javaStringLiteral(obj.stringValue)
     return obj.isInterned
       ? `String ${name} = ${literal};`
       : `String ${name} = new String(${literal});`
+  }
+  if (obj.isInstance) {
+    const lines = [`${obj.class} ${name} = new ${obj.class}();`]
+    const renderedRefs = new Map()
+    for (const [field, value] of Object.entries(obj.fields || {})) {
+      const expr = renderJavaValue(value, heap, lines, renderedRefs)
+      lines.push(`${name}.${field} = ${expr};`)
+    }
+    return lines.join('\n')
   }
   throw new Error('comparison with reference not meaningful in test harness')
 }
@@ -188,6 +217,7 @@ function heapValueJavaType(ref, heap) {
   }
   if (obj.isArray) return `${printJavaType(obj.type)}[]`
   if (obj.class == 'java.lang.String') return 'String'
+  if (obj.isInstance) return obj.class
   throw new Error('comparison with reference not meaningful in test harness')
 }
 
@@ -286,17 +316,83 @@ try {
 const results = new Array(entries.length)
 let done = 0
 
-// Requests to the harness are framed:
-//   int32 declsLength + utf8 decls bytes + int32 codeLength + utf8 code bytes.
-function buildRequest(entry) {
+// Collects the Java sources of every synthetic class an entry needs: the classes
+// named in `env.contextMeta` plus every heap object that is a custom instance. The
+// sources come from the shared registry so the interpreter meta and the Java text
+// stay next to each other.
+function collectSyntheticSources(entry) {
+  const env = (entry.env) || {}
+  const names = new Set()
+  for (const name of Object.keys(env.contextMeta || {})) names.add(name)
+  for (const obj of Object.values(env.heap || {})) {
+    if (obj && obj.isInstance) names.add(obj.class)
+  }
+  const sources = []
+  for (const name of names) {
+    const synthetic = syntheticClasses[name]
+    if (!synthetic) {
+      throw new Error(
+        `no Java source registered for synthetic class "${name}" (see tests/support/context-fixtures.ts)`,
+      )
+    }
+    sources.push(synthetic.javaSource)
+  }
+  return sources
+}
+
+// Builds the complete Java compilation unit for an entry.
+//
+// Without a context instance the expression is evaluated directly in `main`.
+// With `env.contextInstance` the wrapper extends the context class and evaluates
+// the expression in an instance method, so `this` is the context object and its
+// fields/methods are reachable.
+function buildSource(entry) {
+  const env = (entry.env) || { local: {}, heap: {} }
+  const synthetic = collectSyntheticSources(entry)
+  const classesBlock = synthetic.length ? synthetic.join('\n\n') + '\n\n' : ''
+  const context = env.contextInstance
+
+  if (!context) {
+    return `${classesBlock}public class JqHarness {
+  public static void main(String[] __jqHarnessArgs) {
+${renderDecls(entry)}
+    Harness.out( ${entry.code} );
+  }
+}`
+  }
+
+  const contextObj = env.heap[context.ref]
+  if (!contextObj || !contextObj.isInstance) {
+    throw new Error(
+      `contextInstance ${context.ref} does not point at a custom instance`,
+    )
+  }
+  const contextClass = contextObj.class
+  const mainLines = [`JqHarness __jqSelf = new JqHarness();`]
+  const renderedRefs = new Map()
+  for (const [field, value] of Object.entries(contextObj.fields || {})) {
+    const expr = renderJavaValue(value, env.heap, mainLines, renderedRefs)
+    mainLines.push(`__jqSelf.${field} = ${expr};`)
+  }
   const decls = renderDecls(entry)
-  const declBuf = Buffer.from(decls, 'utf8')
-  const codeBuf = Buffer.from(entry.code, 'utf8')
+  return `${classesBlock}public class JqHarness extends ${contextClass} {
+  public static void main(String[] __jqHarnessArgs) {
+${mainLines.join('\n')}
+    Harness.out(__jqSelf.__jqEval());
+  }
+  Object __jqEval() {
+${decls}
+    return ( ${entry.code} );
+  }
+}`
+}
+
+// Requests to the harness are framed: int32 sourceLength + utf8 source bytes.
+function buildRequest(entry) {
+  const sourceBuf = Buffer.from(buildSource(entry), 'utf8')
   const head = Buffer.alloc(4)
-  head.writeInt32BE(declBuf.length, 0)
-  const mid = Buffer.alloc(4)
-  mid.writeInt32BE(codeBuf.length, 0)
-  return Buffer.concat([head, declBuf, mid, codeBuf])
+  head.writeInt32BE(sourceBuf.length, 0)
+  return Buffer.concat([head, sourceBuf])
 }
 
 function writeRequest(stdin, body) {

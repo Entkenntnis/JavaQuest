@@ -27,39 +27,35 @@ import javax.tools.ToolProvider;
 
 public class Harness {
   private static final PrintStream CTRL = System.out;
-  private static final String NEWLINE = System.lineSeparator();
+
+  private static final String CLASS_NAME = "JqHarness";
 
   public static void main(String[] args) throws IOException {
     DataInputStream in = new DataInputStream(new BufferedInputStream(System.in));
-    int seq = 0;
     while (true) {
-      int declLength;
+      int sourceLength;
       try {
-        declLength = in.readInt();
+        sourceLength = in.readInt();
       } catch (EOFException eof) {
         break;
       }
-      byte[] declRaw = new byte[declLength];
-      in.readFully(declRaw);
-      int codeLength = in.readInt();
-      byte[] codeRaw = new byte[codeLength];
-      in.readFully(codeRaw);
-      String decls = new String(declRaw, StandardCharsets.UTF_8);
-      String code = new String(codeRaw, StandardCharsets.UTF_8);
-      handle("T" + seq, decls, code);
-      seq += 1;
+      byte[] sourceRaw = new byte[sourceLength];
+      in.readFully(sourceRaw);
+      String source = new String(sourceRaw, StandardCharsets.UTF_8);
+      handle(CLASS_NAME, source);
     }
   }
 
-  // Each request on stdin: int32 declsLength + utf8 decls bytes (may be empty)
-  // + int32 codeLength + utf8 bytes of the expression.
-  // Each response on stdout: byte status (1 = value, 2 = error), then payload.
-  private static void handle(String className, String decls, String code)
+  // Each request on stdin: int32 sourceLength + utf8 bytes of a complete Java
+  // compilation unit (a public class named CLASS_NAME plus any package-private
+  // synthetic classes). Each response on stdout: byte status (1 = value,
+  // 2 = error), then payload.
+  private static void handle(String className, String source)
       throws IOException {
     ByteArrayOutputStream frame = new ByteArrayOutputStream();
     DataOutputStream out = new DataOutputStream(frame);
     try {
-      Map<String, byte[]> classes = compile(className, decls, code);
+      Map<String, byte[]> classes = compile(className, source);
       String printed = runMain(className, classes);
       byte[] body = printed.getBytes(StandardCharsets.UTF_8);
       out.writeByte(1);
@@ -92,8 +88,8 @@ public class Harness {
     return message == null || message.isEmpty() ? t.toString() : message;
   }
 
-  private static Map<String, byte[]> compile(
-      String className, String decls, String code) throws CompileFailure {
+  private static Map<String, byte[]> compile(String className, String source)
+      throws CompileFailure {
     JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     if (compiler == null) {
       throw new CompileFailure("no in-process java compiler available (JDK required)");
@@ -107,24 +103,6 @@ public class Harness {
     } catch (Exception e) {
       throw new CompileFailure("cannot create file manager: " + messageOf(e));
     }
-    String wrapper =
-        "public class "
-            + className
-            + " {"
-            + NEWLINE
-            + "  public static void main(String[] __jqHarnessArgs){"
-            + NEWLINE
-            + decls
-            + NEWLINE
-            + "    var __jqHarnessValue = "
-            + code
-            + ";"
-            + NEWLINE
-            + "    Harness.out(__jqHarnessValue);"
-            + NEWLINE
-            + "  }"
-            + NEWLINE
-            + "}";
     Boolean success =
         compiler
             .getTask(
@@ -133,7 +111,7 @@ public class Harness {
                 diagnostics,
                 List.of("-encoding", "UTF-8"),
                 null,
-                List.of(new SourceFile(className, wrapper)))
+                List.of(new SourceFile(className, source)))
             .call();
     if (success == null || !success.booleanValue()) {
       StringBuilder sb = new StringBuilder();

@@ -1,6 +1,6 @@
 import type { JavaValue, JavaEnvironment } from '../../state/types'
-import { printDouble } from './floating/double'
-import { printFloat } from './floating/float'
+import { printDouble } from './floating/double.ts'
+import { printFloat } from './floating/float.ts'
 
 export function javaValueToString(
   val: JavaValue,
