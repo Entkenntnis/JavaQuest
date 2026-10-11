@@ -235,12 +235,12 @@ function typecheck_internal(
       }
 
       // find matching method
-      const methodMeta = findMethod(className, node.name, argTypes)
+      const methodMeta = findMethod(className, node.name, argTypes, env)
 
       if (!methodMeta) {
         // javac: "Symbol nicht gefunden: Methode foo()" vs
         //        "Methode equals in Klasse String kann nicht auf die angegebenen Typen angewendet werden"
-        if (hasMethodNamed(className, node.name)) {
+        if (hasMethodNamed(className, node.name, env)) {
           throw new Error(
             `Methode ${node.name} in Klasse ${className} kann nicht auf die angegebenen Typen angewendet werden.`,
           )
@@ -729,7 +729,7 @@ function typecheck_internal(
 
       if (node.op == '=') {
         const result = typecheck_internal(node.value, env)
-        checkValidityOfAssignment(lval, result)
+        checkValidityOfAssignment(lval, result, env)
 
         const tn: TypedAssignNode = {
           kind: 'assign',
@@ -1130,6 +1130,7 @@ function canConstantNarrow(
 function checkValidityOfAssignment(
   target: TypecheckResult,
   result: TypecheckResult,
+  env: JavaEnvironment,
 ) {
   const [targetT, , targetData] = target
   if (result[0] == 'null') {
@@ -1145,7 +1146,7 @@ function checkValidityOfAssignment(
   }
   const targetType = resultToType(target)
   const sourceType = resultToType(result)
-  if (isAssignable(targetType, sourceType)) {
+  if (isAssignable(targetType, sourceType, env)) {
     return
   }
   if (canConstantNarrow(targetType, result[0], result[1])) {

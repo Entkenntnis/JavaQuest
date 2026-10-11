@@ -688,7 +688,7 @@ export interface TypedThisNode {
 export interface TypedInstanceofNode {
   kind: 'instanceof'
   expression: TypedNode<JavaReferenceValue | JavaNullValue>
-  clasName: string
+  className: string
 }
 
 export type TypecheckResult =

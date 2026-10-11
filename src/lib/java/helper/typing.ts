@@ -13,6 +13,7 @@ import type {
   TypecheckResult,
   TypeData,
   TypedNode,
+  FieldMetaData,
 } from '../../state/types'
 import { classMetaData } from '../classmeta.ts'
 
@@ -118,7 +119,17 @@ export function typeEquals(a: TypeWithNull, b: TypeWithNull): boolean {
   return false
 }
 
-function classChain(className: string): string[] {
+function classMetaOf(name: string, env: JavaEnvironment) {
+  return env.contextMeta?.[name] ?? classMetaData[name]
+}
+
+function requireClassMeta(name: string, env: JavaEnvironment) {
+  const meta = classMetaOf(name, env)
+  if (!meta) throw 'Interner Systemfehler: Klasse "${name}" nicht gefunden'
+  return meta
+}
+
+function classChain(className: string, env: JavaEnvironment): string[] {
   const chain: string[] = []
   const seen = new Set<string>()
   let current: string | null = className
@@ -127,16 +138,18 @@ function classChain(className: string): string[] {
       throw `Interner Systemfehler: Zyklische Vererbung bei Klasse "${current}"`
     }
     seen.add(current)
-    if (!classMetaData[current]) {
-      throw `Interner Systemfehler: Klasse "${current}" nicht gefunden`
-    }
+    const meta = requireClassMeta(current, env)
     chain.push(current)
-    current = classMetaData[current].superClass
+    current = meta.superClass
   }
   return chain
 }
 
-export function isSubtype(sub: string, sup: string): boolean {
+export function isSubtype(
+  sub: string,
+  sup: string,
+  env: JavaEnvironment,
+): boolean {
   if (sub == sup) return true
   const seen = new Set<string>()
   const stack = [sub]
@@ -144,8 +157,7 @@ export function isSubtype(sub: string, sup: string): boolean {
     const name = stack.pop()
     if (!name || seen.has(name)) continue
     seen.add(name)
-    const meta = classMetaData[name]
-    if (!meta) throw `Interner Systemfehler: Klasse "${name}" nicht gefunden`
+    const meta = requireClassMeta(name, env)
     if (meta.superClass) {
       if (meta.superClass == sup) return true
       stack.push(meta.superClass)
@@ -158,7 +170,11 @@ export function isSubtype(sub: string, sup: string): boolean {
   return false
 }
 
-export function isAssignable(target: Type, source: TypeWithNull): boolean {
+export function isAssignable(
+  target: Type,
+  source: TypeWithNull,
+  env: JavaEnvironment,
+): boolean {
   if (source.kind == 'null') {
     return target.kind == 'class' || target.kind == 'array'
   }
@@ -166,15 +182,15 @@ export function isAssignable(target: Type, source: TypeWithNull): boolean {
   if (typeEquals(target, source)) return true
 
   if (target.kind == 'array' && source.kind == 'array') {
-    return isAssignable(target.elem, source.elem)
+    return isAssignable(target.elem, source.elem, env)
   }
 
   if (target.kind == 'class') {
     if (source.kind == 'class') {
-      return isSubtype(source.name, target.name)
+      return isSubtype(source.name, target.name, env)
     }
     if (source.kind == 'primitive') {
-      return isSubtype(typeToWrapper[source.prim], target.name)
+      return isSubtype(typeToWrapper[source.prim], target.name, env)
     }
   }
 
@@ -198,9 +214,10 @@ export function findMethod(
   className: string,
   name: string,
   argTypes: TypeWithNull[],
+  env: JavaEnvironment,
 ): MethodMetaData | undefined {
   const candidates: MethodMetaData[] = []
-  for (const current of classChain(className)) {
+  for (const current of classChain(className, env)) {
     const meta = classMetaData[current]
     if (!meta) throw `Interner Systemfehler: Klasse "${current}" nicht gefunden`
     for (const method of meta.methods) {
@@ -217,7 +234,7 @@ export function findMethod(
   }
 
   for (const method of candidates) {
-    if (method.sig.params.every((p, i) => isAssignable(p, argTypes[i]))) {
+    if (method.sig.params.every((p, i) => isAssignable(p, argTypes[i], env))) {
       return method
     }
   }
@@ -228,8 +245,12 @@ export function findMethod(
 // Whether any method with this name exists in the class hierarchy, regardless of
 // its parameter list. Used to tell "unknown method" apart from "no applicable
 // overload" for javac-style error messages.
-export function hasMethodNamed(className: string, name: string): boolean {
-  for (const current of classChain(className)) {
+export function hasMethodNamed(
+  className: string,
+  name: string,
+  env: JavaEnvironment,
+): boolean {
+  for (const current of classChain(className, env)) {
     const meta = classMetaData[current]
     if (!meta) throw `Interner Systemfehler: Klasse "${current}" nicht gefunden`
     for (const method of meta.methods) {
@@ -237,6 +258,23 @@ export function hasMethodNamed(className: string, name: string): boolean {
     }
   }
   return false
+}
+
+export function findField(
+  className: string,
+  name: string,
+  env: JavaEnvironment,
+): FieldMetaData | undefined {
+  for (const current of classChain(className, env)) {
+    const meta = requireClassMeta(current, env)
+    const field = meta.fields.find((f) => f.name == name)
+    if (field) return field
+  }
+  return undefined
+}
+
+export function classExists(name: string, env: JavaEnvironment) {
+  return classMetaOf(name, env) !== undefined
 }
 
 export function toType(value: JavaValue, env: JavaEnvironment): Type {

@@ -512,6 +512,7 @@ function evaluate_internal(
         className,
         node.name,
         node.resolvedSignature.params,
+        env,
       )!.handler
       return handler(owner, args, env)
     }
