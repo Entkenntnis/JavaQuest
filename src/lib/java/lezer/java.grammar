@@ -23,7 +23,7 @@
   // typeArgs
 }
 
-@top Expression { expression }
+@top TopLevelExpression { expression }
 
 
 literal {
@@ -85,7 +85,7 @@ BinaryExpression {
 }
 
 InstanceofExpression {
-  expression !relational kw<"instanceof"> type
+  expression !relational kw<"instanceof"> Identifier
 }
 
 TernaryExpression {
@@ -106,7 +106,7 @@ UpdateExpression {
 baseExpression {
   literal |
   // ClassLiteral |
-  // kw<"this"> |
+  kw<"this"> |
   Identifier ~identifier |
   ParenthesizedExpression |
   // ObjectCreationExpression |
@@ -122,7 +122,7 @@ ParenthesizedExpression {
 }
 
 FieldAccess {
-  (baseExpression | kw<"super">) /*("." kw<"super">)?*/ "." (Identifier | kw<"this">)
+  baseExpression "." Identifier 
 }
 
 ArrayAccess {

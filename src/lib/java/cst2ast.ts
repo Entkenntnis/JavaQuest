@@ -26,7 +26,7 @@ export function cst2ast(node: CstNode): AstNode {
   if (node.isError) {
     throw 'Interner Systemfehler: Eingabe zuerst auf Fehler prüfen'
   }
-  if (node.name == 'Expression') {
+  if (node.name == 'TopLevelExpression') {
     if (node.children.length != 1) {
       throw 'Interner Systemfehler: gültiger Ausdruck muss genau ein Kind haben'
     }
