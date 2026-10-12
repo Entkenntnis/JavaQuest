@@ -87,15 +87,7 @@ export function ChapterDoodle({ index, className }: ChapterDoodleProps) {
           <path d="M16 14 v13" />
         </svg>
       )
-    // 7 – Character & Epsilon
-    case 7:
-      return (
-        <svg {...common} className={className}>
-          <path d="M10 24 l6 -16 l6 16" />
-          <path d="M12.7 18 h6.6" />
-        </svg>
-      )
-    // 9 – Finale: Flagge
+    // 7 – Finale: Flagge
     default:
       return (
         <svg {...common} className={className}>

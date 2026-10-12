@@ -140,7 +140,7 @@ export const chaptersData: ChapterData[] = [
   },
   {
     title: 'OOP',
-    quests: [54],
+    quests: [54, 55, 56, 57, 58, 59, 60, 61, 62],
     description: () => (
       <>
         <p>
@@ -155,27 +155,14 @@ export const chaptersData: ChapterData[] = [
     ),
   },
   {
-    title: 'Character, Epsilon und Co.',
-    quests: [],
+    title: 'Eine weite Welt',
+    quests: [63, 64, 65, 66, 67, 68],
     description: () => (
       <>
         <p>
-          Die Klasse Character bietet einige nützliche Funktionen, wie{' '}
-          <code>isDigit</code> oder so. Außerdem muss man für double-Vergleiche
-          das Muster <code>Math.abs(a-b) &lt;= eps</code> verwenden. Vielleicht
-          gibt es noch was nützliches? Arrays.equals könnte ich noch reinnehmen.
-        </p>
-      </>
-    ),
-  },
-  {
-    title: 'Finale mit Vertiefungen',
-    quests: [],
-    description: () => (
-      <>
-        <p>
-          Kleiner Gruß, das man viel Spaß haben soll mit den vertiefenden
-          Aufgaben.
+          Die Welt ist weit und es gibt noch viel zu entdecken. In diesem
+          Kapitel findest du eine kleine Auswahl an weiterführenden Themen, im
+          Zusammenhang mit booleschen Ausdrücken stehen. Viel Spaß!
         </p>
       </>
     ),
