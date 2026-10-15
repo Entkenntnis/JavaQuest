@@ -174,7 +174,7 @@ class Passwortsicherheit2 {
     title: 'Dateiendung',
     code: `
 class Dateiendung {
-    // Endung wie ".java", ".JPG", ".exe"
+    // Endung wie ".java", ".JAVA", ".jAvA"
     // Ignoriere Groß-/Kleinschreibung
     boolean istJavaDatei(String endung) {  
         return ___placeholder___;
