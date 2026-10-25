@@ -9,6 +9,7 @@ import type { QuestResult, RunResult, TestErrorPhase } from '../state/types'
 import { evaluate } from '../java/evaluate'
 import { foldConstants } from '../java/fold'
 import { printType, toDisplayType } from '../java/helper/typing'
+import { getUserData, setUserData } from '../state/user-data'
 
 export function check(core: Core) {
   core.mutateWs((ws) => {
@@ -117,6 +118,12 @@ export function check(core: Core) {
         failure: failures[Math.floor(Math.random() * failures.length)],
       }
     } else {
+      // update user data
+      const data = getUserData()
+      if (!data.solved.includes(quest.id)) {
+        data.solved.push(quest.id)
+      }
+      setUserData(data)
       ws.ui.questResult = {
         kind: 'success',
         expression,

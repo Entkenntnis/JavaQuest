@@ -6,6 +6,8 @@ import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
 import { FaIcon } from '../helper/FaIcon'
 import { ChapterDoodle } from '../helper/ChapterDoodle'
+import { clearUserData, getUserData } from '../../lib/state/user-data'
+import { faCheck } from '@fortawesome/free-solid-svg-icons'
 
 const OVERVIEW_SCROLL_KEY = 'jq:overview-scroll'
 
@@ -22,6 +24,8 @@ export function Overview() {
       div.scrollTop = Math.max(0, Math.min(Number(saved), max))
     }
   }, [])
+
+  const userData = getUserData()
 
   return (
     <div
@@ -87,6 +91,11 @@ export function Overview() {
                           {i + 1}.{j + 1}
                         </span>
                         {quest.title}
+                        {userData.solved.includes(quest.id) && (
+                          <span className="text-green-500 ml-3">
+                            <FaIcon icon={faCheck} />
+                          </span>
+                        )}
                       </div>
                     </a>
                   )
@@ -100,7 +109,7 @@ export function Overview() {
           <br />
           <span className="text-lg italic block mt-6">Geschafft!</span>
         </div>
-        <div className="pb-4 mx-4">
+        <div className="pb-4 mx-4 flex justify-between">
           <a
             href="https://hack.arrrg.de/contact"
             target="_blank"
@@ -108,6 +117,19 @@ export function Overview() {
           >
             Kontakt / Impressum
           </a>
+          <button
+            className="hover:underline hover:text-red-500"
+            onClick={() => {
+              const res = confirm('Fortschritt unwiderruflich zurücksetzen?')
+              if (res) {
+                clearUserData()
+                sessionStorage.setItem(OVERVIEW_SCROLL_KEY, '0')
+                window.location.reload()
+              }
+            }}
+          >
+            Fortschritt zurücksetzen
+          </button>
         </div>
       </div>
     </div>

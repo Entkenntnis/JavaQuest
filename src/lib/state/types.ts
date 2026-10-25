@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react'
 
+export interface USER_DATA_ALWAYS_KEEP_COMPATIBLE {
+  solved: number[]
+}
+
 export interface CoreState {
   page: Page
   ui: Ui
