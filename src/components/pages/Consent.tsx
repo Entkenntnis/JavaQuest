@@ -16,7 +16,12 @@ export function Consent() {
       hasPromptedConsent: true,
       allowDataCollection,
     })
-    navigate(core, '/')
+    const url = sessionStorage.getItem('javaquest_continue_url')
+    if (url) {
+      navigate(core, url)
+    } else {
+      navigate(core, '/')
+    }
   }
 
   return (

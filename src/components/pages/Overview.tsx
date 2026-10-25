@@ -83,6 +83,10 @@ export function Overview() {
                       href={`/quest-${quest.id}`}
                       onClick={(e) => {
                         if (!userData.hasPromptedConsent) {
+                          sessionStorage.setItem(
+                            'javaquest_continue_url',
+                            `/quest-${quest.id}`,
+                          )
                           navigate(core, '/consent')
                         } else {
                           navigate(core, `/quest-${quest.id}`)
