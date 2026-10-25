@@ -100,7 +100,15 @@ export function Overview() {
           <br />
           <span className="text-lg italic block mt-6">Geschafft!</span>
         </div>
-        <div className="pb-4 mx-4">Impressum</div>
+        <div className="pb-4 mx-4">
+          <a
+            href="https://hack.arrrg.de/contact"
+            target="_blank"
+            className="hover:underline"
+          >
+            Kontakt / Impressum
+          </a>
+        </div>
       </div>
     </div>
   )
