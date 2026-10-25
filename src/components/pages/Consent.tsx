@@ -1,10 +1,24 @@
+import { useState } from 'react'
 import { faArrowLeftLong } from '@fortawesome/free-solid-svg-icons'
 import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
+import { getUserData, setUserData } from '../../lib/state/user-data'
 import { FaIcon } from '../helper/FaIcon'
 
 export function Consent() {
   const core = useCore()
+  const [hasAccepted, setHasAccepted] = useState(false)
+  const [showDeclineConfirm, setShowDeclineConfirm] = useState(false)
+
+  function finish(allowDataCollection: boolean) {
+    setUserData({
+      ...getUserData(),
+      hasPromptedConsent: true,
+      allowDataCollection,
+    })
+    navigate(core, '/')
+  }
+
   return (
     <div className="h-full bg-green-50 overflow-auto">
       <div className="max-w-[600px] mx-auto bg-white relative pt-4 px-3">
@@ -26,24 +40,78 @@ export function Consent() {
           Schön, dass du hier bist! 👋
         </h1>
         <p className="mt-6">
-          Diese Webseite ist Teil einer Masterarbeit zum Thema "Lernen von
-          booleschen Ausdrücken". Im Rahmen dieser Arbeit würde ich gerne Daten
-          erheben zur Nutzung dieses Lernwerkzeugs.
+          Diese Webseite ist Teil einer Masterarbeit zum Thema „Lernen von
+          booleschen Ausdrücken“. Im Rahmen dieser Arbeit möchte ich erfassen,
+          wie du das Lernwerkzeug nutzt.
         </p>
         <p className="mt-6">
-          Dabei wird deinem Profil eine pseudonymisierte ID zugeordnet. Zu
-          dieser ID speichern wir deine Eingaben auf die Aufgaben, den
-          Zeitpunkt, und ob die Eingabe zum Erfolg geführt hat. Die Daten können
-          als Grundlage für Forschungsbeiträge dienen. Die Veröffentlichung
-          geschieht vollständig anonym.
+          Dafür wird deinem Profil eine pseudonymisierte ID zugeordnet. Unter
+          dieser ID speichern wir deine Eingaben zu den Aufgaben, den Zeitpunkt
+          der Abgabe und ob die Eingabe erfolgreich war. Die Daten dienen als
+          Grundlage für Forschungsbeiträge und werden ausschließlich anonym
+          veröffentlicht. Die Daten werden in aggregierter Form gespeichert und
+          können als Datensatz veröffentlicht werden. Ein Rückschluss auf
+          einzelne Personen ist dabei nicht möglich.
         </p>
         <p className="mt-6">
-          Die Rohdaten werden in aggregierter Form gespeichert und können als
-          Datensatz veröffentlicht werden. Dabei ist kein Rückschluss auf
-          einzelne Personen möglich.
+          <strong>Deine Mithilfe ist für mich wertvoll.</strong> Die Daten
+          zeigen mir, wo das Lernwerkzeug gut funktioniert und wo ich es noch
+          verbessern kann – und sie bilden die Grundlage für die Forschung zu
+          booleschen Ausdrücken.
         </p>
-        <p>TODO: Checkbox - ich stimme der Verarbeitung der Daten zu</p>
-        <p>TODO: Button (Zustimmung erteilen)</p>
+        <p className="mt-6">
+          Die Teilnahme an der Datenerhebung ist freiwillig. Du kannst das
+          Lernwerkzeug auch ohne Zustimmung nutzen; dir entstehen dadurch keine
+          Nachteile.
+        </p>
+        <label className="mt-8 flex items-start gap-3 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={hasAccepted}
+            onChange={(e) => setHasAccepted(e.target.checked)}
+            className="mt-1 h-4 w-4 shrink-0 accent-green-600"
+          />
+          <span>
+            Ich stimme der Verarbeitung meiner Daten wie oben beschrieben zu.
+          </span>
+        </label>
+        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <button
+            className="px-4 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            disabled={!hasAccepted}
+            onClick={() => finish(true)}
+          >
+            Zustimmen und weiter
+          </button>
+          <button
+            className="text-xs text-gray-400 hover:text-gray-600 hover:underline"
+            onClick={() => setShowDeclineConfirm(true)}
+          >
+            Ohne Datenerhebung fortfahren
+          </button>
+        </div>
+        {showDeclineConfirm && (
+          <div className="mt-4 border-l-2 border-gray-200 pl-3 text-sm text-gray-500">
+            <p>
+              Bist du sicher? Deine Daten helfen mir sehr, das Lernwerkzeug und
+              die Forschung zu verbessern.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+              <button
+                className="hover:text-gray-800 hover:underline"
+                onClick={() => finish(false)}
+              >
+                Ja, ohne Datenerhebung fortfahren
+              </button>
+              <button
+                className="hover:text-gray-800 hover:underline"
+                onClick={() => setShowDeclineConfirm(false)}
+              >
+                zurück
+              </button>
+            </div>
+          </div>
+        )}
         <div className="h-[300px]"></div>
       </div>
     </div>
