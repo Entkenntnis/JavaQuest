@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 
 export interface USER_DATA_ALWAYS_KEEP_COMPATIBLE {
   solved: number[]
+  hasPromptedConsent?: boolean
+  allowDataCollection?: boolean
 }
 
 export interface CoreState {
@@ -46,7 +48,7 @@ export interface CoreRef {
   state: CoreState
 }
 
-type Page = 'quest' | 'overview' | 'test' | 'suite'
+type Page = 'none' | 'quest' | 'overview' | 'test' | 'suite' | 'consent'
 
 export interface QuestData {
   id: number

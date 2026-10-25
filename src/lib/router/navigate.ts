@@ -43,6 +43,13 @@ export async function hydrate(core: Core) {
     return
   }
 
+  if (path.startsWith('/consent')) {
+    core.mutateWs((ws) => {
+      ws.page = 'consent'
+    })
+    return
+  }
+
   // Fallback to Overview
 
   core.mutateWs((ws) => {

@@ -2,7 +2,7 @@ import type { CoreState } from './types'
 
 export function createDefaultCoreState(): CoreState {
   return {
-    page: 'overview',
+    page: 'none',
     ui: {
       testInput: '',
       testEnv: '',

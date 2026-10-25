@@ -82,7 +82,11 @@ export function Overview() {
                       className="px-6 mt-1 flex justify-between hover:bg-gray-100 py-2 cursor-pointer select-none"
                       href={`/quest-${quest.id}`}
                       onClick={(e) => {
-                        navigate(core, `/quest-${quest.id}`)
+                        if (!userData.hasPromptedConsent) {
+                          navigate(core, '/consent')
+                        } else {
+                          navigate(core, `/quest-${quest.id}`)
+                        }
                         e.preventDefault()
                       }}
                     >

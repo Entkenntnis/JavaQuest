@@ -5,6 +5,7 @@ import { Quest } from './pages/Quest'
 import { Overview } from './pages/Overview'
 import { Test } from './pages/Test'
 import { Suite } from './pages/Suite'
+import { Consent } from './pages/Consent'
 
 export function App() {
   const core = useCreateCore()
@@ -36,6 +37,9 @@ export function App() {
   return <CoreProvider value={core}>{renderPage()}</CoreProvider>
 
   function renderPage() {
+    if (core.ws.page == 'none') {
+      return null
+    }
     if (core.ws.page == 'quest') {
       return <Quest />
     } else if (core.ws.page == 'overview') {
@@ -44,6 +48,8 @@ export function App() {
       return <Test />
     } else if (core.ws.page == 'suite') {
       return <Suite />
+    } else if (core.ws.page == 'consent') {
+      return <Consent />
     }
     return null
   }
