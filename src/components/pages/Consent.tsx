@@ -47,23 +47,29 @@ export function Consent() {
         <p className="mt-6">
           Diese Webseite ist Teil meiner Masterarbeit zum Thema „Lernen von
           booleschen Ausdrücken“. Im Rahmen dieser Arbeit möchte ich erfassen,
-          wie du das Lernwerkzeug nutzt. Diese Daten helfem mir, das Werkzeug
+          wie du das Lernwerkzeug nutzt. Diese Daten helfen mir, das Werkzeug
           für die Zukunft zu verbessern und Einsichten über das Lernen zu
-          erhalten. Ansprechperson ist Quinn Li (sie/ihr), welche unter{' '}
+          erhalten. Bei Fragen bin ich, Quinn Li (sie/ihr), als Ansprechperson
+          unter{' '}
           <a href="mailto:d.li1@campus.lmu.de" className="text-blue-500">
             d.li1@campus.lmu.de
           </a>{' '}
-          erreichbar ist.
+          erreichbar.
         </p>
         <p className="mt-6">
-          Wenn du der Datenerhebung zustimmst, wird auf diesem Gerät eine ID
-          generiert und gespeichert. Es werden deine Eingaben zu den Aufgaben
-          mit dieser ID erfasst (Java-Code, Zeitpunkt, Status (Erfolg/Fehler))
-          und auf einem Server gespeichert. Es wird auch erfasst, welche
-          Aufgaben du öffnest. Diese Daten werden dann statistisch ausgewertet
-          und können als Teil von Forschungsbeiträgen veröffentlicht werden.
-          Dabei wird besonders darauf geachtet, dass keinerlei Rückschluss auf
-          einzelne Personen möglich ist.
+          Wenn du der Datenerhebung zustimmst, wird auf diesem Gerät eine
+          zufällige ID generiert und gespeichert. Es werden deine Eingaben zu
+          den Aufgaben mit dieser ID erfasst (Java-Code, Zeitpunkt, Status
+          (Erfolg/Fehler)) und auf einem Server gespeichert. Es wird auch
+          erfasst, welche Aufgaben du öffnest. Die Daten werden dabei nicht mit
+          deinem Namen oder deiner E-Mail-Adresse verknüpft, sondern liegen nur
+          in pseudonymer Form unter der zufälligen ID vor. Zugriff auf die
+          Rohdaten haben nur ich und meine Betreuung. Die Daten werden
+          statistisch ausgewertet und können in anonymisierter Form als Teil von
+          Forschungsbeiträgen veröffentlicht werden. Dabei wird sichergestellt,
+          dass keinerlei Rückschluss auf einzelne Personen möglich ist. Nach der
+          Auswertung werden die Rohdaten gelöscht, spätestens nach Abschluss der
+          Bewertung der Masterarbeit.
         </p>
         <p className="mt-6">
           <strong>Deine Mithilfe ist für mich wertvoll.</strong> Die Daten
@@ -74,7 +80,11 @@ export function Consent() {
         <p className="mt-6">
           Die Teilnahme an der Datenerhebung ist freiwillig. Du kannst das
           Lernwerkzeug auch ohne Zustimmung nutzen; dir entstehen dadurch keine
-          Nachteile.
+          Nachteile. Du kannst die Nutzung jederzeit beenden – auch mitten in
+          einer Aufgabe – ohne dass dir daraus negative Konsequenzen entstehen.
+          Deine Zustimmung kannst du außerdem jederzeit per E-Mail widerrufen;
+          die bis dahin erhobenen Daten werden dann nicht weiter verwendet und
+          gelöscht (sofern eine Zuordnung möglich ist).
         </p>
         <label className="mt-8 flex items-start gap-3 cursor-pointer select-none">
           <input
@@ -106,7 +116,9 @@ export function Consent() {
           <div className="mt-4 border-l-2 border-gray-200 pl-3 text-sm text-gray-500">
             <p>
               Bist du sicher? Deine Daten helfen mir sehr, das Lernwerkzeug und
-              die Forschung zu verbessern.
+              die Forschung zu verbessern. Du kannst das Lernwerkzeug aber auch
+              ohne Datenerhebung vollständig nutzen – es entstehen dir keine
+              Nachteile.
             </p>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
               <button
