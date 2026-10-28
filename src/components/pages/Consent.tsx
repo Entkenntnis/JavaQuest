@@ -45,18 +45,25 @@ export function Consent() {
           Schön, dass du hier bist! 👋
         </h1>
         <p className="mt-6">
-          Diese Webseite ist Teil einer Masterarbeit zum Thema „Lernen von
+          Diese Webseite ist Teil meiner Masterarbeit zum Thema „Lernen von
           booleschen Ausdrücken“. Im Rahmen dieser Arbeit möchte ich erfassen,
-          wie du das Lernwerkzeug nutzt.
+          wie du das Lernwerkzeug nutzt. Diese Daten helfem mir, das Werkzeug
+          für die Zukunft zu verbessern und Einsichten über das Lernen zu
+          erhalten. Ansprechperson ist Quinn Li (sie/ihr), welche unter{' '}
+          <a href="mailto:d.li1@campus.lmu.de" className="text-blue-500">
+            d.li1@campus.lmu.de
+          </a>{' '}
+          erreichbar ist.
         </p>
         <p className="mt-6">
-          Dafür wird deinem Profil eine pseudonymisierte ID zugeordnet. Unter
-          dieser ID speichern wir deine Eingaben zu den Aufgaben, den Zeitpunkt
-          der Abgabe und ob die Eingabe erfolgreich war. Die Daten dienen als
-          Grundlage für Forschungsbeiträge und werden ausschließlich anonym
-          veröffentlicht. Die Daten werden in aggregierter Form gespeichert und
-          können als Datensatz veröffentlicht werden. Ein Rückschluss auf
-          einzelne Personen ist dabei nicht möglich.
+          Wenn du der Datenerhebung zustimmst, wird auf diesem Gerät eine ID
+          generiert und gespeichert. Es werden deine Eingaben zu den Aufgaben
+          mit dieser ID erfasst (Java-Code, Zeitpunkt, Status (Erfolg/Fehler))
+          und auf einem Server gespeichert. Es wird auch erfasst, welche
+          Aufgaben du öffnest. Diese Daten werden dann statistisch ausgewertet
+          und können als Teil von Forschungsbeiträgen veröffentlicht werden.
+          Dabei wird besonders darauf geachtet, dass keinerlei Rückschluss auf
+          einzelne Personen möglich ist.
         </p>
         <p className="mt-6">
           <strong>Deine Mithilfe ist für mich wertvoll.</strong> Die Daten
@@ -80,7 +87,7 @@ export function Consent() {
             Ich stimme der Verarbeitung meiner Daten wie oben beschrieben zu.
           </span>
         </label>
-        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
           <button
             className="px-4 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
             disabled={!hasAccepted}
@@ -89,7 +96,7 @@ export function Consent() {
             Zustimmen und weiter
           </button>
           <button
-            className="text-xs text-gray-400 hover:text-gray-600 hover:underline"
+            className="text-xs text-gray-400 hover:text-gray-600 hover:underline mr-6"
             onClick={() => setShowDeclineConfirm(true)}
           >
             Ohne Datenerhebung fortfahren
