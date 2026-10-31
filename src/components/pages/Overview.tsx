@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { faJava } from '@fortawesome/free-brands-svg-icons'
 import { chaptersData } from '../../lib/content/chapters-data'
 import { questsData } from '../../lib/content/quests'
@@ -14,6 +14,7 @@ import {
 import { faCheck } from '@fortawesome/free-solid-svg-icons'
 
 export const OVERVIEW_SCROLL_KEY = 'jq:overview-scroll'
+const POSTTEST_BANNER_DELAY_MS = 1 * 60 * 1000
 
 export function Overview() {
   const core = useCore()
@@ -33,6 +34,32 @@ export function Overview() {
   const studyData = getStudyData()
   const group = studyData.groupId
 
+  const [now, setNow] = useState(() => Date.now())
+  const hasOpenPosttest =
+    studyData.pretestAt !== undefined && studyData.posttestAt === undefined
+  const bannerTimeReached =
+    studyData.pretestAt !== undefined &&
+    now >= studyData.pretestAt + POSTTEST_BANNER_DELAY_MS
+  const showPosttestBanner =
+    hasOpenPosttest && (group === 't0' || bannerTimeReached)
+  const showPosttestFallback = hasOpenPosttest && !showPosttestBanner
+
+  useEffect(() => {
+    if (
+      !hasOpenPosttest ||
+      group === 't0' ||
+      studyData.pretestAt === undefined
+    ) {
+      return
+    }
+
+    const delay = studyData.pretestAt + POSTTEST_BANNER_DELAY_MS - Date.now()
+    if (delay <= 0) return
+
+    const timeout = window.setTimeout(() => setNow(Date.now()), delay)
+    return () => window.clearTimeout(timeout)
+  }, [group, hasOpenPosttest, studyData.pretestAt])
+
   return (
     <div
       ref={scrollRef}
@@ -44,7 +71,11 @@ export function Overview() {
         )
       }
     >
-      <div className="max-w-[600px] mx-auto bg-white relative">
+      <div
+        className={`max-w-[600px] mx-auto bg-white relative ${
+          showPosttestBanner ? 'pb-[40vh]' : ''
+        }`}
+      >
         <div className="absolute right-5 top-4">
           <FaIcon icon={faJava} className="text-[50px] text-pink-700" />
         </div>
@@ -124,20 +155,19 @@ export function Overview() {
             </div>
           )
         })}
-        {studyData.pretestAt !== undefined &&
-          studyData.posttestAt === undefined && (
-            <div className="mx-6 mt-20 rounded-lg border border-pink-200 bg-rose-50 px-5 py-4 text-center">
-              <p className="text-sm text-gray-700">
-                <span className="font-medium">Du bist fertig?</span>{' '}
-                <button
-                  className="font-medium text-pink-600 underline hover:text-pink-700"
-                  onClick={() => navigate(core, '/posttest')}
-                >
-                  An der Abschlussumfrage teilnehmen
-                </button>
-              </p>
-            </div>
-          )}
+        {showPosttestFallback && (
+          <div className="mx-6 mt-20 rounded-lg border border-pink-200 bg-rose-50 px-5 py-4 text-center">
+            <p className="text-sm text-gray-700">
+              <span className="font-medium">Du bist fertig?</span>{' '}
+              <button
+                className="font-medium text-pink-600 underline hover:text-pink-700"
+                onClick={() => navigate(core, '/posttest')}
+              >
+                An der Abschlussumfrage teilnehmen
+              </button>
+            </p>
+          </div>
+        )}
         <div className="mt-[250px] mb-[200px] text-4xl text-center">
           (̿▀̿‿ ̿▀̿ ̿)
           <br />
@@ -184,6 +214,26 @@ export function Overview() {
           </span>
         </div>
       </div>
+      {showPosttestBanner && (
+        <div className="fixed inset-x-0 bottom-0 z-50 border-t-2 border-pink-300 bg-rose-50/95 shadow-[0_-12px_40px_rgba(0,0,0,0.12)] backdrop-blur">
+          <div className="mx-auto flex min-h-[33vh] max-w-[600px] flex-col items-center justify-center px-6 py-8 text-center">
+            <h2 className="text-3xl font-bold text-gray-800">
+              Abschlussumfrage
+            </h2>
+            <p className="mt-3 max-w-[440px] text-gray-600">
+              {group === 't0'
+                ? 'Testmodus: Du kannst die Abschlussumfrage jetzt starten.'
+                : 'Die Bearbeitungszeit ist vorbei. Bitte nimm jetzt an der Abschlussumfrage teil.'}
+            </p>
+            <button
+              className="mt-6 rounded-lg bg-pink-500 px-6 py-3 text-lg font-medium text-white transition-colors hover:bg-pink-600"
+              onClick={() => navigate(core, '/posttest')}
+            >
+              Jetzt an der Abschlussumfrage teilnehmen
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
