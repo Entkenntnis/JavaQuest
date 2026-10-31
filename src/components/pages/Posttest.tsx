@@ -9,6 +9,7 @@ import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
 import { setPosttestAt } from '../../lib/state/user-data'
 import { LikertScale } from '../helper/LikertScale'
+import { OVERVIEW_SCROLL_KEY } from './Overview'
 
 interface ExtraAnswers {
   gender?: string
@@ -81,7 +82,7 @@ export function Posttest() {
     console.log('[posttest] submit payload', JSON.stringify(payload, null, 2))
 
     setPosttestAt()
-    navigate(core, '/')
+    setSubmitted(true)
   }
 
   function updateExtra<K extends keyof ExtraAnswers>(
@@ -92,6 +93,28 @@ export function Posttest() {
       ...current,
       [key]: value,
     }))
+  }
+
+  if (submitted) {
+    return (
+      <div className="h-full overflow-auto bg-green-50">
+        <div className="mx-auto max-w-[600px] bg-white p-8 text-center">
+          <h1 className="mt-8 text-3xl font-bold">Vielen Dank!</h1>
+          <p className="mt-4 text-lg leading-relaxed text-gray-700">
+            Du kannst die App gerne weiter nutzen.
+          </p>
+          <button
+            className="mt-8 rounded-lg bg-green-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-green-700"
+            onClick={() => {
+              sessionStorage.setItem(OVERVIEW_SCROLL_KEY, '0')
+              navigate(core, '/')
+            }}
+          >
+            Zur Startseite
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -279,9 +302,7 @@ export function Posttest() {
             </span>
             <textarea
               value={extraAnswers.positives ?? ''}
-              onChange={(event) =>
-                updateExtra('positives', event.target.value)
-              }
+              onChange={(event) => updateExtra('positives', event.target.value)}
               rows={3}
               required
               className="mt-3 w-full rounded-md border border-gray-200 p-3 text-sm outline-none focus:border-green-500"
@@ -294,9 +315,7 @@ export function Posttest() {
             </span>
             <textarea
               value={extraAnswers.negatives ?? ''}
-              onChange={(event) =>
-                updateExtra('negatives', event.target.value)
-              }
+              onChange={(event) => updateExtra('negatives', event.target.value)}
               rows={3}
               required
               className="mt-3 w-full rounded-md border border-gray-200 p-3 text-sm outline-none focus:border-green-500"
