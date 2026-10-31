@@ -56,4 +56,35 @@ export const CORE_SURVEY_QUESTIONS: SurveyQuestion[] = [
 
 export const SCALE_5 = [1, 2, 3, 4, 5] as const
 export const SCALE_7 = [1, 2, 3, 4, 5, 6, 7] as const
+
+export const SCALE_5_LABELS = [
+  'gar nicht',
+  'eher nicht',
+  'teils/teils',
+  'eher',
+  'voll und ganz',
+] as const
+
+export const SCALE_7_LABELS = [
+  'gar nicht',
+  'kaum',
+  'eher nicht',
+  'teils/teils',
+  'eher',
+  'weitgehend',
+  'voll und ganz',
+] as const
+
+export const SCALE_5_HINT = '1 = stimme gar nicht zu · 5 = stimme voll zu'
+export const SCALE_7_HINT =
+  '1 = trifft überhaupt nicht zu · 7 = trifft voll und ganz zu'
+
+export const EXPERIENCE_LABELS = [
+  'sehr gering',
+  'gering',
+  'mittel',
+  'hoch',
+  'sehr hoch',
+] as const
+
 export const SURVEY_VERSION = 1

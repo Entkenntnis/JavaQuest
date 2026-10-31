@@ -1,14 +1,23 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import {
   CORE_SURVEY_QUESTIONS,
+  EXPERIENCE_LABELS,
   SCALE_5,
+  SCALE_5_HINT,
+  SCALE_5_LABELS,
   SCALE_7,
+  SCALE_7_HINT,
+  SCALE_7_LABELS,
   SURVEY_VERSION,
 } from '../../lib/content/survey'
 import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
 import { setPosttestAt } from '../../lib/state/user-data'
-import { LikertScale } from '../helper/LikertScale'
+import {
+  ChoiceGroup,
+  LikertMatrix,
+  SurveyTextarea,
+} from '../helper/SurveyFields'
 import { OVERVIEW_SCROLL_KEY } from './Overview'
 import { track } from '../../lib/events/track'
 
@@ -26,21 +35,103 @@ interface ExtraAnswers {
   comments?: string
 }
 
+type NumericAnswerKey =
+  | 'programmingExperience'
+  | 'appEnjoyment'
+  | 'appDistracted'
+  | 'appFun'
+  | 'appFrustration'
+
 const GENDERS = ['weiblich', 'männlich', 'divers', 'keine Angabe'] as const
 const YES_NO = ['Ja', 'Nein'] as const
 
+const EXPERIENCE_QUESTION = {
+  id: 'programmingExperience',
+  text: 'Wie gut schätzt du deine Programmiererfahrung insgesamt ein?',
+}
+
+const APP_QUESTIONS: { id: NumericAnswerKey; text: string }[] = [
+  {
+    id: 'appEnjoyment',
+    text: 'Die Arbeit mit der App hat mir sehr viel Freude bereitet.',
+  },
+  {
+    id: 'appDistracted',
+    text: 'Während der Arbeit mit der App war ich oft mit meinen Gedanken woanders.',
+  },
+  {
+    id: 'appFun',
+    text: 'Die Arbeit mit der App hat Spaß gemacht.',
+  },
+  {
+    id: 'appFrustration',
+    text: 'Ich habe mich bei der Arbeit mit der App oft frustriert gefühlt, weil ich nicht weiterkam.',
+  },
+]
+
+const TOTAL_REQUIRED = CORE_SURVEY_QUESTIONS.length + 9
+
+function revealFirstMissing(id: string) {
+  const container = document.getElementById(`question-${id}`)
+  container?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  window.setTimeout(() => {
+    container
+      ?.querySelector<HTMLElement>('input, textarea, button')
+      ?.focus({ preventScroll: true })
+  }, 300)
+}
+
 export function Posttest() {
   const core = useCore()
+  const pageRef = useRef<HTMLDivElement>(null)
   const [answers, setAnswers] = useState<Record<string, number | undefined>>({})
   const [extraAnswers, setExtraAnswers] = useState<ExtraAnswers>({})
+  const [showErrors, setShowErrors] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
-  const answeredCount = CORE_SURVEY_QUESTIONS.filter(
-    (question) => answers[question.id] !== undefined,
-  ).length
+  const missingIds = new Set<string>()
+
+  for (const question of CORE_SURVEY_QUESTIONS) {
+    if (answers[question.id] === undefined) missingIds.add(question.id)
+  }
+  if (extraAnswers.gender === undefined) missingIds.add('gender')
+  if (extraAnswers.priorProgramming === undefined) {
+    missingIds.add('priorProgramming')
+  }
+  if (extraAnswers.programmingExperience === undefined) {
+    missingIds.add('programmingExperience')
+  }
+  for (const question of APP_QUESTIONS) {
+    if (extraAnswers[question.id] === undefined) missingIds.add(question.id)
+  }
+  if (!extraAnswers.positives?.trim()) missingIds.add('positives')
+  if (!extraAnswers.negatives?.trim()) missingIds.add('negatives')
+
+  const answeredRequired = TOTAL_REQUIRED - missingIds.size
+  const progress = Math.round((answeredRequired / TOTAL_REQUIRED) * 100)
+  const isComplete = answeredRequired === TOTAL_REQUIRED
+
+  const appValues: Record<string, number | undefined> = {
+    appEnjoyment: extraAnswers.appEnjoyment,
+    appDistracted: extraAnswers.appDistracted,
+    appFun: extraAnswers.appFun,
+    appFrustration: extraAnswers.appFrustration,
+  }
+
+  useEffect(() => {
+    if (submitted) {
+      pageRef.current?.scrollTo({ top: 0 })
+    }
+  }, [submitted])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+
+    if (missingIds.size > 0) {
+      setShowErrors(true)
+      revealFirstMissing(missingIds.values().next().value as string)
+      return
+    }
 
     const completedAnswers: Record<string, number> = {}
 
@@ -48,20 +139,6 @@ export function Posttest() {
       const value = answers[question.id]
       if (value === undefined) return
       completedAnswers[question.id] = value
-    }
-
-    if (
-      extraAnswers.gender === undefined ||
-      extraAnswers.priorProgramming === undefined ||
-      extraAnswers.programmingExperience === undefined ||
-      extraAnswers.appEnjoyment === undefined ||
-      extraAnswers.appDistracted === undefined ||
-      extraAnswers.appFun === undefined ||
-      extraAnswers.appFrustration === undefined ||
-      !extraAnswers.positives?.trim() ||
-      !extraAnswers.negatives?.trim()
-    ) {
-      return
     }
 
     const payload = {
@@ -95,254 +172,321 @@ export function Posttest() {
     }))
   }
 
+  function updateNumber(key: NumericAnswerKey, value: number) {
+    setExtraAnswers((current) => ({
+      ...current,
+      [key]: value,
+    }))
+  }
+
   if (submitted) {
     return (
-      <div className="h-full overflow-auto bg-green-50">
-        <div className="mx-auto max-w-[600px] bg-white p-8 text-center">
-          <h1 className="mt-8 text-3xl font-bold">Vielen Dank!</h1>
-          <p className="mt-4 text-lg leading-relaxed text-gray-700">
-            Du kannst die App gerne weiter nutzen.
-          </p>
-          <button
-            className="mt-8 rounded-lg bg-green-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-green-700"
-            onClick={() => {
-              sessionStorage.setItem(OVERVIEW_SCROLL_KEY, '0')
-              navigate(core, '/')
-            }}
-          >
-            Zur Startseite
-          </button>
+      <div ref={pageRef} className="h-full overflow-auto bg-green-50">
+        <div className="mx-auto max-w-[640px] px-4 py-10 sm:py-16">
+          <div className="rounded-2xl border border-green-100 bg-white px-6 py-10 text-center shadow-sm sm:px-10">
+            <div
+              className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl font-bold text-green-700"
+              aria-hidden
+            >
+              ✓
+            </div>
+            <h1 className="mt-5 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+              Vielen Dank!
+            </h1>
+            <p className="mx-auto mt-3 max-w-[42ch] text-base leading-relaxed text-gray-600">
+              Deine Antworten wurden gespeichert. Du kannst JavaQuest jetzt
+              weiter nutzen.
+            </p>
+            <button
+              className="mt-8 rounded-lg bg-green-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700 focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2 focus-visible:outline-none"
+              onClick={() => {
+                sessionStorage.setItem(OVERVIEW_SCROLL_KEY, '0')
+                navigate(core, '/')
+              }}
+            >
+              Zur Startseite
+            </button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="h-full overflow-auto bg-green-50">
-      <div className="mx-auto max-w-[800px] bg-white p-6">
-        <h1 className="text-3xl font-bold">Abschlussumfrage</h1>
+    <div ref={pageRef} className="h-full overflow-auto bg-green-50">
+      <form
+        noValidate
+        onSubmit={handleSubmit}
+        className="mx-auto max-w-[860px] px-3 py-5 sm:px-6 sm:py-8"
+      >
+        <div className="rounded-2xl border border-green-100 bg-white shadow-sm">
+          <header className="px-5 pt-7 pb-6 sm:px-8 sm:pt-9 sm:pb-8">
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              Abschlussumfrage
+            </h1>
 
-        <p className="mt-4 text-lg leading-relaxed text-gray-700">
-          Bitte beantworte die folgenden Fragen zu deiner Einschätzung und zur
-          Arbeit mit der App. Es gibt keine richtigen oder falschen Antworten.
-        </p>
+            <p className="mt-6 text-base leading-relaxed text-gray-600">
+              Bitte beantworte die folgenden Fragen zu deiner Einschätzung und
+              zur Arbeit mit JavaQuest. Es gibt keine richtigen oder falschen
+              Antworten.
+            </p>
+          </header>
 
-        <h2 className="mt-8 text-xl font-bold">
-          Einschätzung zu booleschen Ausdrücken
-        </h2>
+          {showErrors && missingIds.size > 0 && (
+            <div
+              role="alert"
+              className="flex items-start gap-2.5 border-t border-red-100 bg-red-50 px-5 py-3 text-sm text-red-700 sm:px-8"
+            >
+              <span
+                className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white"
+                aria-hidden
+              >
+                !
+              </span>
+              <span>
+                Bitte fülle noch{' '}
+                {missingIds.size === 1
+                  ? 'ein Pflichtfeld'
+                  : `${missingIds.size} Pflichtfelder`}{' '}
+                aus. Die fehlenden Stellen sind rot markiert.
+              </span>
+            </div>
+          )}
 
-        <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-gray-700">
-          <div className="font-medium">Skala</div>
-          <div className="mt-1 flex justify-between text-xs text-gray-600">
-            <span>1 = stimme gar nicht zu</span>
-            <span>5 = stimme voll zu</span>
-          </div>
+          <section
+            aria-labelledby="posttest-core"
+            className="border-t border-gray-100 px-4 py-6 sm:px-8 sm:py-8"
+          >
+            <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+              <div>
+                <h2
+                  id="posttest-core"
+                  className="text-lg font-semibold text-gray-900"
+                >
+                  Einschätzung zu booleschen Ausdrücken
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  Wähle für jede Aussage die Zahl, die am besten zu dir passt.
+                </p>
+              </div>
+              <span className="text-xs tabular-nums text-gray-500">
+                5-stufige Skala
+              </span>
+            </div>
+
+            <div className="mt-4">
+              <LikertMatrix
+                questions={CORE_SURVEY_QUESTIONS}
+                values={answers}
+                options={SCALE_5}
+                scaleLabels={SCALE_5_LABELS}
+                hint={SCALE_5_HINT}
+                legend="Skala"
+                namePrefix="posttest-core"
+                errorIds={showErrors ? missingIds : undefined}
+                onChange={(id, value) => {
+                  setAnswers((current) => ({
+                    ...current,
+                    [id]: value,
+                  }))
+                }}
+              />
+            </div>
+          </section>
+
+          <section
+            aria-labelledby="posttest-about"
+            className="border-t border-gray-100 px-4 py-6 sm:px-8 sm:py-8"
+          >
+            <h2
+              id="posttest-about"
+              className="text-lg font-semibold text-gray-900"
+            >
+              Über dich
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Diese Angaben helfen, die Ergebnisse einzuordnen.
+            </p>
+
+            <div className="mt-5 space-y-6">
+              <ChoiceGroup
+                id="gender"
+                legend="Was ist dein Geschlecht?"
+                options={GENDERS}
+                value={extraAnswers.gender}
+                columns="four"
+                error={showErrors && missingIds.has('gender')}
+                onChange={(value) => updateExtra('gender', value)}
+              />
+
+              <ChoiceGroup
+                id="priorProgramming"
+                legend="Hast du vor dieser Veranstaltung bereits Programmiererfahrung gesammelt?"
+                options={YES_NO}
+                value={extraAnswers.priorProgramming}
+                error={showErrors && missingIds.has('priorProgramming')}
+                onChange={(value) => updateExtra('priorProgramming', value)}
+              />
+
+              <LikertMatrix
+                questions={[EXPERIENCE_QUESTION]}
+                values={{
+                  programmingExperience: extraAnswers.programmingExperience,
+                }}
+                options={SCALE_5}
+                scaleLabels={EXPERIENCE_LABELS}
+                hint="1 = sehr gering · 5 = sehr hoch"
+                legend="Selbsteinschätzung"
+                namePrefix="posttest-about"
+                errorIds={showErrors ? missingIds : undefined}
+                onChange={(id, value) =>
+                  updateNumber(id as NumericAnswerKey, value)
+                }
+              />
+            </div>
+          </section>
+
+          <section
+            aria-labelledby="posttest-app"
+            className="border-t border-gray-100 px-4 py-6 sm:px-8 sm:py-8"
+          >
+            <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+              <div>
+                <h2
+                  id="posttest-app"
+                  className="text-lg font-semibold text-gray-900"
+                >
+                  Arbeit mit der App
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  Bezieht sich auf deine Erfahrung mit JavaQuest.
+                </p>
+              </div>
+              <span className="text-xs tabular-nums text-gray-500">
+                7-stufige Skala
+              </span>
+            </div>
+
+            <div className="mt-4">
+              <LikertMatrix
+                questions={APP_QUESTIONS}
+                values={appValues}
+                options={SCALE_7}
+                scaleLabels={SCALE_7_LABELS}
+                hint={SCALE_7_HINT}
+                legend="Skala"
+                namePrefix="posttest-app"
+                errorIds={showErrors ? missingIds : undefined}
+                onChange={(id, value) =>
+                  updateNumber(id as NumericAnswerKey, value)
+                }
+              />
+            </div>
+          </section>
+
+          <section
+            aria-labelledby="posttest-open"
+            className="border-t border-gray-100 px-4 py-6 sm:px-8 sm:py-8"
+          >
+            <h2
+              id="posttest-open"
+              className="text-lg font-semibold text-gray-900"
+            >
+              Offene Fragen
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Hier ist Platz für deine persönliche Rückmeldung.
+            </p>
+
+            <div className="mt-5 space-y-6">
+              <SurveyTextarea
+                id="understandingMoment"
+                label="Gab es einen Moment, in dem du dachtest: „Jetzt habe ich es verstanden“?"
+                hint="Beschreibe kurz die Situation und was dir geholfen hat."
+                value={extraAnswers.understandingMoment ?? ''}
+                onChange={(value) => updateExtra('understandingMoment', value)}
+              />
+
+              <SurveyTextarea
+                id="positives"
+                label="Nenne zwei Dinge, die dir an der App positiv aufgefallen sind."
+                hint="Zum Beispiel: Was hat dir beim Lernen geholfen?"
+                required
+                value={extraAnswers.positives ?? ''}
+                error={showErrors && missingIds.has('positives')}
+                onChange={(value) => updateExtra('positives', value)}
+              />
+
+              <SurveyTextarea
+                id="negatives"
+                label="Nenne zwei Dinge, die dir an der App negativ aufgefallen sind."
+                hint="Zum Beispiel: Was hat dich aufgehalten oder gestört?"
+                required
+                value={extraAnswers.negatives ?? ''}
+                error={showErrors && missingIds.has('negatives')}
+                onChange={(value) => updateExtra('negatives', value)}
+              />
+
+              <SurveyTextarea
+                id="comments"
+                label="Weitere Anmerkungen"
+                hint="Alles, was du sonst noch loswerden möchtest."
+                value={extraAnswers.comments ?? ''}
+                onChange={(value) => updateExtra('comments', value)}
+              />
+            </div>
+          </section>
         </div>
 
-        <form className="mt-6" onSubmit={handleSubmit}>
-          {CORE_SURVEY_QUESTIONS.map((question, index) => (
-            <LikertScale
-              key={question.id}
-              name={`post-${question.id}`}
-              legend={`${index + 1}. ${question.text}`}
-              value={answers[question.id]}
-              options={SCALE_5}
-              onChange={(value) => {
-                setAnswers((current) => ({
-                  ...current,
-                  [question.id]: value,
-                }))
-              }}
-            />
-          ))}
-
-          <p className="mt-4 text-sm text-gray-500">
-            {answeredCount} von {CORE_SURVEY_QUESTIONS.length} Kernfragen
-            beantwortet. Alle Kernfragen sind Pflichtfelder.
-          </p>
-
-          <h2 className="mt-10 text-xl font-bold">Weitere Fragen</h2>
-
-          <fieldset className="mt-16 rounded-lg border border-gray-200 p-4">
-            <legend className="px-1 text-base leading-relaxed font-medium text-gray-800">
-              Was ist dein Geschlecht?
-            </legend>
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {GENDERS.map((gender) => {
-                const selected = extraAnswers.gender === gender
-
-                return (
-                  <label
-                    key={gender}
-                    className={`flex cursor-pointer items-center justify-center rounded-md border px-3 py-2 text-sm ${
-                      selected
-                        ? 'border-green-600 bg-green-50'
-                        : 'border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="gender"
-                      value={gender}
-                      required
-                      checked={selected}
-                      onChange={() => updateExtra('gender', gender)}
-                      className="mr-2 h-4 w-4 accent-green-600"
-                    />
-                    {gender}
-                  </label>
-                )
-              })}
-            </div>
-          </fieldset>
-
-          <fieldset className="mt-16 rounded-lg border border-gray-200 p-4">
-            <legend className="px-1 text-base leading-relaxed font-medium text-gray-800">
-              Hast du vor dieser Veranstaltung bereits Programmiererfahrung
-              gesammelt?
-            </legend>
-            <div className="mt-3 flex gap-2">
-              {YES_NO.map((answer) => {
-                const selected = extraAnswers.priorProgramming === answer
-
-                return (
-                  <label
-                    key={answer}
-                    className={`flex flex-1 cursor-pointer items-center justify-center rounded-md border px-3 py-2 text-sm ${
-                      selected
-                        ? 'border-green-600 bg-green-50'
-                        : 'border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="priorProgramming"
-                      value={answer}
-                      required
-                      checked={selected}
-                      onChange={() => updateExtra('priorProgramming', answer)}
-                      className="mr-2 h-4 w-4 accent-green-600"
-                    />
-                    {answer}
-                  </label>
-                )
-              })}
-            </div>
-          </fieldset>
-
-          <LikertScale
-            name="programmingExperience"
-            legend="Wie gut schätzt du deine Programmiererfahrung insgesamt ein?"
-            value={extraAnswers.programmingExperience}
-            options={SCALE_5}
-            minLabel="1 = sehr gering"
-            maxLabel="5 = sehr hoch"
-            onChange={(value) => updateExtra('programmingExperience', value)}
-          />
-
-          <div className="mt-8 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-gray-700">
-            <div className="font-medium">Skala</div>
-            <div className="mt-1 flex justify-between text-xs text-gray-600">
-              <span>1 = trifft überhaupt nicht zu</span>
-              <span>7 = trifft voll und ganz zu</span>
-            </div>
+        <div className="sticky bottom-0 z-30 mt-5 rounded-2xl border border-green-100 bg-white/95 px-4 py-3 shadow-lg shadow-green-900/5 backdrop-blur sm:px-6 sm:py-4">
+          <div className="flex items-center justify-between gap-4 text-xs text-gray-500">
+            <span aria-live="polite">
+              {answeredRequired} von {TOTAL_REQUIRED} Pflichtangaben
+            </span>
+            <span className="tabular-nums">{progress}%</span>
           </div>
 
-          <LikertScale
-            name="appEnjoyment"
-            legend="Die Arbeit mit der App hat mir sehr viel Freude bereitet."
-            value={extraAnswers.appEnjoyment}
-            options={SCALE_7}
-            onChange={(value) => updateExtra('appEnjoyment', value)}
-          />
-
-          <LikertScale
-            name="appDistracted"
-            legend="Während der Arbeit mit der App war ich oft mit meinen Gedanken woanders."
-            value={extraAnswers.appDistracted}
-            options={SCALE_7}
-            onChange={(value) => updateExtra('appDistracted', value)}
-          />
-
-          <LikertScale
-            name="appFun"
-            legend="Die Arbeit mit der App hat Spaß gemacht."
-            value={extraAnswers.appFun}
-            options={SCALE_7}
-            onChange={(value) => updateExtra('appFun', value)}
-          />
-
-          <LikertScale
-            name="appFrustration"
-            legend="Ich habe mich bei der Arbeit mit der App oft frustriert gefühlt, weil ich nicht weiterkam."
-            value={extraAnswers.appFrustration}
-            options={SCALE_7}
-            onChange={(value) => updateExtra('appFrustration', value)}
-          />
-
-          <label className="mt-16 block rounded-lg border border-gray-200 p-4">
-            <span className="text-base leading-relaxed font-medium text-gray-800">
-              Gab es einen Moment, in dem du dachtest: „Jetzt habe ich es
-              verstanden“? Wenn ja, beschreibe ihn kurz.
-            </span>
-            <span className="ml-2 text-xs text-gray-500">(optional)</span>
-            <textarea
-              value={extraAnswers.understandingMoment ?? ''}
-              onChange={(event) =>
-                updateExtra('understandingMoment', event.target.value)
-              }
-              rows={3}
-              className="mt-3 w-full rounded-md border border-gray-200 p-3 text-sm outline-none focus:border-green-500"
-            />
-          </label>
-
-          <label className="mt-16 block rounded-lg border border-gray-200 p-4">
-            <span className="text-base leading-relaxed font-medium text-gray-800">
-              Nenne zwei Dinge, die dir an der App positiv aufgefallen sind.
-            </span>
-            <textarea
-              value={extraAnswers.positives ?? ''}
-              onChange={(event) => updateExtra('positives', event.target.value)}
-              rows={3}
-              required
-              className="mt-3 w-full rounded-md border border-gray-200 p-3 text-sm outline-none focus:border-green-500"
-            />
-          </label>
-
-          <label className="mt-16 block rounded-lg border border-gray-200 p-4">
-            <span className="text-base leading-relaxed font-medium text-gray-800">
-              Nenne zwei Dinge, die dir an der App negativ aufgefallen sind.
-            </span>
-            <textarea
-              value={extraAnswers.negatives ?? ''}
-              onChange={(event) => updateExtra('negatives', event.target.value)}
-              rows={3}
-              required
-              className="mt-3 w-full rounded-md border border-gray-200 p-3 text-sm outline-none focus:border-green-500"
-            />
-          </label>
-
-          <label className="mt-16 block rounded-lg border border-gray-200 p-4">
-            <span className="text-base leading-relaxed font-medium text-gray-800">
-              Weitere Anmerkungen
-            </span>
-            <span className="ml-2 text-xs text-gray-500">(optional)</span>
-            <textarea
-              value={extraAnswers.comments ?? ''}
-              onChange={(event) => updateExtra('comments', event.target.value)}
-              rows={3}
-              className="mt-3 w-full rounded-md border border-gray-200 p-3 text-sm outline-none focus:border-green-500"
-            />
-          </label>
-
-          <button
-            type="submit"
-            className="mt-6 w-full rounded-lg bg-green-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-green-700"
+          <div
+            className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-100"
+            role="progressbar"
+            aria-label="Fortschritt der Umfrage"
+            aria-valuemin={0}
+            aria-valuemax={TOTAL_REQUIRED}
+            aria-valuenow={answeredRequired}
           >
-            Abschlussumfrage abschließen
-          </button>
-        </form>
-      </div>
+            <div
+              className="h-full rounded-full bg-green-600 transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          <div className="mt-3 flex items-center justify-between gap-4">
+            <p
+              className={`hidden text-xs sm:block ${
+                showErrors && missingIds.size > 0
+                  ? 'font-medium text-red-600'
+                  : 'text-gray-500'
+              }`}
+            >
+              {showErrors && missingIds.size > 0
+                ? `Es fehlen noch ${missingIds.size} Pflichtangaben.`
+                : answeredRequired === TOTAL_REQUIRED
+                  ? 'Alles ausgefüllt – du kannst abschließen.'
+                  : 'Bitte fülle alle Pflichtfelder aus.'}
+            </p>
+            <button
+              type="submit"
+              className={`w-full rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:w-auto ${
+                isComplete
+                  ? 'bg-green-600 text-white hover:bg-green-700 focus-visible:ring-green-600'
+                  : 'bg-gray-300 text-gray-600 hover:bg-gray-400 focus-visible:ring-gray-400'
+              }`}
+            >
+              Abschlussumfrage abschließen
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
   )
 }
