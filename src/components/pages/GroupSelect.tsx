@@ -89,7 +89,6 @@ export function GroupSelect() {
           Das ist meine Gruppe – weiter
         </button>
       </div>
-      )
     </div>
   )
 }
