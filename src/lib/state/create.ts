@@ -12,5 +12,6 @@ export function createDefaultCoreState(): CoreState {
     quest: {
       id: -1,
     },
+    study: {},
   }
 }

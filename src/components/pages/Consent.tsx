@@ -4,24 +4,21 @@ import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
 // import { getUserData, setUserData } from '../../lib/state/user-data'
 import { FaIcon } from '../helper/FaIcon'
+import { getStudyData, setConsentedAt } from '../../lib/state/user-data'
 
 export function Consent() {
   const core = useCore()
-  const [hasAccepted, setHasAccepted] = useState(false)
+  const study = getStudyData()
+  const [hasAccepted, setHasAccepted] = useState(
+    study.consentedAt !== undefined,
+  )
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false)
 
-  function finish(_allowDataCollection: boolean) {
-    // setUserData({
-    //   ...getUserData(),
-    //   hasPromptedConsent: true,
-    //   allowDataCollection,
-    // })
-    const url = sessionStorage.getItem('javaquest_continue_url')
-    if (url) {
-      navigate(core, url)
-    } else {
-      navigate(core, '/')
+  function finish(accepted: boolean) {
+    if (accepted) {
+      setConsentedAt()
     }
+    navigate(core, '/')
   }
 
   return (

@@ -5,12 +5,17 @@ export interface USER_DATA_ALWAYS_KEEP_COMPATIBLE {
   studyData?: STUDY_DATA_ALWAYS_KEEP_COMPATIBLE
 }
 
-export interface STUDY_DATA_ALWAYS_KEEP_COMPATIBLE {}
+export interface STUDY_DATA_ALWAYS_KEEP_COMPATIBLE {
+  groupId?: string
+  participantId?: string
+  consentedAt?: number
+}
 
 export interface CoreState {
   page: Page
   ui: Ui
   quest: Quest
+  study: Study
 }
 
 interface Ui {
@@ -29,6 +34,10 @@ interface Ui {
 
 interface Quest {
   id: number
+}
+
+interface Study {
+  group?: string
 }
 
 export interface QuestResult {
