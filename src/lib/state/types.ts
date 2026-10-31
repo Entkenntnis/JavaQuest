@@ -9,6 +9,9 @@ export interface STUDY_DATA_ALWAYS_KEEP_COMPATIBLE {
   groupId?: string
   participantId?: string
   consentedAt?: number
+  needPretest?: boolean
+  pretestAt?: number
+  posttestAt?: number
 }
 
 export interface CoreState {

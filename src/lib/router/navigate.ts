@@ -67,9 +67,10 @@ export async function hydrate(core: Core) {
     return
   }
 
+  const study = getStudyData()
+
   if (path == '/consent') {
-    const study = getStudyData()
-    // this consent page must only be shown when group is already select
+    // this consent page must not be shown when group is already select
     if (!study.groupId) {
       if (
         study.consentedAt !== undefined ||
@@ -90,7 +91,9 @@ export async function hydrate(core: Core) {
   }
 
   if (path == '/pretest') {
-    // TODO: guard condition
+    if (!study.needPretest) {
+      return await navigate(core, '/')
+    }
     core.mutateWs((ws) => {
       ws.page = 'pretest'
     })
@@ -98,7 +101,9 @@ export async function hydrate(core: Core) {
   }
 
   if (path == '/posttest') {
-    // TODO: guard condition
+    if (study.posttestAt !== undefined || study.pretestAt === undefined) {
+      return await navigate(core, '/')
+    }
     core.mutateWs((ws) => {
       ws.page = 'posttest'
     })
@@ -106,6 +111,9 @@ export async function hydrate(core: Core) {
   }
 
   if (path == '/') {
+    if (study.needPretest) {
+      return await navigate(core, '/pretest')
+    }
     submitEvent('pageview', '/')
     core.mutateWs((ws) => {
       ws.page = 'overview'

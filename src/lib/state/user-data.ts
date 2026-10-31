@@ -46,18 +46,40 @@ export function clearStudyData() {
   setUserData({ ...data, studyData: undefined })
 }
 
+// this is the first step on the journey
 export function setGroup(groupId: string) {
-  updateStudyData((study) => ({
-    ...study,
+  updateStudyData(() => ({
     groupId,
   }))
 }
 
+// the second step on the journey
 export function setConsentedAt() {
   updateStudyData((study) => ({
-    ...study,
+    groupId: study.groupId,
     consentedAt: Date.now(),
-    participantId: study.participantId ?? createParticipantId(),
+    participantId: createParticipantId(),
+    needPretest: true,
+  }))
+}
+
+// the second step on the journey
+export function setPretestAt() {
+  updateStudyData((study) => ({
+    groupId: study.groupId,
+    consentedAt: study.consentedAt,
+    participantId: study.participantId,
+    pretestAt: Date.now(),
+  }))
+}
+
+export function setPosttestAt() {
+  updateStudyData((study) => ({
+    groupId: study.groupId,
+    consentedAt: study.consentedAt,
+    participantId: study.participantId,
+    pretestAt: study.pretestAt,
+    posttestAt: Date.now(),
   }))
 }
 
