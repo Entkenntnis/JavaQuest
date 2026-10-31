@@ -13,7 +13,7 @@ import {
 } from '../../lib/state/user-data'
 import { faCheck } from '@fortawesome/free-solid-svg-icons'
 
-const OVERVIEW_SCROLL_KEY = 'jq:overview-scroll'
+export const OVERVIEW_SCROLL_KEY = 'jq:overview-scroll'
 
 export function Overview() {
   const core = useCore()

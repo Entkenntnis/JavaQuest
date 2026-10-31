@@ -9,6 +9,7 @@ import {
   getStudyData,
   setConsentedAt,
 } from '../../lib/state/user-data'
+import { OVERVIEW_SCROLL_KEY } from './Overview'
 
 export function Consent() {
   const core = useCore()
@@ -63,6 +64,7 @@ export function Consent() {
                   'Einwilligung widerrufen und alle lokalen Daten löschen?',
                 )
               ) {
+                sessionStorage.setItem(OVERVIEW_SCROLL_KEY, '0')
                 clearUserData()
                 navigate(core, '/')
               }
@@ -78,17 +80,6 @@ export function Consent() {
   return (
     <div className="h-full bg-green-50 overflow-auto">
       <div className="max-w-[600px] mx-auto bg-white relative pt-4 px-3">
-        <a
-          className="px-2 py-0.5 bg-gray-200 rounded-xl hover:bg-gray-300 cursor-pointer pointer-events-auto"
-          href="/"
-          onClick={(e) => {
-            navigate(core, '/')
-            e.preventDefault()
-          }}
-        >
-          <FaIcon icon={faArrowLeftLong} className="mr-3" />
-          zurück
-        </a>
         <div className="text-gray-600 mt-12">
           Einwilligung zur Datenerhebung
         </div>
