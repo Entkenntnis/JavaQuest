@@ -5,6 +5,7 @@ import { useCore } from '../../lib/state/core'
 import { FaIcon } from '../helper/FaIcon'
 import {
   clearStudyData,
+  clearUserData,
   getStudyData,
   setConsentedAt,
 } from '../../lib/state/user-data'
@@ -24,6 +25,54 @@ export function Consent() {
       clearStudyData()
     }
     navigate(core, '/')
+  }
+
+  if (study.consentedAt !== undefined) {
+    return (
+      <div className="h-full bg-green-50 overflow-auto">
+        <div className="max-w-[600px] mx-auto bg-white relative min-h-full pt-4 px-3 pb-8">
+          <a
+            className="px-2 py-0.5 bg-gray-200 rounded-xl hover:bg-gray-300 cursor-pointer pointer-events-auto"
+            href="/"
+            onClick={(e) => {
+              navigate(core, '/')
+              e.preventDefault()
+            }}
+          >
+            <FaIcon icon={faArrowLeftLong} className="mr-3" />
+            zurück
+          </a>
+          <div className="text-gray-600 mt-12">
+            Einwilligung zur Datenerhebung
+          </div>
+          <h1 className="text-3xl font-bold mt-4">
+            Du hast bereits eingewilligt.
+          </h1>
+          <p className="mt-6 text-gray-700">
+            Deine Einwilligung ist gespeichert. Du musst nichts weiter tun.
+          </p>
+          <p className="mt-2 text-sm text-gray-500">
+            Wenn du deine Einwilligung widerrufen möchtest, kannst du die lokal
+            gespeicherten Daten hier löschen.
+          </p>
+          <button
+            className="mt-10 block text-xs text-gray-400 hover:text-red-600 hover:underline"
+            onClick={() => {
+              if (
+                confirm(
+                  'Einwilligung widerrufen und alle lokalen Daten löschen?',
+                )
+              ) {
+                clearUserData()
+                navigate(core, '/')
+              }
+            }}
+          >
+            Konsent widerrufen und Daten löschen
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

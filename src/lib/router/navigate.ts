@@ -114,6 +114,9 @@ export async function hydrate(core: Core) {
     if (study.needPretest) {
       return await navigate(core, '/pretest')
     }
+    if (study.groupId !== undefined && study.consentedAt === undefined) {
+      return await navigate(core, '/consent')
+    }
     submitEvent('pageview', '/')
     core.mutateWs((ws) => {
       ws.page = 'overview'
