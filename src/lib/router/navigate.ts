@@ -1,4 +1,5 @@
 import { questsData } from '../content/quests'
+import { submitEvent } from '../events/submit'
 import type { Core } from '../state/core'
 
 export async function navigate(core: Core, url: string) {
@@ -18,6 +19,7 @@ export async function hydrate(core: Core) {
   core.reset()
 
   if (path.startsWith('/quest-')) {
+    submitEvent('pageview', path)
     const id = parseInt(path.substring(7))
     const data = questsData[id]
     if (data) {
@@ -43,14 +45,17 @@ export async function hydrate(core: Core) {
     return
   }
 
-  if (path.startsWith('/consent')) {
-    core.mutateWs((ws) => {
-      ws.page = 'consent'
-    })
-    return
-  }
+  // if (path.startsWith('/consent')) {
+  //   core.mutateWs((ws) => {
+  //     ws.page = 'consent'
+  //   })
+  //   return
+  // }
 
   // Fallback to Overview
+
+  // sanity check pageview stats
+  submitEvent('pageview', '/')
 
   core.mutateWs((ws) => {
     ws.page = 'overview'

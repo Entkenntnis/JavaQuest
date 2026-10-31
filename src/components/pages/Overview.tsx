@@ -50,6 +50,12 @@ export function Overview() {
             Lernen wir gemeinsam, Ausdruck-für-Ausdruck! ♡
           </p>
         </div>
+        <div className="mx-4 text-sm mt-28 -mb-12 border-2 border-purple-300 rounded-lg p-2">
+          Die Aufgaben sind ein freiwilliges Übungsangebot und dürfen in
+          beliebiger Reihenfolge bearbeitet werden. Springe zum Ende eines
+          Kapitels oder probiere andere Kapitel aus, wenn du dich mit den
+          Aufgaben sicher fühlst.
+        </div>
         {chaptersData.map((chapter, i) => {
           return (
             <div key={i} className="mt-28">
@@ -82,15 +88,15 @@ export function Overview() {
                       className="px-6 mt-1 flex justify-between hover:bg-gray-100 py-2 cursor-pointer select-none"
                       href={`/quest-${quest.id}`}
                       onClick={(e) => {
-                        if (!userData.hasPromptedConsent) {
-                          sessionStorage.setItem(
-                            'javaquest_continue_url',
-                            `/quest-${quest.id}`,
-                          )
-                          navigate(core, '/consent')
-                        } else {
-                          navigate(core, `/quest-${quest.id}`)
-                        }
+                        // if (!userData.hasPromptedConsent) {
+                        //   sessionStorage.setItem(
+                        //     'javaquest_continue_url',
+                        //     `/quest-${quest.id}`,
+                        //   )
+                        //   navigate(core, '/consent')
+                        // } else {
+                        navigate(core, `/quest-${quest.id}`)
+                        // }
                         e.preventDefault()
                       }}
                     >
@@ -117,7 +123,7 @@ export function Overview() {
           <br />
           <span className="text-lg italic block mt-6">Geschafft!</span>
         </div>
-        <div className="pb-4 mx-4 flex justify-between">
+        <div className="pb-4 mx-4 flex justify-between text-sm">
           <a
             href="https://hack.arrrg.de/contact"
             target="_blank"

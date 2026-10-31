@@ -13,6 +13,12 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    proxy: {
+      '/backend': {
+        target: 'http://localhost:5000',
+        rewrite: (path) => path.replace(/^\/backend/, ''),
+      },
+    },
   },
   clearScreen: false,
   plugins: [react()],

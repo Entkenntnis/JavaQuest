@@ -10,6 +10,7 @@ import { evaluate } from '../java/evaluate'
 import { foldConstants } from '../java/fold'
 import { printType, toDisplayType } from '../java/helper/typing'
 import { getUserData, setUserData } from '../state/user-data'
+import { submitEvent } from '../events/submit'
 
 export function check(core: Core) {
   core.mutateWs((ws) => {
@@ -122,6 +123,7 @@ export function check(core: Core) {
       const data = getUserData()
       if (!data.solved.includes(quest.id)) {
         data.solved.push(quest.id)
+        submitEvent('solve', String(quest.id))
       }
       setUserData(data)
       ws.ui.questResult = {
