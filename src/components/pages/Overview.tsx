@@ -14,7 +14,7 @@ import {
 import { faCheck } from '@fortawesome/free-solid-svg-icons'
 
 export const OVERVIEW_SCROLL_KEY = 'jq:overview-scroll'
-const POSTTEST_BANNER_DELAY_MS = 1 * 60 * 1000
+const POSTTEST_BANNER_DELAY_MS = 19 * 60 * 1000
 
 export function Overview() {
   const core = useCore()
