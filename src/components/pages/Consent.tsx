@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { faArrowLeftLong } from '@fortawesome/free-solid-svg-icons'
 import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
-import { getUserData, setUserData } from '../../lib/state/user-data'
+// import { getUserData, setUserData } from '../../lib/state/user-data'
 import { FaIcon } from '../helper/FaIcon'
 
 export function Consent() {
@@ -10,12 +10,12 @@ export function Consent() {
   const [hasAccepted, setHasAccepted] = useState(false)
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false)
 
-  function finish(allowDataCollection: boolean) {
-    setUserData({
-      ...getUserData(),
-      hasPromptedConsent: true,
-      allowDataCollection,
-    })
+  function finish(_allowDataCollection: boolean) {
+    // setUserData({
+    //   ...getUserData(),
+    //   hasPromptedConsent: true,
+    //   allowDataCollection,
+    // })
     const url = sessionStorage.getItem('javaquest_continue_url')
     if (url) {
       navigate(core, url)

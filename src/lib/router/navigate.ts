@@ -31,33 +31,60 @@ export async function hydrate(core: Core) {
     }
   }
 
-  if (path.startsWith('/suite')) {
+  if (path == '/suite') {
     core.mutateWs((ws) => {
       ws.page = 'suite'
     })
     return
   }
 
-  if (path.startsWith('/test')) {
+  if (path == '/test') {
     core.mutateWs((ws) => {
       ws.page = 'test'
     })
     return
   }
 
-  // if (path.startsWith('/consent')) {
-  //   core.mutateWs((ws) => {
-  //     ws.page = 'consent'
-  //   })
-  //   return
-  // }
+  if (['/t0', '/t1', '/t2', '/t3', '/t4', '/t5', '/t6', '/t7'].includes(path)) {
+    // TODO: guard condition
+    core.mutateWs((ws) => {
+      ws.page = 'group-select'
+    })
+    return
+  }
+
+  if (path == '/pretest') {
+    // TODO: guard condition
+    core.mutateWs((ws) => {
+      ws.page = 'pretest'
+    })
+    return
+  }
+
+  if (path == '/posttest') {
+    // TODO: guard condition
+    core.mutateWs((ws) => {
+      ws.page = 'posttest'
+    })
+    return
+  }
+
+  if (path == '/consent') {
+    // TODO: guard condition
+    core.mutateWs((ws) => {
+      ws.page = 'consent'
+    })
+    return
+  }
+
+  if (path == '/') {
+    submitEvent('pageview', '/')
+    core.mutateWs((ws) => {
+      ws.page = 'overview'
+    })
+    return
+  }
 
   // Fallback to Overview
-
-  // sanity check pageview stats
-  submitEvent('pageview', '/')
-
-  core.mutateWs((ws) => {
-    ws.page = 'overview'
-  })
+  await navigate(core, '/')
 }

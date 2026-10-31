@@ -6,6 +6,9 @@ import { Overview } from './pages/Overview'
 import { Test } from './pages/Test'
 import { Suite } from './pages/Suite'
 import { Consent } from './pages/Consent'
+import { GroupSelect } from './pages/GroupSelect'
+import { Pretest } from './pages/Pretest'
+import { Posttest } from './pages/Posttest'
 
 export function App() {
   const core = useCreateCore()
@@ -50,6 +53,12 @@ export function App() {
       return <Suite />
     } else if (core.ws.page == 'consent') {
       return <Consent />
+    } else if (core.ws.page == 'group-select') {
+      return <GroupSelect />
+    } else if (core.ws.page == 'pretest') {
+      return <Pretest />
+    } else if (core.ws.page == 'posttest') {
+      return <Posttest />
     }
     return null
   }
