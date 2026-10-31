@@ -10,6 +10,7 @@ import { useCore } from '../../lib/state/core'
 import { setPosttestAt } from '../../lib/state/user-data'
 import { LikertScale } from '../helper/LikertScale'
 import { OVERVIEW_SCROLL_KEY } from './Overview'
+import { track } from '../../lib/events/track'
 
 interface ExtraAnswers {
   gender?: string
@@ -78,8 +79,7 @@ export function Posttest() {
       completedAt: Date.now(),
     }
 
-    // TODO: Später hier submitEvent('posttest_submit', JSON.stringify(payload)) aufrufen.
-    console.log('[posttest] submit payload', JSON.stringify(payload, null, 2))
+    track('posttest_submit', payload)
 
     setPosttestAt()
     setSubmitted(true)

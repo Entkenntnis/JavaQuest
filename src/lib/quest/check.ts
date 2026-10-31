@@ -11,6 +11,7 @@ import { foldConstants } from '../java/fold'
 import { printType, toDisplayType } from '../java/helper/typing'
 import { getUserData, setUserData } from '../state/user-data'
 import { submitEvent } from '../events/submit'
+import { track } from '../events/track'
 
 export function check(core: Core) {
   core.mutateWs((ws) => {
@@ -135,4 +136,9 @@ export function check(core: Core) {
       }
     }
   })
+
+  const result = core.ws.ui.questResult
+  if (result) {
+    track('check_submit', { questId: quest.id, expression, result })
+  }
 }

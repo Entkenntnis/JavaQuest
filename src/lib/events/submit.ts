@@ -5,5 +5,6 @@ export function submitEvent(event_type: string, payload: string) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ event_type, payload, timestamp: Date.now() }),
+    keepalive: true,
   })
 }

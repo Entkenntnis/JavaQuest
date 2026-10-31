@@ -10,17 +10,17 @@ import {
   setConsentedAt,
 } from '../../lib/state/user-data'
 import { OVERVIEW_SCROLL_KEY } from './Overview'
+import { track } from '../../lib/events/track'
 
 function ConsentText() {
   return (
     <>
       <p className="mt-6">
         Diese Webseite ist Teil meiner Masterarbeit zum Thema „Lernen von
-        booleschen Ausdrücken“. Im Rahmen dieser Arbeit möchte ich erfassen,
-        wie du das Lernwerkzeug nutzt. Diese Daten helfen mir, das Werkzeug
-        für die Zukunft zu verbessern und Einsichten über das Lernen zu
-        erhalten. Bei Fragen bin ich, Quinn Li (sie/ihr), als Ansprechperson
-        unter{' '}
+        booleschen Ausdrücken“. Im Rahmen dieser Arbeit möchte ich erfassen, wie
+        du das Lernwerkzeug nutzt. Diese Daten helfen mir, das Werkzeug für die
+        Zukunft zu verbessern und Einsichten über das Lernen zu erhalten. Bei
+        Fragen bin ich, Quinn Li (sie/ihr), als Ansprechperson unter{' '}
         <a href="mailto:d.li1@campus.lmu.de" className="text-blue-500">
           d.li1@campus.lmu.de
         </a>{' '}
@@ -28,33 +28,33 @@ function ConsentText() {
       </p>
       <p className="mt-6">
         Wenn du der Datenerhebung zustimmst, wird auf diesem Gerät eine
-        zufällige ID generiert und gespeichert. Es werden deine Eingaben zu
-        den Aufgaben mit dieser ID erfasst (Java-Code, Zeitpunkt, Status
-        (Erfolg/Fehler)) und auf einem Server gespeichert. Es wird auch
-        erfasst, welche Aufgaben du öffnest. Außerdem werden deine Antworten
-        auf die Umfragen unter derselben ID gespeichert. Die Daten werden
-        dabei nicht mit deinem Namen oder deiner E-Mail-Adresse verknüpft,
-        sondern liegen nur in pseudonymer Form unter der zufälligen ID vor.
-        Zugriff auf die Rohdaten haben nur ich und meine Betreuung. Die Daten
-        werden statistisch ausgewertet und können in anonymisierter Form als
-        Teil von Forschungsbeiträgen veröffentlicht werden. Dabei wird
-        sichergestellt, dass keinerlei Rückschluss auf einzelne Personen
-        möglich ist. Nach der Auswertung werden die Rohdaten gelöscht,
-        spätestens nach Abschluss der Bewertung der Masterarbeit.
+        zufällige ID generiert und gespeichert. Es werden deine Eingaben zu den
+        Aufgaben mit dieser ID erfasst (Java-Code, Zeitpunkt, Status
+        (Erfolg/Fehler)) und auf einem Server gespeichert. Es wird auch erfasst,
+        welche Aufgaben du öffnest. Außerdem werden deine Antworten auf die
+        Umfragen unter derselben ID gespeichert. Die Daten werden dabei nicht
+        mit deinem Namen oder deiner E-Mail-Adresse verknüpft, sondern liegen
+        nur in pseudonymer Form unter der zufälligen ID vor. Zugriff auf die
+        Rohdaten haben nur ich und meine Betreuung. Die Daten werden statistisch
+        ausgewertet und können in anonymisierter Form als Teil von
+        Forschungsbeiträgen veröffentlicht werden. Dabei wird sichergestellt,
+        dass keinerlei Rückschluss auf einzelne Personen möglich ist. Nach der
+        Auswertung werden die Rohdaten gelöscht, spätestens nach Abschluss der
+        Bewertung der Masterarbeit.
       </p>
       <p className="mt-6">
-        <strong>Deine Mithilfe ist für mich wertvoll.</strong> Die Daten
-        zeigen mir, wo das Lernwerkzeug gut funktioniert und wo ich es noch
-        verbessern kann – und sie bilden die Grundlage für die Forschung zu
-        booleschen Ausdrücken.
+        <strong>Deine Mithilfe ist für mich wertvoll.</strong> Die Daten zeigen
+        mir, wo das Lernwerkzeug gut funktioniert und wo ich es noch verbessern
+        kann – und sie bilden die Grundlage für die Forschung zu booleschen
+        Ausdrücken.
       </p>
       <p className="mt-6">
         Die Teilnahme an der Datenerhebung ist freiwillig. Du kannst das
         Lernwerkzeug auch ohne Zustimmung nutzen; dir entstehen dadurch keine
         Nachteile. Du kannst die Nutzung jederzeit beenden – auch mitten in
         einer Aufgabe – ohne dass dir daraus negative Konsequenzen entstehen.
-        Deine Zustimmung kannst du außerdem jederzeit per E-Mail widerrufen;
-        die bis dahin erhobenen Daten werden dann nicht weiter verwendet und
+        Deine Zustimmung kannst du außerdem jederzeit per E-Mail widerrufen; die
+        bis dahin erhobenen Daten werden dann nicht weiter verwendet und
         gelöscht (sofern eine Zuordnung möglich ist).
       </p>
     </>
@@ -72,6 +72,7 @@ export function Consent() {
   function finish(accepted: boolean) {
     if (accepted) {
       setConsentedAt()
+      track('consent_accepted')
     } else {
       clearStudyData()
     }
@@ -122,6 +123,7 @@ export function Consent() {
                   'Einwilligung widerrufen und alle lokalen Daten löschen?',
                 )
               ) {
+                track('consent_revoked')
                 sessionStorage.setItem(OVERVIEW_SCROLL_KEY, '0')
                 clearUserData()
                 navigate(core, '/')

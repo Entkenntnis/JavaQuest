@@ -1,5 +1,6 @@
 import { questsData } from '../content/quests'
 import { submitEvent } from '../events/submit'
+import { track } from '../events/track'
 import type { Core } from '../state/core'
 import { clearStudyData, getStudyData } from '../state/user-data'
 
@@ -20,10 +21,11 @@ export async function hydrate(core: Core) {
   core.reset()
 
   if (path.startsWith('/quest-')) {
-    submitEvent('pageview', path)
     const id = parseInt(path.substring(7))
     const data = questsData[id]
     if (data) {
+      submitEvent('pageview', path)
+      track('quest_open', { id })
       core.mutateWs((ws) => {
         ws.page = 'quest'
         ws.quest.id = id
@@ -94,6 +96,9 @@ export async function hydrate(core: Core) {
     if (!study.needPretest) {
       return await navigate(core, '/')
     }
+
+    track('pretest_start')
+
     core.mutateWs((ws) => {
       ws.page = 'pretest'
     })
@@ -104,6 +109,8 @@ export async function hydrate(core: Core) {
     if (study.posttestAt !== undefined || study.pretestAt === undefined) {
       return await navigate(core, '/')
     }
+
+    track('posttest_start')
     core.mutateWs((ws) => {
       ws.page = 'posttest'
     })
@@ -117,6 +124,7 @@ export async function hydrate(core: Core) {
     if (study.groupId !== undefined && study.consentedAt === undefined) {
       return await navigate(core, '/consent')
     }
+    track('overview_open')
     submitEvent('pageview', '/')
     core.mutateWs((ws) => {
       ws.page = 'overview'

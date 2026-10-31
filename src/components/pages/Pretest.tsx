@@ -8,6 +8,7 @@ import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
 import { setPretestAt } from '../../lib/state/user-data'
 import { LikertScale } from '../helper/LikertScale'
+import { track } from '../../lib/events/track'
 
 export function Pretest() {
   const core = useCore()
@@ -35,8 +36,7 @@ export function Pretest() {
       completedAt: Date.now(),
     }
 
-    // TODO: Später hier submitEvent('pretest_submit', JSON.stringify(payload)) aufrufen.
-    console.log('[pretest] submit payload', JSON.stringify(payload, null, 2))
+    track('pretest_submit', payload)
 
     setPretestAt()
     navigate(core, '/')
