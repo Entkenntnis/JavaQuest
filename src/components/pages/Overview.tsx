@@ -124,6 +124,20 @@ export function Overview() {
             </div>
           )
         })}
+        {studyData.pretestAt !== undefined &&
+          studyData.posttestAt === undefined && (
+            <div className="mx-6 mt-20 rounded-lg border border-pink-200 bg-rose-50 px-5 py-4 text-center">
+              <p className="text-sm text-gray-700">
+                <span className="font-medium">Du bist fertig?</span>{' '}
+                <button
+                  className="font-medium text-pink-600 underline hover:text-pink-700"
+                  onClick={() => navigate(core, '/posttest')}
+                >
+                  An der Abschlussumfrage teilnehmen
+                </button>
+              </p>
+            </div>
+          )}
         <div className="mt-[250px] mb-[200px] text-4xl text-center">
           (̿▀̿‿ ̿▀̿ ̿)
           <br />
