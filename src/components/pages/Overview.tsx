@@ -6,7 +6,11 @@ import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
 import { FaIcon } from '../helper/FaIcon'
 import { ChapterDoodle } from '../helper/ChapterDoodle'
-import { clearUserData, getUserData } from '../../lib/state/user-data'
+import {
+  clearUserData,
+  getStudyData,
+  getUserData,
+} from '../../lib/state/user-data'
 import { faCheck } from '@fortawesome/free-solid-svg-icons'
 
 const OVERVIEW_SCROLL_KEY = 'jq:overview-scroll'
@@ -26,6 +30,8 @@ export function Overview() {
   }, [])
 
   const userData = getUserData()
+  const studyData = getStudyData()
+  const group = studyData.groupId
 
   return (
     <div
@@ -131,19 +137,24 @@ export function Overview() {
           >
             Kontakt / Impressum
           </a>
-          <button
-            className="hover:underline hover:text-red-500"
-            onClick={() => {
-              const res = confirm('Fortschritt unwiderruflich zurücksetzen?')
-              if (res) {
-                clearUserData()
-                sessionStorage.setItem(OVERVIEW_SCROLL_KEY, '0')
-                window.location.reload()
-              }
-            }}
-          >
-            Fortschritt zurücksetzen
-          </button>
+          <span>
+            {group && (
+              <span className="mr-4 text-gray-600">[Gruppe {group}]</span>
+            )}
+            <button
+              className="hover:underline hover:text-red-500"
+              onClick={() => {
+                const res = confirm('Fortschritt unwiderruflich zurücksetzen?')
+                if (res) {
+                  clearUserData()
+                  sessionStorage.setItem(OVERVIEW_SCROLL_KEY, '0')
+                  window.location.reload()
+                }
+              }}
+            >
+              Fortschritt zurücksetzen
+            </button>
+          </span>
         </div>
       </div>
     </div>

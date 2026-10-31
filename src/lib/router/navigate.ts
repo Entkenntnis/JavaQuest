@@ -1,7 +1,7 @@
 import { questsData } from '../content/quests'
 import { submitEvent } from '../events/submit'
 import type { Core } from '../state/core'
-import { getStudyData } from '../state/user-data'
+import { clearStudyData, getStudyData } from '../state/user-data'
 
 export async function navigate(core: Core, url: string) {
   history.pushState(null, '', url)
@@ -71,11 +71,18 @@ export async function hydrate(core: Core) {
     const study = getStudyData()
     // this consent page must only be shown when group is already select
     if (!study.groupId) {
+      if (
+        study.consentedAt !== undefined ||
+        study.participantId !== undefined
+      ) {
+        // something really broke
+        clearStudyData()
+      }
       await navigate(core, '/')
       return
     }
-    // TODO: Was soll ich machen, wenn der Consent bereits erteilt wurde?
-    // Hm, darüber muss ich bisschen nachdenken
+    // Wenn consent bereits erteilt wurde, dann kann man den Text erneut sehen
+    // und die Zustimmung widerrufen.
     core.mutateWs((ws) => {
       ws.page = 'consent'
     })

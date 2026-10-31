@@ -2,9 +2,12 @@ import { useState } from 'react'
 import { faArrowLeftLong } from '@fortawesome/free-solid-svg-icons'
 import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
-// import { getUserData, setUserData } from '../../lib/state/user-data'
 import { FaIcon } from '../helper/FaIcon'
-import { getStudyData, setConsentedAt } from '../../lib/state/user-data'
+import {
+  clearStudyData,
+  getStudyData,
+  setConsentedAt,
+} from '../../lib/state/user-data'
 
 export function Consent() {
   const core = useCore()
@@ -17,6 +20,8 @@ export function Consent() {
   function finish(accepted: boolean) {
     if (accepted) {
       setConsentedAt()
+    } else {
+      clearStudyData()
     }
     navigate(core, '/')
   }
@@ -58,15 +63,16 @@ export function Consent() {
           zufällige ID generiert und gespeichert. Es werden deine Eingaben zu
           den Aufgaben mit dieser ID erfasst (Java-Code, Zeitpunkt, Status
           (Erfolg/Fehler)) und auf einem Server gespeichert. Es wird auch
-          erfasst, welche Aufgaben du öffnest. Die Daten werden dabei nicht mit
-          deinem Namen oder deiner E-Mail-Adresse verknüpft, sondern liegen nur
-          in pseudonymer Form unter der zufälligen ID vor. Zugriff auf die
-          Rohdaten haben nur ich und meine Betreuung. Die Daten werden
-          statistisch ausgewertet und können in anonymisierter Form als Teil von
-          Forschungsbeiträgen veröffentlicht werden. Dabei wird sichergestellt,
-          dass keinerlei Rückschluss auf einzelne Personen möglich ist. Nach der
-          Auswertung werden die Rohdaten gelöscht, spätestens nach Abschluss der
-          Bewertung der Masterarbeit.
+          erfasst, welche Aufgaben du öffnest. Außerdem werden deine Antworten
+          auf die Umfragen unter derselben ID gespeichert. Die Daten werden
+          dabei nicht mit deinem Namen oder deiner E-Mail-Adresse verknüpft,
+          sondern liegen nur in pseudonymer Form unter der zufälligen ID vor.
+          Zugriff auf die Rohdaten haben nur ich und meine Betreuung. Die Daten
+          werden statistisch ausgewertet und können in anonymisierter Form als
+          Teil von Forschungsbeiträgen veröffentlicht werden. Dabei wird
+          sichergestellt, dass keinerlei Rückschluss auf einzelne Personen
+          möglich ist. Nach der Auswertung werden die Rohdaten gelöscht,
+          spätestens nach Abschluss der Bewertung der Masterarbeit.
         </p>
         <p className="mt-6">
           <strong>Deine Mithilfe ist für mich wertvoll.</strong> Die Daten
