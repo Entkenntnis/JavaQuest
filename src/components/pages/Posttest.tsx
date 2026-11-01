@@ -12,7 +12,7 @@ import {
 } from '../../lib/content/survey'
 import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
-import { setPosttestAt } from '../../lib/state/user-data'
+import { clearUserData, setPosttestAt } from '../../lib/state/user-data'
 import {
   ChoiceGroup,
   LikertMatrix,
@@ -69,8 +69,6 @@ const APP_QUESTIONS: { id: NumericAnswerKey; text: string }[] = [
   },
 ]
 
-const TOTAL_REQUIRED = CORE_SURVEY_QUESTIONS.length + 9
-
 function revealFirstMissing(id: string) {
   const container = document.getElementById(`question-${id}`)
   container?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -81,8 +79,17 @@ function revealFirstMissing(id: string) {
   }, 300)
 }
 
-export function Posttest() {
+interface PosttestProps {
+  variant?: 'treatment' | 'control'
+}
+
+export function Posttest({ variant = 'treatment' }: PosttestProps) {
   const core = useCore()
+  const isControl = variant === 'control'
+  const totalRequired =
+    CORE_SURVEY_QUESTIONS.length +
+    3 +
+    (isControl ? 0 : APP_QUESTIONS.length + 2)
   const pageRef = useRef<HTMLDivElement>(null)
   const [answers, setAnswers] = useState<Record<string, number | undefined>>({})
   const [extraAnswers, setExtraAnswers] = useState<ExtraAnswers>({})
@@ -102,14 +109,18 @@ export function Posttest() {
     missingIds.add('programmingExperience')
   }
   for (const question of APP_QUESTIONS) {
-    if (extraAnswers[question.id] === undefined) missingIds.add(question.id)
+    if (!isControl && extraAnswers[question.id] === undefined) {
+      missingIds.add(question.id)
+    }
   }
-  if (!extraAnswers.positives?.trim()) missingIds.add('positives')
-  if (!extraAnswers.negatives?.trim()) missingIds.add('negatives')
+  if (!isControl) {
+    if (!extraAnswers.positives?.trim()) missingIds.add('positives')
+    if (!extraAnswers.negatives?.trim()) missingIds.add('negatives')
+  }
 
-  const answeredRequired = TOTAL_REQUIRED - missingIds.size
-  const progress = Math.round((answeredRequired / TOTAL_REQUIRED) * 100)
-  const isComplete = answeredRequired === TOTAL_REQUIRED
+  const answeredRequired = totalRequired - missingIds.size
+  const progress = Math.round((answeredRequired / totalRequired) * 100)
+  const isComplete = answeredRequired === totalRequired
 
   const appValues: Record<string, number | undefined> = {
     appEnjoyment: extraAnswers.appEnjoyment,
@@ -141,20 +152,33 @@ export function Posttest() {
       completedAnswers[question.id] = value
     }
 
-    const payload = {
-      survey: 'posttest',
-      version: SURVEY_VERSION,
-      coreAnswers: completedAnswers,
-      additionalAnswers: {
-        ...extraAnswers,
-        understandingMoment:
-          extraAnswers.understandingMoment?.trim() || undefined,
-        positives: extraAnswers.positives?.trim() || undefined,
-        negatives: extraAnswers.negatives?.trim() || undefined,
-        comments: extraAnswers.comments?.trim() || undefined,
-      },
-      completedAt: Date.now(),
-    }
+    const payload = isControl
+      ? {
+          survey: 'posttest',
+          variant: 'control',
+          version: SURVEY_VERSION,
+          coreAnswers: completedAnswers,
+          additionalAnswers: {
+            gender: extraAnswers.gender,
+            priorProgramming: extraAnswers.priorProgramming,
+            programmingExperience: extraAnswers.programmingExperience,
+          },
+          completedAt: Date.now(),
+        }
+      : {
+          survey: 'posttest',
+          version: SURVEY_VERSION,
+          coreAnswers: completedAnswers,
+          additionalAnswers: {
+            ...extraAnswers,
+            understandingMoment:
+              extraAnswers.understandingMoment?.trim() || undefined,
+            positives: extraAnswers.positives?.trim() || undefined,
+            negatives: extraAnswers.negatives?.trim() || undefined,
+            comments: extraAnswers.comments?.trim() || undefined,
+          },
+          completedAt: Date.now(),
+        }
 
     track('posttest_submit', payload)
 
@@ -194,17 +218,21 @@ export function Posttest() {
               Vielen Dank!
             </h1>
             <p className="mx-auto mt-3 max-w-[42ch] text-base leading-relaxed text-gray-600">
-              Deine Antworten wurden gespeichert. Du kannst JavaQuest jetzt zum
-              persönlichen Üben unbegrenzt weiter nutzen.
+              {isControl
+                ? 'Du hast die Abschlussumfrage abgeschlossen. Du kannst JavaQuest jetzt selbst ausprobieren.'
+                : 'Deine Antworten wurden gespeichert. Du kannst JavaQuest jetzt zum persönlichen Üben unbegrenzt weiter nutzen.'}
             </p>
             <button
               className="mt-8 rounded-lg bg-green-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700 focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2 focus-visible:outline-none"
               onClick={() => {
+                if (isControl) {
+                  clearUserData()
+                }
                 sessionStorage.setItem(OVERVIEW_SCROLL_KEY, '0')
                 navigate(core, '/')
               }}
             >
-              Zur Startseite
+              {isControl ? 'JavaQuest ausprobieren' : 'Zur Startseite'}
             </button>
           </div>
         </div>
@@ -226,9 +254,9 @@ export function Posttest() {
             </h1>
 
             <p className="mt-6 text-base leading-relaxed text-gray-600">
-              Bitte beantworte die folgenden Fragen zu deiner Einschätzung und
-              zur Arbeit mit JavaQuest. Es gibt keine richtigen oder falschen
-              Antworten.
+              {isControl
+                ? 'Bitte beantworte die folgenden Fragen zu deiner Einschätzung. Es gibt keine richtigen oder falschen Antworten.'
+                : 'Bitte beantworte die folgenden Fragen zu deiner Einschätzung und zur Arbeit mit JavaQuest. Es gibt keine richtigen oder falschen Antworten.'}
             </p>
           </header>
 
@@ -346,102 +374,108 @@ export function Posttest() {
             </div>
           </section>
 
-          <section
-            aria-labelledby="posttest-app"
-            className="border-t border-gray-100 px-4 py-6 sm:px-8 sm:py-8"
-          >
-            <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
-              <div>
+          {!isControl && (
+            <>
+              <section
+                aria-labelledby="posttest-app"
+                className="border-t border-gray-100 px-4 py-6 sm:px-8 sm:py-8"
+              >
+                <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+                  <div>
+                    <h2
+                      id="posttest-app"
+                      className="text-lg font-semibold text-gray-900"
+                    >
+                      Arbeit mit der App
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Bezieht sich auf deine Erfahrung mit JavaQuest.
+                    </p>
+                  </div>
+                  <span className="text-xs tabular-nums text-gray-500">
+                    7-stufige Skala
+                  </span>
+                </div>
+
+                <div className="mt-4">
+                  <LikertMatrix
+                    questions={APP_QUESTIONS}
+                    values={appValues}
+                    options={SCALE_7}
+                    scaleLabels={SCALE_7_LABELS}
+                    hint={SCALE_7_HINT}
+                    legend="Skala"
+                    namePrefix="posttest-app"
+                    errorIds={showErrors ? missingIds : undefined}
+                    onChange={(id, value) =>
+                      updateNumber(id as NumericAnswerKey, value)
+                    }
+                  />
+                </div>
+              </section>
+
+              <section
+                aria-labelledby="posttest-open"
+                className="border-t border-gray-100 px-4 py-6 sm:px-8 sm:py-8"
+              >
                 <h2
-                  id="posttest-app"
+                  id="posttest-open"
                   className="text-lg font-semibold text-gray-900"
                 >
-                  Arbeit mit der App
+                  Offene Fragen
                 </h2>
                 <p className="mt-1 text-sm text-gray-500">
-                  Bezieht sich auf deine Erfahrung mit JavaQuest.
+                  Hier ist Platz für deine persönliche Rückmeldung.
                 </p>
-              </div>
-              <span className="text-xs tabular-nums text-gray-500">
-                7-stufige Skala
-              </span>
-            </div>
 
-            <div className="mt-4">
-              <LikertMatrix
-                questions={APP_QUESTIONS}
-                values={appValues}
-                options={SCALE_7}
-                scaleLabels={SCALE_7_LABELS}
-                hint={SCALE_7_HINT}
-                legend="Skala"
-                namePrefix="posttest-app"
-                errorIds={showErrors ? missingIds : undefined}
-                onChange={(id, value) =>
-                  updateNumber(id as NumericAnswerKey, value)
-                }
-              />
-            </div>
-          </section>
+                <div className="mt-5 space-y-6">
+                  <SurveyTextarea
+                    id="understandingMoment"
+                    label="Gab es einen Moment, in dem du dachtest: „Jetzt habe ich es verstanden“?"
+                    hint="Beschreibe kurz die Situation und was dir geholfen hat."
+                    value={extraAnswers.understandingMoment ?? ''}
+                    onChange={(value) =>
+                      updateExtra('understandingMoment', value)
+                    }
+                  />
 
-          <section
-            aria-labelledby="posttest-open"
-            className="border-t border-gray-100 px-4 py-6 sm:px-8 sm:py-8"
-          >
-            <h2
-              id="posttest-open"
-              className="text-lg font-semibold text-gray-900"
-            >
-              Offene Fragen
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Hier ist Platz für deine persönliche Rückmeldung.
-            </p>
+                  <SurveyTextarea
+                    id="positives"
+                    label="Nenne zwei Dinge, die dir an der App positiv aufgefallen sind."
+                    hint="Zum Beispiel: Was hat dir beim Lernen geholfen?"
+                    required
+                    value={extraAnswers.positives ?? ''}
+                    error={showErrors && missingIds.has('positives')}
+                    onChange={(value) => updateExtra('positives', value)}
+                  />
 
-            <div className="mt-5 space-y-6">
-              <SurveyTextarea
-                id="understandingMoment"
-                label="Gab es einen Moment, in dem du dachtest: „Jetzt habe ich es verstanden“?"
-                hint="Beschreibe kurz die Situation und was dir geholfen hat."
-                value={extraAnswers.understandingMoment ?? ''}
-                onChange={(value) => updateExtra('understandingMoment', value)}
-              />
+                  <SurveyTextarea
+                    id="negatives"
+                    label="Nenne zwei Dinge, die dir an der App negativ aufgefallen sind."
+                    hint="Zum Beispiel: Was hat dich aufgehalten oder gestört?"
+                    required
+                    value={extraAnswers.negatives ?? ''}
+                    error={showErrors && missingIds.has('negatives')}
+                    onChange={(value) => updateExtra('negatives', value)}
+                  />
 
-              <SurveyTextarea
-                id="positives"
-                label="Nenne zwei Dinge, die dir an der App positiv aufgefallen sind."
-                hint="Zum Beispiel: Was hat dir beim Lernen geholfen?"
-                required
-                value={extraAnswers.positives ?? ''}
-                error={showErrors && missingIds.has('positives')}
-                onChange={(value) => updateExtra('positives', value)}
-              />
-
-              <SurveyTextarea
-                id="negatives"
-                label="Nenne zwei Dinge, die dir an der App negativ aufgefallen sind."
-                hint="Zum Beispiel: Was hat dich aufgehalten oder gestört?"
-                required
-                value={extraAnswers.negatives ?? ''}
-                error={showErrors && missingIds.has('negatives')}
-                onChange={(value) => updateExtra('negatives', value)}
-              />
-
-              <SurveyTextarea
-                id="comments"
-                label="Weitere Anmerkungen"
-                hint="Alles, was du sonst noch loswerden möchtest."
-                value={extraAnswers.comments ?? ''}
-                onChange={(value) => updateExtra('comments', value)}
-              />
-            </div>
-          </section>
+                  <SurveyTextarea
+                    id="comments"
+                    label="Weitere Anmerkungen"
+                    hint="Alles, was du sonst noch loswerden möchtest."
+                    value={extraAnswers.comments ?? ''}
+                    onChange={(value) => updateExtra('comments', value)}
+                  />
+                </div>
+              </section>
+            </>
+          )}
         </div>
 
         <div className="sticky bottom-0 z-30 mt-5 rounded-2xl border border-green-100 bg-white/95 px-4 py-3 shadow-lg shadow-green-900/5 backdrop-blur sm:px-6 sm:py-4">
           <div className="flex items-center justify-between gap-4 text-xs text-gray-500">
             <span aria-live="polite">
-              {answeredRequired} von {TOTAL_REQUIRED} Pflichtangaben
+              {answeredRequired} von {totalRequired} Pflichtangaben
             </span>
             <span className="tabular-nums">{progress}%</span>
           </div>
@@ -451,7 +485,7 @@ export function Posttest() {
             role="progressbar"
             aria-label="Fortschritt der Umfrage"
             aria-valuemin={0}
-            aria-valuemax={TOTAL_REQUIRED}
+            aria-valuemax={totalRequired}
             aria-valuenow={answeredRequired}
           >
             <div
@@ -470,7 +504,7 @@ export function Posttest() {
             >
               {showErrors && missingIds.size > 0
                 ? `Es fehlen noch ${missingIds.size} Pflichtangaben.`
-                : answeredRequired === TOTAL_REQUIRED
+                : answeredRequired === totalRequired
                   ? 'Alles ausgefüllt – du kannst abschließen.'
                   : 'Bitte fülle alle Pflichtfelder aus.'}
             </p>

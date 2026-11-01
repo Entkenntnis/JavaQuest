@@ -62,6 +62,8 @@ export function App() {
       return <Posttest />
     } else if (core.ws.page == 'control-wait') {
       return <ControlWait />
+    } else if (core.ws.page == 'control-posttest') {
+      return <Posttest variant="control" />
     }
     return null
   }

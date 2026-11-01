@@ -3,7 +3,12 @@ import { submitEvent } from '../events/submit'
 import { track } from '../events/track'
 import type { Core } from '../state/core'
 import { clearStudyData, getStudyData } from '../state/user-data'
-import { GROUP_LABELS, isControlWaiting } from '../study/groups'
+import {
+  CONTROL_WAIT_MS,
+  GROUP_LABELS,
+  isControlGroup,
+  isControlWaiting,
+} from '../study/groups'
 
 export async function navigate(core: Core, url: string) {
   history.pushState(null, '', url)
@@ -22,13 +27,18 @@ export async function hydrate(core: Core) {
   core.reset()
 
   const study = getStudyData()
+  const controlPosttestPath = '/control/posttest'
+  const controlWaitOver =
+    study.pretestAt !== undefined &&
+    Date.now() >= study.pretestAt + CONTROL_WAIT_MS
 
   // While the control group is waiting, every app route leads back to the
   // waiting screen. Consent stays reachable so participants can withdraw.
   if (
     isControlWaiting(study) &&
     path !== '/wait' &&
-    path !== '/consent'
+    path !== '/consent' &&
+    !(path === controlPosttestPath && controlWaitOver)
   ) {
     history.replaceState(null, '', '/wait')
     core.mutateWs((ws) => {
@@ -44,6 +54,26 @@ export async function hydrate(core: Core) {
 
     core.mutateWs((ws) => {
       ws.page = 'control-wait'
+    })
+    return
+  }
+
+  if (path == controlPosttestPath) {
+    if (
+      !isControlGroup(study.groupId) ||
+      study.pretestAt === undefined ||
+      study.posttestAt !== undefined
+    ) {
+      return await navigate(core, '/')
+    }
+
+    if (Date.now() < study.pretestAt + CONTROL_WAIT_MS) {
+      return await navigate(core, '/wait')
+    }
+
+    track('posttest_start', { variant: 'control' })
+    core.mutateWs((ws) => {
+      ws.page = 'control-posttest'
     })
     return
   }

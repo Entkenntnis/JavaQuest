@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { navigate } from '../../lib/router/navigate'
+import { useCore } from '../../lib/state/core'
 import { getStudyData } from '../../lib/state/user-data'
 import { CONTROL_WAIT_MS } from '../../lib/study/groups'
 
@@ -10,6 +12,7 @@ function formatRemaining(ms: number) {
 }
 
 export function ControlWait() {
+  const core = useCore()
   const [waitUntil] = useState(() => {
     const pretestAt = getStudyData().pretestAt
     return (pretestAt ?? Date.now()) + CONTROL_WAIT_MS
@@ -103,6 +106,15 @@ export function ControlWait() {
               </div>
             </div>
 
+            {done && (
+              <button
+                className="mt-5 w-full rounded-xl bg-green-600 px-6 py-4 text-lg font-semibold text-white transition-colors hover:bg-green-700 focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2 focus-visible:outline-none"
+                onClick={() => navigate(core, '/control/posttest')}
+              >
+                Post-Test starten
+              </button>
+            )}
+
             <div className="mt-5 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-600">
               <p>
                 <strong className="font-medium text-gray-800">
@@ -113,8 +125,8 @@ export function ControlWait() {
               </p>
               <p className="mt-2">
                 {done
-                  ? 'Öffne jetzt den zweiten Link, um mit der Abschlussumfrage zu beginnen.'
-                  : 'Nach Ablauf der Wartezeit kannst du mit dem zweiten Link fortfahren.'}
+                  ? 'Die Wartezeit ist beendet. Du kannst jetzt mit der Abschlussumfrage beginnen.'
+                  : 'Nach Ablauf der Wartezeit kannst du hier mit der Abschlussumfrage fortfahren.'}
               </p>
             </div>
           </section>

@@ -72,6 +72,7 @@ type Page =
   | 'pretest'
   | 'posttest'
   | 'control-wait'
+  | 'control-posttest'
 
 export interface QuestData {
   id: number
