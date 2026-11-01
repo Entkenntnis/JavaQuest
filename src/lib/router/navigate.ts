@@ -3,6 +3,7 @@ import { submitEvent } from '../events/submit'
 import { track } from '../events/track'
 import type { Core } from '../state/core'
 import { clearStudyData, getStudyData } from '../state/user-data'
+import { GROUP_LABELS } from '../study/groups'
 
 export async function navigate(core: Core, url: string) {
   history.pushState(null, '', url)
@@ -48,23 +49,12 @@ export async function hydrate(core: Core) {
     return
   }
 
-  if (
-    [
-      '/t0',
-      '/t1',
-      '/t2',
-      '/t3',
-      '/t4',
-      '/t5',
-      '/t6',
-      '/t7',
-      '/t8',
-      '/t9',
-    ].includes(path)
-  ) {
+  const groupId = path.startsWith('/') ? path.slice(1) : ''
+
+  if (Object.hasOwn(GROUP_LABELS, groupId)) {
     core.mutateWs((ws) => {
       ws.page = 'group-select'
-      ws.study.group = path.substring(1)
+      ws.study.group = groupId
     })
     return
   }

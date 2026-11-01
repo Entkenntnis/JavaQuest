@@ -194,8 +194,8 @@ export function Posttest() {
               Vielen Dank!
             </h1>
             <p className="mx-auto mt-3 max-w-[42ch] text-base leading-relaxed text-gray-600">
-              Deine Antworten wurden gespeichert. Du kannst JavaQuest jetzt
-              weiter nutzen.
+              Deine Antworten wurden gespeichert. Du kannst JavaQuest jetzt zum
+              persönlichen Üben unbegrenzt weiter nutzen.
             </p>
             <button
               className="mt-8 rounded-lg bg-green-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700 focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2 focus-visible:outline-none"

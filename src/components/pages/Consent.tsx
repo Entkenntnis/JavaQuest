@@ -9,10 +9,49 @@ import {
   getStudyData,
   setConsentedAt,
 } from '../../lib/state/user-data'
+import { isControlGroup } from '../../lib/study/groups'
 import { OVERVIEW_SCROLL_KEY } from './Overview'
 import { track } from '../../lib/events/track'
 
-function ConsentText() {
+function ControlConsentText() {
+  return (
+    <>
+      <p className="mt-6">
+        Diese Webseite ist Teil meiner Masterarbeit zum Thema „Lernen von
+        booleschen Ausdrücken“. In der Kontrollgruppe füllst du zu Beginn und
+        nach einer Wartezeit von mindestens 20 Minuten je einen Fragebogen aus.
+        Es werden keine Aufgaben in der Lern-App bearbeitet. Bei Fragen bin ich,
+        Quinn Li (sie/ihr), als Ansprechperson unter{' '}
+        <a href="mailto:d.li1@campus.lmu.de" className="text-blue-500">
+          d.li1@campus.lmu.de
+        </a>{' '}
+        erreichbar.
+      </p>
+      <p className="mt-6">
+        Wenn du der Datenerhebung zustimmst, wird auf diesem Gerät eine
+        zufällige ID generiert und gespeichert. Es werden deine Antworten auf die
+        Umfragen und die jeweiligen Zeitpunkte unter dieser ID gespeichert. Die
+        Daten werden dabei nicht mit deinem Namen oder deiner E-Mail-Adresse
+        verknüpft, sondern liegen nur in pseudonymer Form unter der zufälligen ID
+        vor. Zugriff auf die Rohdaten haben nur ich und meine Betreuung. Die
+        Daten werden statistisch ausgewertet und können in anonymisierter Form
+        als Teil von Forschungsbeiträgen veröffentlicht werden. Nach der
+        Auswertung werden die Rohdaten gelöscht, spätestens nach Abschluss der
+        Bewertung der Masterarbeit.
+      </p>
+      <p className="mt-6">
+        Die Teilnahme an der Datenerhebung ist freiwillig. Du kannst die Nutzung
+        jederzeit beenden – auch während einer Umfrage – ohne dass dir daraus
+        negative Konsequenzen entstehen. Deine Zustimmung kannst du außerdem
+        jederzeit per E-Mail widerrufen; die bis dahin erhobenen Daten werden
+        dann nicht weiter verwendet und gelöscht (sofern eine Zuordnung möglich
+        ist).
+      </p>
+    </>
+  )
+}
+
+function TreatmentConsentText() {
   return (
     <>
       <p className="mt-6">
@@ -61,9 +100,14 @@ function ConsentText() {
   )
 }
 
+function ConsentText({ isControl }: { isControl: boolean }) {
+  return isControl ? <ControlConsentText /> : <TreatmentConsentText />
+}
+
 export function Consent() {
   const core = useCore()
   const study = getStudyData()
+  const isControl = isControlGroup(study.groupId)
   const [hasAccepted, setHasAccepted] = useState(
     study.consentedAt !== undefined,
   )
@@ -101,8 +145,19 @@ export function Consent() {
             Du hast bereits eingewilligt.
           </h1>
           <p className="mt-6 text-gray-700">
-            Deine Einwilligung ist gespeichert. Du musst nichts weiter tun.
+            Deine Einwilligung ist gespeichert.{' '}
+            {isControl
+              ? 'Du kannst mit dem Pretest fortfahren.'
+              : 'Du musst nichts weiter tun.'}
           </p>
+          {isControl && (
+            <button
+              className="mt-6 rounded-lg bg-green-600 px-4 py-2 font-medium text-white transition-colors hover:bg-green-700"
+              onClick={() => navigate(core, '/')}
+            >
+              Weiter zum Pretest
+            </button>
+          )}
           <p className="mt-2 text-sm text-gray-500">
             Wenn du deine Einwilligung widerrufen möchtest, kannst du die lokal
             gespeicherten Daten hier löschen.
@@ -112,7 +167,7 @@ export function Consent() {
               Einwilligungstext erneut lesen
             </summary>
             <div className="mt-2 border-l-2 border-gray-200 pl-4 text-sm text-gray-600">
-              <ConsentText />
+              <ConsentText isControl={isControl} />
             </div>
           </details>
           <button
@@ -124,9 +179,11 @@ export function Consent() {
                 )
               ) {
                 track('consent_revoked')
-                sessionStorage.setItem(OVERVIEW_SCROLL_KEY, '0')
+                if (!isControl) {
+                  sessionStorage.setItem(OVERVIEW_SCROLL_KEY, '0')
+                }
                 clearUserData()
-                navigate(core, '/')
+                navigate(core, isControl ? '/control' : '/')
               }
             }}
           >
@@ -146,7 +203,7 @@ export function Consent() {
         <h1 className="text-3xl font-bold mt-4">
           Schön, dass du hier bist! 👋
         </h1>
-        <ConsentText />
+        <ConsentText isControl={isControl} />
         <label className="mt-8 flex items-start gap-3 cursor-pointer select-none">
           <input
             type="checkbox"
@@ -166,14 +223,16 @@ export function Consent() {
           >
             Zustimmen und weiter
           </button>
-          <button
-            className="text-xs text-gray-400 hover:text-gray-600 hover:underline mr-6"
-            onClick={() => setShowDeclineConfirm(true)}
-          >
-            Ohne Datenerhebung fortfahren
-          </button>
+          {!isControl && (
+            <button
+              className="text-xs text-gray-400 hover:text-gray-600 hover:underline mr-6"
+              onClick={() => setShowDeclineConfirm(true)}
+            >
+              Ohne Datenerhebung fortfahren
+            </button>
+          )}
         </div>
-        {showDeclineConfirm && (
+        {!isControl && showDeclineConfirm && (
           <div className="mt-4 border-l-2 border-gray-200 pl-3 text-sm text-gray-500">
             <p>
               Bist du sicher? Deine Daten helfen mir sehr, das Lernwerkzeug und

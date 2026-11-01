@@ -1,19 +1,7 @@
 import { navigate } from '../../lib/router/navigate'
 import { useCore } from '../../lib/state/core'
 import { getStudyData, setGroup } from '../../lib/state/user-data'
-
-const GROUPS: Record<string, string> = {
-  t0: 'Test-Gruppe',
-  t1: 'Mo 10–12 (F.)',
-  t2: 'Mo 12–14 (L.)',
-  t3: 'Mo 12–14 (F.)',
-  t4: 'Mo 14–16 (Q.)',
-  t5: 'Mo 14–16 (F.)',
-  t6: 'Mo 16–18 (Q.)',
-  t7: 'Di 10–12 (C.)',
-  t8: 'Ersatz',
-  t9: 'Ersatz',
-}
+import { GROUP_LABELS, isControlGroup } from '../../lib/study/groups'
 
 const buttonClass =
   'mt-6 w-full rounded-lg bg-pink-500 px-4 py-2.5 font-medium text-white transition-colors hover:bg-pink-600'
@@ -28,11 +16,11 @@ export function GroupSelect() {
     return <div>Interner Fehler</div>
   }
 
-  const groupTitle = GROUPS[group] ?? group
+  const groupTitle = GROUP_LABELS[group] ?? group
 
   // people might accidentally restart the study, guard
   if (study.consentedAt !== undefined && study.groupId) {
-    const title = GROUPS[study.groupId] ?? study.groupId
+    const title = GROUP_LABELS[study.groupId] ?? study.groupId
 
     return (
       <div className="h-full overflow-auto bg-rose-50">
@@ -55,7 +43,7 @@ export function GroupSelect() {
               navigate(core, '/')
             }}
           >
-            Zur Startseite
+            {isControlGroup(study.groupId) ? 'Weiter' : 'Zur Startseite'}
           </button>
         </div>
       </div>
