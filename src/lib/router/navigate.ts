@@ -3,7 +3,7 @@ import { submitEvent } from '../events/submit'
 import { track } from '../events/track'
 import type { Core } from '../state/core'
 import { clearStudyData, getStudyData } from '../state/user-data'
-import { GROUP_LABELS } from '../study/groups'
+import { GROUP_LABELS, isControlWaiting } from '../study/groups'
 
 export async function navigate(core: Core, url: string) {
   history.pushState(null, '', url)
@@ -20,6 +20,33 @@ export async function hydrate(core: Core) {
   console.log(`-> hydrate path:${path}, hash:${hash}, search:${parameterList}`)
 
   core.reset()
+
+  const study = getStudyData()
+
+  // While the control group is waiting, every app route leads back to the
+  // waiting screen. Consent stays reachable so participants can withdraw.
+  if (
+    isControlWaiting(study) &&
+    path !== '/wait' &&
+    path !== '/consent'
+  ) {
+    history.replaceState(null, '', '/wait')
+    core.mutateWs((ws) => {
+      ws.page = 'control-wait'
+    })
+    return
+  }
+
+  if (path == '/wait') {
+    if (!isControlWaiting(study)) {
+      return await navigate(core, '/')
+    }
+
+    core.mutateWs((ws) => {
+      ws.page = 'control-wait'
+    })
+    return
+  }
 
   if (path.startsWith('/quest-')) {
     const id = parseInt(path.substring(7))
@@ -58,8 +85,6 @@ export async function hydrate(core: Core) {
     })
     return
   }
-
-  const study = getStudyData()
 
   if (path == '/consent') {
     // this consent page must not be shown when group is already select

@@ -9,6 +9,7 @@ import { Consent } from './pages/Consent'
 import { GroupSelect } from './pages/GroupSelect'
 import { Pretest } from './pages/Pretest'
 import { Posttest } from './pages/Posttest'
+import { ControlWait } from './pages/ControlWait'
 
 export function App() {
   const core = useCreateCore()
@@ -59,6 +60,8 @@ export function App() {
       return <Pretest />
     } else if (core.ws.page == 'posttest') {
       return <Posttest />
+    } else if (core.ws.page == 'control-wait') {
+      return <ControlWait />
     }
     return null
   }

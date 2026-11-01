@@ -108,6 +108,10 @@ export function Consent() {
   const core = useCore()
   const study = getStudyData()
   const isControl = isControlGroup(study.groupId)
+  const controlReturnsToWait =
+    isControl &&
+    study.pretestAt !== undefined &&
+    study.posttestAt === undefined
   const [hasAccepted, setHasAccepted] = useState(
     study.consentedAt !== undefined,
   )
@@ -147,15 +151,19 @@ export function Consent() {
           <p className="mt-6 text-gray-700">
             Deine Einwilligung ist gespeichert.{' '}
             {isControl
-              ? 'Du kannst mit dem Pretest fortfahren.'
+              ? controlReturnsToWait
+                ? 'Du kannst zur Wartezeit zurückkehren.'
+                : 'Du kannst mit dem Pretest fortfahren.'
               : 'Du musst nichts weiter tun.'}
           </p>
           {isControl && (
             <button
               className="mt-6 rounded-lg bg-green-600 px-4 py-2 font-medium text-white transition-colors hover:bg-green-700"
-              onClick={() => navigate(core, '/')}
+              onClick={() =>
+                navigate(core, controlReturnsToWait ? '/wait' : '/')
+              }
             >
-              Weiter zum Pretest
+              {controlReturnsToWait ? 'Zur Wartezeit' : 'Weiter zum Pretest'}
             </button>
           )}
           <p className="mt-2 text-sm text-gray-500">

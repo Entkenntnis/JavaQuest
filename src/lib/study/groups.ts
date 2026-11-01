@@ -1,4 +1,8 @@
+import type { STUDY_DATA_ALWAYS_KEEP_COMPATIBLE } from '../state/types'
+
 export const CONTROL_GROUP_ID = 'control'
+
+export const CONTROL_WAIT_MS = 20 * 60 * 1000
 
 export const GROUP_LABELS: Record<string, string> = {
   [CONTROL_GROUP_ID]: 'Kontrollgruppe',
@@ -16,4 +20,12 @@ export const GROUP_LABELS: Record<string, string> = {
 
 export function isControlGroup(groupId?: string) {
   return groupId === CONTROL_GROUP_ID
+}
+
+export function isControlWaiting(study: STUDY_DATA_ALWAYS_KEEP_COMPATIBLE) {
+  return (
+    isControlGroup(study.groupId) &&
+    study.pretestAt !== undefined &&
+    study.posttestAt === undefined
+  )
 }

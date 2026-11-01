@@ -71,6 +71,7 @@ type Page =
   | 'group-select'
   | 'pretest'
   | 'posttest'
+  | 'control-wait'
 
 export interface QuestData {
   id: number
