@@ -49,7 +49,9 @@ export function LikertMatrix({
         <div className={clsx('grid shrink-0 gap-1.5', gridClass, widthClass)}>
           {options.map((option, index) => (
             <div key={option} className="text-center">
-              <div className="text-xs font-semibold text-gray-700">{option}</div>
+              <div className="text-xs font-semibold text-gray-700">
+                {option}
+              </div>
               <div className="text-[10px] leading-tight text-gray-500">
                 {scaleLabels[index]}
               </div>
@@ -106,7 +108,7 @@ export function LikertMatrix({
                         <label
                           key={option}
                           className={clsx(
-                            'flex h-11 cursor-pointer items-center justify-center rounded-lg border text-sm font-semibold transition-colors focus-within:ring-2 focus-within:ring-green-600 focus-within:ring-offset-1',
+                            'relative flex h-11 cursor-pointer items-center justify-center rounded-lg border text-sm font-semibold transition-colors focus-within:ring-2 focus-within:ring-green-600 focus-within:ring-offset-1',
                             selected
                               ? 'border-green-600 bg-green-600 text-white shadow-sm'
                               : 'border-gray-200 bg-white text-gray-600 hover:border-green-300 hover:bg-green-50',
