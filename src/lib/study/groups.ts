@@ -14,7 +14,7 @@ export const GROUP_LABELS: Record<string, string> = {
   t5: 'Mo 14–16 (F.)',
   t6: 'Mo 16–18 (Q.)',
   t7: 'Di 10–12 (C.)',
-  t8: 'Ersatz',
+  t8: 'Di 10-12 (Q.)',
   t9: 'Ersatz',
 }
 
